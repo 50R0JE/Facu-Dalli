@@ -325,6 +325,10 @@
   .co-name { font-size:15px; color:var(--txt); font-weight:600; }
   .co-arrow { color:var(--txt-3); font-size:20px; }
   .co-client-name { font-size:22px; font-weight:800; color:#fff; margin-bottom:4px; }
+  .co-list { margin-top:10px; }
+  .co-row { display:flex; justify-content:space-between; align-items:center; padding:11px 14px; background:var(--card); border:1px solid var(--border); border-radius:4px; margin-bottom:6px; font-size:14px; color:var(--txt); }
+  .co-val { font-weight:700; font-variant-numeric:tabular-nums; }
+  .co-prog { margin-top:12px; padding:12px 14px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; font-size:14px; font-weight:700; color:var(--blue-2); text-align:center; }
   .join-box { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-top:24px; }
   .join-t { font-size:13px; color:var(--txt-2); margin-bottom:10px; font-weight:600; }
   #authHost { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); align-items:center; justify-content:center; padding:24px; }
@@ -1440,16 +1444,22 @@ function renderCoach(){
     else if(d.error){ body='<div class="cal-hint">No se pudo cargar. Reintentá.</div>'; }
     else {
       const wchart=d.weights.length ? renderWChart(d.weights) : '<div class="cal-hint">Sin registros de peso.</div>';
+      const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
       const exs=coachExercises(d.sessions); let cargas="";
       if(exs.length){
         if(!d.loadEx||exs.indexOf(d.loadEx)<0) d.loadEx=exs[0];
         const series=coachSeries(d.sessions,d.loadEx);
         const opts=exs.map(n=>'<option value="'+esc(n)+'"'+(n===d.loadEx?' selected':'')+'>'+esc(n)+'</option>').join("");
         const cch=series.length?renderWChart(series):'<div class="cal-hint">Sin kg en este ejercicio.</div>';
-        cargas='<div class="co-sec">Evolución de cargas</div><select class="form-input" data-coach="ex">'+opts+'</select><div class="load-cap">Máx. kg por sesión</div>'+cch;
+        let prog="", clist="";
+        if(series.length){
+          if(series.length>=2){ const a0=series[0].kg, b0=series[series.length-1].kg, df=b0-a0; prog='<div class="co-prog">'+a0.toFixed(1)+' kg → '+b0.toFixed(1)+' kg  ('+(df>=0?'+':'')+df.toFixed(1)+' kg)</div>'; }
+          clist='<div class="co-list">'+series.slice().reverse().map(p=>'<div class="co-row"><span>'+fmtDate(p.date)+'</span><span class="co-val">'+p.kg.toFixed(1)+' kg</span></div>').join("")+'</div>';
+        }
+        cargas='<div class="co-sec">Evolución de cargas</div><select class="form-input" data-coach="ex">'+opts+'</select><div class="load-cap">Máx. kg por sesión</div>'+cch+prog+clist;
       }
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
-      body='<div class="co-sec">Peso corporal</div>'+wchart+cargas+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'');
+      body='<div class="co-sec">Peso corporal</div>'+wchart+wlist+cargas+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'');
     }
     host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
