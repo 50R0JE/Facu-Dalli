@@ -311,6 +311,16 @@
   .sess-exs { font-size:12px; color:var(--txt-2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:9px 16px; border-radius:4px; cursor:pointer; }
   .reset-routine:active { background:var(--card-2); }
+  #authHost { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); align-items:center; justify-content:center; padding:24px; }
+  .auth-card { width:100%; max-width:340px; display:flex; flex-direction:column; gap:12px; }
+  .auth-logo { font-family:"Orbitron",monospace; font-size:34px; font-weight:800; text-align:center; letter-spacing:1px; }
+  .auth-logo .b { color:var(--blue); }
+  .auth-sub { text-align:center; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.16em; margin-bottom:16px; }
+  .auth-in { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:14px; color:var(--txt); font-size:15px; }
+  .auth-btn { background:var(--blue); color:#fff; border:none; border-radius:4px; padding:15px; font-size:15px; font-weight:700; cursor:pointer; margin-top:4px; }
+  .auth-switch { text-align:center; font-size:13px; color:var(--blue-2); cursor:pointer; margin-top:8px; }
+  .auth-msg { font-size:13px; color:var(--txt-2); text-align:center; }
+  .logout-btn { display:block; width:100%; margin:24px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:13px; padding:11px; border-radius:4px; cursor:pointer; }
   .navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); }
@@ -323,6 +333,7 @@
 </style>
 </head>
 <body>
+  <div id="authHost"></div>
   <div class="topbar">
     <div class="brand">
       <div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div>
@@ -362,8 +373,11 @@
   <div id="scanHost"></div>
   <div id="restBar"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const KEY = "rutina_jero_v1";
+const SB_URL = "https://wegptuzhsrwppbknqstf.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZ3B0dXpoc3J3cHBia25xc3RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDkxODgsImV4cCI6MjA5ODU4NTE4OH0.pWBes8juiNcCrFG377w_Ga9IQ4EE37p5AJwUpYs2k8Q";
 const uid = () => Math.random().toString(36).slice(2, 9);
 const mkSet = () => ({ id: uid(), kg: "", reps: "", done: false });
 const mkSets = n => Array.from({ length: n }, mkSet);
@@ -561,7 +575,7 @@ let foodForm={name:"",kcal:"",p:"",c:"",f:""};
 const RC = 2*Math.PI*52;
 let liveCounting=false, lpf=9.8, prevDyn=0, lastStepTs=0, stepsSaveTs=0;
 
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} try { cloudSyncCore(); } catch(e){} }
 const day = () => state.days.find(d => d.id === activeId) || state.days[0];
 function checkDaily(){ const t=today(); let ch=false;
   if (state.habitsDate !== t) { state.habits.forEach(h=>h.done=false); state.habitsDate=t; ch=true; }
@@ -992,8 +1006,10 @@ function saveSession(){
     if(sets.length) exs.push({name:ex.name, sets:sets});
   });
   if(!exs.length){ alert("Cargá kg o reps en al menos una serie antes de guardar el entreno."); return; }
-  state.sessions.push({id:uid(), date:today(), ts:Date.now(), day:d.name, exercises:exs});
+  const _ns={id:uid(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
+  state.sessions.push(_ns);
   save();
+  try{ cloudInsertSession(_ns); }catch(e){}
   alert("¡Entreno guardado! 💪  Mirá tu progreso en Progreso → Evolución de cargas.");
   renderApp();
 }
@@ -1022,7 +1038,8 @@ function renderProgreso(){
     ${list?`<div class="w-list-head">Historial de peso</div>${list}`:""}
     ${renderCargas()}
     ${renderHistorial()}
-    ${renderVolumen()}`;
+    ${renderVolumen()}
+    ${cloudUser ? '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' : ''}`;
 }
 
 // ===== Escáner de código de barras =====
@@ -1226,7 +1243,7 @@ document.body.addEventListener("click", e => {
   if (a === "rest-play") { startRest(state.restDefault||120); return; }
   if (a === "rest-stop") { stopRest(); return; }
   if (a === "save-session") { saveSession(); return; }
-  if (a === "session-remove") { if(confirm("¿Borrar este entreno del historial?")){ state.sessions=state.sessions.filter(x=>x.id!==el.dataset.id); save(); renderApp(); } return; }
+  if (a === "session-remove") { if(confirm("¿Borrar este entreno del historial?")){ const _s=state.sessions.find(x=>x.id===el.dataset.id); if(_s&&_s.cloudId){ try{ cloudDeleteSession(_s.cloudId); }catch(e){} } state.sessions=state.sessions.filter(x=>x.id!==el.dataset.id); save(); renderApp(); } return; }
 
   // Días
   if (a === "load-default-routine") { if(confirm("Esto reemplaza tus días de rutina actuales por la rutina por defecto (Upper/Lower). No toca tus pesos, sesiones ni hábitos. ¿Seguro?")){ state.days = JSON.parse(JSON.stringify(DEFAULT.days)); activeId = state.days[0].id; save(); renderApp(); } return; }
@@ -1246,7 +1263,133 @@ document.body.addEventListener("click", e => {
   save(); renderApp();
 });
 
-renderApp();
+
+// ============ Supabase · Fase 1 (login + nube) ============
+let sb=null, cloudUser=null, cloudProfile=null, cloudLoading=false, routineTimer=null;
+try { if (window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){}
+
+function showLogin(msg, mode){
+  mode = mode || "in";
+  const host=document.getElementById("authHost"); if(!host) return;
+  host.style.display="flex";
+  host.innerHTML =
+    '<div class="auth-card">'+
+      '<div class="auth-logo"><span class="b">J-</span>FIT</div>'+
+      '<div class="auth-sub">Facundo Dalli · Personal Routine</div>'+
+      (mode==="up"?'<input id="auName" class="auth-in" placeholder="Tu nombre">':'')+
+      '<input id="auEmail" class="auth-in" type="email" placeholder="Email" autocomplete="username">'+
+      '<input id="auPass" class="auth-in" type="password" placeholder="Contraseña" autocomplete="current-password">'+
+      (msg?'<div class="auth-msg">'+msg+'</div>':'')+
+      '<button class="auth-btn" data-auth="'+(mode==="up"?"do-signup":"do-login")+'">'+(mode==="up"?"Crear cuenta":"Ingresar")+'</button>'+
+      '<div class="auth-switch" data-auth="'+(mode==="up"?"to-login":"to-signup")+'">'+(mode==="up"?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
+    '</div>';
+}
+function hideLogin(){ const h=document.getElementById("authHost"); if(h){ h.style.display="none"; h.innerHTML=""; } }
+
+async function afterLogin(){
+  try { const r=await sb.auth.getUser(); cloudUser=r.data.user; } catch(e){}
+  await loadCloud();
+  hideLogin();
+  renderApp();
+}
+
+async function loadCloud(){
+  if(!sb||!cloudUser) return;
+  cloudLoading=true;
+  try{
+    const pr=await sb.from("profiles").select("*").eq("id",cloudUser.id).maybeSingle();
+    cloudProfile=pr.data||null;
+    const rt=await sb.from("routines").select("days").eq("client_id",cloudUser.id).maybeSingle();
+    if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
+      state.days=rt.data.days;
+      if(!state.days.find(d=>d.id===activeId)) activeId=state.days[0].id;
+    } else {
+      await sb.from("routines").upsert({client_id:cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"});
+    }
+    const ws=await sb.from("body_weights").select("*").eq("client_id",cloudUser.id).order("measured_on");
+    if(Array.isArray(ws.data)) state.weights=ws.data.map(w=>({id:w.id, date:w.measured_on, kg:Number(w.kg)}));
+    const ss=await sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",cloudUser.id).order("created_at");
+    if(Array.isArray(ss.data)){
+      state.sessions=ss.data.map(se=>{
+        const byEx={};
+        (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); });
+        const exercises=Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}));
+        return {id:se.id, cloudId:se.id, date:se.performed_on, ts:new Date(se.created_at).getTime(), day:se.day_name, exercises:exercises};
+      });
+    }
+    save();
+  }catch(e){ console.error("loadCloud",e); }
+  cloudLoading=false;
+}
+
+function cloudSyncCore(){
+  if(!sb||!cloudUser||cloudLoading) return;
+  clearTimeout(routineTimer);
+  routineTimer=setTimeout(async ()=>{
+    try{
+      await sb.from("routines").upsert({client_id:cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"});
+      const rows=(state.weights||[]).map(w=>({client_id:cloudUser.id, measured_on:w.date, kg:w.kg}));
+      if(rows.length) await sb.from("body_weights").upsert(rows,{onConflict:"client_id,measured_on"});
+      const cw=await sb.from("body_weights").select("measured_on").eq("client_id",cloudUser.id);
+      const local=new Set((state.weights||[]).map(w=>w.date));
+      const del=(cw.data||[]).map(w=>w.measured_on).filter(d=>!local.has(d));
+      for(const dd of del){ await sb.from("body_weights").delete().eq("client_id",cloudUser.id).eq("measured_on",dd); }
+    }catch(e){ console.error("sync",e); }
+  },1200);
+}
+
+async function cloudInsertSession(se){
+  if(!sb||!cloudUser) return;
+  try{
+    const r=await sb.from("sessions").insert({client_id:cloudUser.id, performed_on:se.date, day_name:se.day}).select("id").single();
+    if(r.error) throw r.error;
+    se.cloudId=r.data.id;
+    const entries=[];
+    (se.exercises||[]).forEach(ex=>{ (ex.sets||[]).forEach((sset,i)=>{ entries.push({session_id:r.data.id, client_id:cloudUser.id, exercise_name:ex.name, set_order:i, kg:sset.kg, reps:sset.reps}); }); });
+    if(entries.length) await sb.from("session_entries").insert(entries);
+    save();
+  }catch(e){ console.error("insertSession",e); }
+}
+async function cloudDeleteSession(cid){ if(!sb||!cloudUser||!cid) return; try{ await sb.from("sessions").delete().eq("id",cid); }catch(e){} }
+
+document.body.addEventListener("click", async e=>{
+  const b=e.target.closest("[data-auth]"); if(!b) return;
+  const a=b.dataset.auth;
+  if(a==="to-signup"){ showLogin("","up"); return; }
+  if(a==="to-login"){ showLogin("","in"); return; }
+  if(a==="logout"){ try{ await sb.auth.signOut(); }catch(e){} location.reload(); return; }
+  if(a==="do-login"||a==="do-signup"){
+    const email=((document.getElementById("auEmail")||{}).value||"").trim();
+    const pass=(document.getElementById("auPass")||{}).value||"";
+    if(!email||!pass){ showLogin("Completá email y contraseña.", a==="do-signup"?"up":"in"); return; }
+    b.textContent="Cargando..."; b.disabled=true;
+    try{
+      if(a==="do-signup"){
+        const name=((document.getElementById("auName")||{}).value||"").trim();
+        const r=await sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name}}});
+        if(r.error) throw r.error;
+      } else {
+        const r=await sb.auth.signInWithPassword({email:email, password:pass});
+        if(r.error) throw r.error;
+      }
+      const sess=await sb.auth.getSession();
+      if(!sess.data.session){ showLogin("Te enviamos un mail para confirmar la cuenta. Confirmalo y despues ingresa.","in"); return; }
+      await afterLogin();
+    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), a==="do-signup"?"up":"in"); }
+    return;
+  }
+});
+
+async function cloudBoot(){
+  if(!sb){ renderApp(); return; }
+  try{
+    const sess=await sb.auth.getSession();
+    if(sess.data.session){ await afterLogin(); }
+    else { showLogin("","in"); }
+  }catch(e){ renderApp(); }
+}
+
+cloudBoot();
 </script>
 </body>
 </html>
