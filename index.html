@@ -311,6 +311,22 @@
   .sess-exs { font-size:12px; color:var(--txt-2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:9px 16px; border-radius:4px; cursor:pointer; }
   .reset-routine:active { background:var(--card-2); }
+  #coachHost { display:none; position:fixed; inset:0; z-index:150; background:var(--bg); overflow-y:auto; }
+  .co-wrap { max-width:540px; margin:0 auto; padding:18px 16px 40px; }
+  .co-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .co-title { font-family:"Orbitron",monospace; font-size:20px; font-weight:800; color:#fff; }
+  .co-logout, .co-back { background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:7px 12px; border-radius:4px; cursor:pointer; }
+  .co-invite { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; text-align:center; font-size:12px; color:var(--txt-2); margin-bottom:14px; }
+  .co-code { display:inline-block; font-family:"Orbitron",monospace; font-size:22px; font-weight:800; color:var(--blue); letter-spacing:3px; margin-top:6px; }
+  .co-invite-sub { font-size:11px; color:var(--txt-3); margin-top:8px; }
+  .co-sec { font-size:13px; color:var(--txt-2); font-weight:600; margin:22px 2px 10px; }
+  .co-item { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:15px 14px; margin-bottom:8px; cursor:pointer; }
+  .co-item:active { background:var(--card-2); }
+  .co-name { font-size:15px; color:var(--txt); font-weight:600; }
+  .co-arrow { color:var(--txt-3); font-size:20px; }
+  .co-client-name { font-size:22px; font-weight:800; color:#fff; margin-bottom:4px; }
+  .join-box { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-top:24px; }
+  .join-t { font-size:13px; color:var(--txt-2); margin-bottom:10px; font-weight:600; }
   #authHost { display:none; position:fixed; inset:0; z-index:200; background:var(--bg); align-items:center; justify-content:center; padding:24px; }
   .auth-card { width:100%; max-width:340px; display:flex; flex-direction:column; gap:12px; }
   .auth-logo { font-family:"Orbitron",monospace; font-size:34px; font-weight:800; text-align:center; letter-spacing:1px; }
@@ -334,6 +350,7 @@
 </head>
 <body>
   <div id="authHost"></div>
+  <div id="coachHost"></div>
   <div class="topbar">
     <div class="brand">
       <div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div>
@@ -1039,6 +1056,7 @@ function renderProgreso(){
     ${renderCargas()}
     ${renderHistorial()}
     ${renderVolumen()}
+    ${(cloudProfile && cloudProfile.role!=="coach" && !cloudProfile.coach_id) ? '<div class="join-box"><div class="join-t">Vinculate a tu coach</div><input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px"><button class="form-save" data-auth="join" style="margin-top:0">Vincular</button></div>' : ''}
     ${cloudUser ? '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' : ''}`;
 }
 
@@ -1268,17 +1286,18 @@ document.body.addEventListener("click", e => {
 let sb=null, cloudUser=null, cloudProfile=null, cloudLoading=false, routineTimer=null;
 try { if (window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){}
 
-function showLogin(msg, mode){
-  mode = mode || "in";
+function showLogin(msg, mode, vals){
+  mode = mode || "in"; vals = vals || {};
+  const eq = v => String(v==null?"":v).replace(/"/g,"&quot;");
   const host=document.getElementById("authHost"); if(!host) return;
   host.style.display="flex";
   host.innerHTML =
     '<div class="auth-card">'+
       '<div class="auth-logo"><span class="b">J-</span>FIT</div>'+
       '<div class="auth-sub">Facundo Dalli · Personal Routine</div>'+
-      (mode==="up"?'<input id="auName" class="auth-in" placeholder="Tu nombre">':'')+
-      '<input id="auEmail" class="auth-in" type="email" placeholder="Email" autocomplete="username">'+
-      '<input id="auPass" class="auth-in" type="password" placeholder="Contraseña" autocomplete="current-password">'+
+      (mode==="up"?'<input id="auName" class="auth-in" placeholder="Tu nombre" value="'+eq(vals.name)+'">':'')+
+      '<input id="auEmail" class="auth-in" type="email" placeholder="Email (ej: nombre@gmail.com)" autocomplete="username" value="'+eq(vals.email)+'">'+
+      '<input id="auPass" class="auth-in" type="password" placeholder="Contraseña (mínimo 6)" autocomplete="current-password">'+
       (msg?'<div class="auth-msg">'+msg+'</div>':'')+
       '<button class="auth-btn" data-auth="'+(mode==="up"?"do-signup":"do-login")+'">'+(mode==="up"?"Crear cuenta":"Ingresar")+'</button>'+
       '<div class="auth-switch" data-auth="'+(mode==="up"?"to-login":"to-signup")+'">'+(mode==="up"?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
@@ -1290,7 +1309,8 @@ async function afterLogin(){
   try { const r=await sb.auth.getUser(); cloudUser=r.data.user; } catch(e){}
   await loadCloud();
   hideLogin();
-  renderApp();
+  if (cloudProfile && cloudProfile.role==="coach"){ await loadCoachClients(); renderCoach(); }
+  else { renderApp(); }
 }
 
 async function loadCloud(){
@@ -1358,10 +1378,15 @@ document.body.addEventListener("click", async e=>{
   if(a==="to-signup"){ showLogin("","up"); return; }
   if(a==="to-login"){ showLogin("","in"); return; }
   if(a==="logout"){ try{ await sb.auth.signOut(); }catch(e){} location.reload(); return; }
+  if(a==="join"){ const code=((document.getElementById("joinCode")||{}).value||"").trim(); if(!code){ alert("Poné el código de tu coach."); return; } try{ const r=await sb.rpc("join_coach",{code:code}); if(r.data===true){ if(cloudProfile) cloudProfile.coach_id="linked"; alert("¡Listo! Te vinculaste con tu coach."); renderApp(); } else { alert("Código inválido. Revisalo con tu coach."); } }catch(err){ alert("No se pudo vincular: "+((err&&err.message)||err)); } return; }
   if(a==="do-login"||a==="do-signup"){
+    const mode = a==="do-signup"?"up":"in";
     const email=((document.getElementById("auEmail")||{}).value||"").trim();
     const pass=(document.getElementById("auPass")||{}).value||"";
-    if(!email||!pass){ showLogin("Completá email y contraseña.", a==="do-signup"?"up":"in"); return; }
+    const name=((document.getElementById("auName")||{}).value||"").trim();
+    if(!email||!pass){ showLogin("Completá email y contraseña.", mode, {name:name, email:email}); return; }
+    if(!/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(email)){ showLogin("Poné un email válido, con @ y punto (ej: nombre@gmail.com).", mode, {name:name, email:email}); return; }
+    if(pass.length<6){ showLogin("La contraseña necesita al menos 6 caracteres.", mode, {name:name, email:email}); return; }
     b.textContent="Cargando..."; b.disabled=true;
     try{
       if(a==="do-signup"){
@@ -1373,11 +1398,71 @@ document.body.addEventListener("click", async e=>{
         if(r.error) throw r.error;
       }
       const sess=await sb.auth.getSession();
-      if(!sess.data.session){ showLogin("Te enviamos un mail para confirmar la cuenta. Confirmalo y despues ingresa.","in"); return; }
+      if(!sess.data.session){ showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
       await afterLogin();
-    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), a==="do-signup"?"up":"in"); }
+    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email}); }
     return;
   }
+});
+
+// ============ Panel del Coach (Fase 2) ============
+let coachClients=[], coachSel=null, coachData=null, coachInvite=null;
+async function loadCoachClients(){
+  try{
+    const r=await sb.from("profiles").select("id, full_name").eq("coach_id",cloudUser.id).order("full_name");
+    coachClients=r.data||[];
+    const ic=await sb.rpc("my_invite_code"); coachInvite=ic.data||null;
+  }catch(e){ console.error("coachClients",e); }
+}
+function coachExercises(sessions){ const m={}; (sessions||[]).forEach(se=>se.exercises.forEach(ex=>{ if(ex.name) m[ex.name]=1; })); return Object.keys(m).sort((a,b)=>a.localeCompare(b,"es")); }
+function coachSeries(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ let mx=0; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(x=>{ const k=+x.kg||0; if(k>mx) mx=k; }); }); if(mx>0) out.push({date:se.date, kg:mx}); }); return out; }
+async function openClient(id){
+  coachSel=id; coachData={loading:true}; renderCoach();
+  try{
+    const ws=await sb.from("body_weights").select("*").eq("client_id",id).order("measured_on");
+    const ss=await sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at");
+    const weights=(ws.data||[]).map(w=>({date:w.measured_on, kg:Number(w.kg)}));
+    const sessions=(ss.data||[]).map(se=>{ const byEx={}; (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); }); return {date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))}; });
+    const c=coachClients.find(x=>x.id===id);
+    coachData={id:id, name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, loadEx:null};
+  }catch(e){ coachData={error:true}; console.error("openClient",e); }
+  renderCoach();
+}
+function renderCoach(){
+  const host=document.getElementById("coachHost"); if(!host) return;
+  host.style.display="block";
+  if(!coachSel){
+    const list=coachClients.length ? coachClients.map(c=>'<div class="co-item" data-coach="open" data-id="'+c.id+'"><div class="co-name">'+esc(c.full_name||"Sin nombre")+'</div><div class="co-arrow">›</div></div>').join("") : '<div class="cal-hint">Todavía no tenés clientes vinculados. Pasales tu código para que se unan.</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-title">Panel del Coach</div><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(coachInvite||"—")+'</span><div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div><div class="co-sec">Tus clientes ('+coachClients.length+')</div>'+list+'</div>';
+  } else {
+    const d=coachData; let body="";
+    if(!d||d.loading){ body='<div class="cal-hint">Cargando…</div>'; }
+    else if(d.error){ body='<div class="cal-hint">No se pudo cargar. Reintentá.</div>'; }
+    else {
+      const wchart=d.weights.length ? renderWChart(d.weights) : '<div class="cal-hint">Sin registros de peso.</div>';
+      const exs=coachExercises(d.sessions); let cargas="";
+      if(exs.length){
+        if(!d.loadEx||exs.indexOf(d.loadEx)<0) d.loadEx=exs[0];
+        const series=coachSeries(d.sessions,d.loadEx);
+        const opts=exs.map(n=>'<option value="'+esc(n)+'"'+(n===d.loadEx?' selected':'')+'>'+esc(n)+'</option>').join("");
+        const cch=series.length?renderWChart(series):'<div class="cal-hint">Sin kg en este ejercicio.</div>';
+        cargas='<div class="co-sec">Evolución de cargas</div><select class="form-input" data-coach="ex">'+opts+'</select><div class="load-cap">Máx. kg por sesión</div>'+cch;
+      }
+      const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
+      body='<div class="co-sec">Peso corporal</div>'+wchart+cargas+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'');
+    }
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
+  }
+}
+document.body.addEventListener("click", e=>{
+  const b=e.target.closest("[data-coach]"); if(!b) return;
+  const a=b.dataset.coach;
+  if(a==="open"){ openClient(b.dataset.id); return; }
+  if(a==="back"){ coachSel=null; coachData=null; renderCoach(); return; }
+});
+document.body.addEventListener("change", e=>{
+  const sel=e.target.closest('[data-coach="ex"]'); if(!sel||!coachData) return;
+  coachData.loadEx=sel.value; renderCoach();
 });
 
 async function cloudBoot(){
