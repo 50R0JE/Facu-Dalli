@@ -332,7 +332,23 @@
   .co-set-u { font-size:11px; color:var(--txt-3); flex:1; }
   .co-set-rm { flex-shrink:0; background:none; border:none; color:var(--txt-3); cursor:pointer; font-size:13px; padding:4px 6px; }
   .co-set-add { width:100%; margin-top:4px; background:none; border:1px dashed #2a2a2a; border-radius:4px; color:var(--txt-2); font-size:12px; padding:8px; cursor:pointer; }
-  .cp-sheet { max-width:540px; }
+  .cp-bg { position:fixed; inset:0; background:rgba(0,0,0,.65); }
+  .cp-modal { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(780px,94vw); max-height:86vh; overflow-y:auto; background:var(--card); border:1px solid var(--border); border-radius:6px; padding:20px; }
+  .cp-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .cp-title { font-size:18px; font-weight:800; color:#fff; }
+  .cp-x { background:none; border:none; color:var(--txt-3); font-size:16px; cursor:pointer; }
+  .cp-search { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:12px; color:var(--txt); font-size:14px; margin-bottom:16px; }
+  .cp-step { font-size:12px; color:var(--txt-3); margin-bottom:10px; text-transform:uppercase; letter-spacing:.08em; }
+  .cp-cats { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; }
+  .cp-cat { padding:20px 12px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; color:var(--txt); font-size:14px; font-weight:700; cursor:pointer; }
+  .cp-cat:hover { border-color:var(--blue); color:var(--blue); }
+  .cp-bar { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .cp-back { background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:7px 11px; border-radius:4px; cursor:pointer; }
+  .cp-catname { font-size:14px; color:var(--txt); font-weight:700; }
+  .cp-exs { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:8px; }
+  .cp-ex { text-align:left; padding:12px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; color:var(--txt); font-size:13px; cursor:pointer; }
+  .cp-ex:hover { border-color:var(--blue); color:var(--blue); }
+  .cp-custom { width:100%; margin-top:16px; background:none; border:1px dashed #3a3a3a; border-radius:4px; color:var(--blue-2); font-size:13px; padding:12px; cursor:pointer; }
   .co-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
   .co-title { font-family:"Orbitron",monospace; font-size:20px; font-weight:800; color:#fff; }
   .co-logout, .co-back { background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:7px 12px; border-radius:4px; cursor:pointer; }
@@ -1006,8 +1022,14 @@ function renderWChart(ws, evenX){
   const times=ws.map(e=>new Date(e.date+"T00:00:00").getTime());
   const kgs=ws.map(e=>e.kg);
   let minK=Math.min.apply(null,kgs), maxK=Math.max.apply(null,kgs);
-  let range=maxK-minK; if(range<1) range=1; const padK=range*0.18;
-  const loK=minK-padK, hiK=maxK+padK;
+  if(maxK-minK < 0.0001){ minK-=0.5; maxK+=0.5; }
+  const NICE=[0.2,0.25,0.5,1,1.25,1.5,2,2.5,5,10,20,25,50,100,200,250,500];
+  let stepK=NICE[NICE.length-1];
+  for(let i=0;i<NICE.length;i++){ if((maxK-minK)/NICE[i] <= 4){ stepK=NICE[i]; break; } }
+  let loK=Math.floor(minK/stepK)*stepK; if(minK-loK < stepK*0.2) loK-=stepK;
+  let hiK=Math.ceil(maxK/stepK)*stepK; if(hiK-maxK < stepK*0.2) hiK+=stepK;
+  const decK=(String(stepK).split(".")[1]||"").length;
+  const nTicks=Math.round((hiK-loK)/stepK);
   const minT=Math.min.apply(null,times), maxT=Math.max.apply(null,times), tRange=maxT-minT;
   const useEven = evenX || !tRange;
   const X=(t,i)=> ws.length<2 ? pl+plotW/2 : (useEven ? pl+(i/(ws.length-1))*plotW : pl+((t-minT)/tRange)*plotW);
@@ -1016,10 +1038,10 @@ function renderWChart(ws, evenX){
   const line=pts.map((p,i)=>(i?"L":"M")+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ");
   const baseY=(pt+plotH).toFixed(1);
   const area=pts.length>1 ? "M"+pts[0].x.toFixed(1)+" "+baseY+" "+pts.map(p=>"L"+p.x.toFixed(1)+" "+p.y.toFixed(1)).join(" ")+" L"+pts[pts.length-1].x.toFixed(1)+" "+baseY+" Z" : "";
-  const yVals=[hiK,(loK+hiK)/2,loK];
-  const grid=yVals.map(v=>{const y=Y(v).toFixed(1);return '<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#1d2742" stroke-width="1"/><text x="'+(pl-6)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" fill="#586087" font-size="9" text-anchor="end">'+v.toFixed(1)+'</text>';}).join("");
+  const yVals=[]; for(let i=0;i<=nTicks;i++) yVals.push(loK+i*stepK);
+  const grid=yVals.map(v=>{const y=Y(v).toFixed(1);return '<line x1="'+pl+'" y1="'+y+'" x2="'+(W-pr)+'" y2="'+y+'" stroke="#2a2a2a" stroke-width="1"/><text x="'+(pl-6)+'" y="'+(parseFloat(y)+3).toFixed(1)+'" fill="#8a8a8a" font-size="9" text-anchor="end">'+v.toFixed(decK)+'</text>';}).join("");
   const dots=pts.map((p,i)=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(i===pts.length-1?4:3)+'" fill="'+(i===pts.length-1?'#ff9a4d':'#f97316')+'"/>').join("");
-  const xl='<text x="'+pl+'" y="'+(H-6)+'" fill="#586087" font-size="9" text-anchor="start">'+fmtDate(ws[0].date)+'</text>'+(ws.length>1?'<text x="'+(W-pr)+'" y="'+(H-6)+'" fill="#586087" font-size="9" text-anchor="end">'+fmtDate(ws[ws.length-1].date)+'</text>':'');
+  const xl='<text x="'+pl+'" y="'+(H-6)+'" fill="#8a8a8a" font-size="9" text-anchor="start">'+fmtDate(ws[0].date)+'</text>'+(ws.length>1?'<text x="'+(W-pr)+'" y="'+(H-6)+'" fill="#8a8a8a" font-size="9" text-anchor="end">'+fmtDate(ws[ws.length-1].date)+'</text>':'');
   return '<div class="w-chart"><svg viewBox="0 0 '+W+' '+H+'" width="100%"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#f97316" stop-opacity="0"/></linearGradient></defs>'+grid+(area?'<path d="'+area+'" fill="url(#wg)" opacity="0.3"/>':'')+(pts.length>1?'<path d="'+line+'" fill="none" stroke="#ff9a4d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>':'')+dots+xl+'</svg></div>';
 }
 function muscleOf(name){ const n=(name||"").trim().toLowerCase(); for(const cat in EX_DB){ if(EX_DB[cat].some(x=>x.toLowerCase()===n)) return cat; } return "otros"; }
@@ -1538,28 +1560,31 @@ function renderCoachRoutine(d){
 }
 // ----- Selector de ejercicios del coach -----
 let coachPicker=null, coachPCat="pecho", coachPQ="";
-function cpList(){
-  const q=coachPQ.trim().toLowerCase();
-  if(q){ const res=[]; Object.keys(EX_DB).forEach(k=>EX_DB[k].forEach(n=>{ if(n.toLowerCase().indexOf(q)>=0) res.push(n); }));
-    return res.length?res.map(n=>'<button class="ex-pick" data-cp="choose" data-name="'+esc(n)+'">'+esc(n)+'</button>').join(""):'<div class="cal-hint">Sin resultados</div>'; }
-  return (EX_DB[coachPCat]||[]).map(n=>'<button class="ex-pick" data-cp="choose" data-name="'+esc(n)+'">'+esc(n)+'</button>').join("");
-}
 function renderCoachPicker(){
   const host=document.getElementById("coachSheetHost"); if(!host) return;
   if(!coachPicker){ host.innerHTML=""; return; }
-  const chips=EX_CATS.map(c=>'<button class="ex-chip'+(coachPCat===c[0]?' on':'')+'" data-cp="cat" data-c="'+c[0]+'">'+c[1]+'</button>').join("");
-  host.innerHTML='<div class="sheet-bg" data-cp="cancel"></div><div class="sheet cp-sheet">'+
-    '<div class="sheet-title">'+(coachPicker.mode==="swap"?"Cambiar ejercicio":"Elegir ejercicio")+'</div>'+
-    '<input class="ex-search" placeholder="\ud83d\udd0d Buscar ejercicio..." value="'+esc(coachPQ)+'" data-cp="search">'+
-    '<div class="ex-chips">'+chips+'</div>'+
-    '<div class="ex-list">'+cpList()+'</div>'+
-    '<button class="ex-custom" data-cp="custom">\u270e '+(coachPicker.mode==="swap"?"Escribir nombre propio":"Agregar con nombre propio")+'</button>'+
-    '<button class="ctrl ghost" style="max-width:none;width:100%;margin-top:10px" data-cp="cancel">Cancelar</button></div>';
+  const q=coachPQ.trim().toLowerCase();
+  let inner;
+  if(q){
+    const res=[]; Object.keys(EX_DB).forEach(k=>EX_DB[k].forEach(n=>{ if(n.toLowerCase().indexOf(q)>=0) res.push(n); }));
+    inner='<div class="cp-exs">'+(res.length?res.map(n=>'<button class="cp-ex" data-cp="choose" data-name="'+esc(n)+'">'+esc(n)+'</button>').join(""):'<div class="cal-hint">Sin resultados</div>')+'</div>';
+  } else if(!coachPCat){
+    inner='<div class="cp-step">1. Eleg\u00ed el grupo muscular</div><div class="cp-cats">'+EX_CATS.map(c=>'<button class="cp-cat" data-cp="cat" data-c="'+c[0]+'">'+c[1]+'</button>').join("")+'</div>';
+  } else {
+    const lb=(EX_CATS.find(c=>c[0]===coachPCat)||["",""])[1];
+    inner='<div class="cp-bar"><button class="cp-back" data-cp="cats">\u2039 Grupos</button><span class="cp-catname">'+esc(lb)+'</span></div>'+
+      '<div class="cp-exs">'+(EX_DB[coachPCat]||[]).map(n=>'<button class="cp-ex" data-cp="choose" data-name="'+esc(n)+'">'+esc(n)+'</button>').join("")+'</div>';
+  }
+  host.innerHTML='<div class="cp-bg" data-cp="cancel"></div><div class="cp-modal">'+
+    '<div class="cp-head"><div class="cp-title">'+(coachPicker.mode==="swap"?"Cambiar ejercicio":"Elegir ejercicio")+'</div><button class="cp-x" data-cp="cancel">\u2715</button></div>'+
+    '<input class="cp-search" placeholder="\ud83d\udd0d Buscar ejercicio en toda la base..." value="'+esc(coachPQ)+'" data-cp="search">'+
+    inner+
+    '<button class="cp-custom" data-cp="custom">\u270e '+(coachPicker.mode==="swap"?"Escribir nombre propio":"Agregar con nombre propio")+'</button></div>';
 }
 function cpApply(name){
   if(!coachData||!coachData.routine) return;
   const day=coachData.routine[coachEditDay]; if(!day) return;
-  const mm=(muscleOf(name)!=="otros")?muscleOf(name):coachPCat;
+  const mm=(muscleOf(name)!=="otros")?muscleOf(name):(coachPCat||"otros");
   if(coachPicker.mode==="swap"){ const ex=day.exercises[coachPicker.i]; if(ex){ ex.name=name; ex.mus=mm; } }
   else if(coachPicker.mode==="insert"){ day.exercises.splice(coachPicker.idx,0,mkEx(name,3,mm)); }
   else { day.exercises.push(mkEx(name,3,mm)); }
@@ -1570,13 +1595,14 @@ document.body.addEventListener("click", e=>{
   const a=b.dataset.cp;
   if(a==="cancel"){ coachPicker=null; renderCoachPicker(); return; }
   if(a==="cat"){ coachPCat=b.dataset.c; coachPQ=""; renderCoachPicker(); return; }
+  if(a==="cats"){ coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
   if(a==="choose"){ cpApply(b.dataset.name); return; }
   if(a==="custom"){ const nm=prompt(coachPicker&&coachPicker.mode==="swap"?"Nuevo nombre del ejercicio:":"Nombre del ejercicio:",""); if(nm&&nm.trim()) cpApply(nm.trim()); return; }
 });
 document.body.addEventListener("input", e=>{
   const el=e.target.closest('[data-cp="search"]'); if(!el) return;
-  coachPQ=el.value;
-  const lst=document.querySelector(".cp-sheet .ex-list"); if(lst) lst.innerHTML=cpList();
+  coachPQ=el.value; renderCoachPicker();
+  const si=document.querySelector(".cp-search"); if(si){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
 });
 function renderCoach(){
   const host=document.getElementById("coachHost"); if(!host) return;
@@ -1594,7 +1620,7 @@ function renderCoach(){
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
       body='<div class="co-grid"><div class="co-col"><div class="co-sec">Peso corporal</div>'+wchart+wlist+renderCoachCargas(d)+'</div><div class="co-col">'+renderCoachRoutine(d)+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'')+'</div></div>';
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">↻ Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
 }
 document.body.addEventListener("click", e=>{
@@ -1602,6 +1628,7 @@ document.body.addEventListener("click", e=>{
   const a=b.dataset.coach;
   if(a==="open"){ openClient(b.dataset.id); return; }
   if(a==="back"){ coachSel=null; coachData=null; renderCoach(); return; }
+  if(a==="refresh"){ if(coachSel) openClient(coachSel); return; }
   if(!coachData) return;
   if(a==="edit-day"){ coachEditDay=+b.dataset.i||0; renderCoach(); return; }
   if(a==="day-add"){ if(!coachData.routine) coachData.routine=[]; coachData.routine.push({id:uid(), name:"Nuevo día", subtitle:"", exercises:[]}); coachEditDay=coachData.routine.length-1; renderCoach(); return; }
@@ -1609,9 +1636,9 @@ document.body.addEventListener("click", e=>{
   if(a==="rt-setadd"){ const day=coachData.routine[coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex) ex.sets.push(mkSet()); renderCoach(); return; }
   if(a==="rt-setdel"){ const day=coachData.routine[coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex && ex.sets.length>1) ex.sets.splice(+b.dataset.j,1); renderCoach(); return; }
   if(a==="rt-del"){ const day=coachData.routine[coachEditDay]; day.exercises.splice(+b.dataset.i,1); renderCoach(); return; }
-  if(a==="rt-swap"){ coachPicker={mode:"swap", i:(+b.dataset.i||0)}; coachPCat="pecho"; coachPQ=""; renderCoachPicker(); return; }
-  if(a==="rt-add"){ coachPicker={mode:"add"}; coachPCat="pecho"; coachPQ=""; renderCoachPicker(); return; }
-  if(a==="rt-ins"){ coachPicker={mode:"insert", idx:(+b.dataset.i||0)}; coachPCat="pecho"; coachPQ=""; renderCoachPicker(); return; }
+  if(a==="rt-swap"){ coachPicker={mode:"swap", i:(+b.dataset.i||0)}; coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
+  if(a==="rt-add"){ coachPicker={mode:"add"}; coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
+  if(a==="rt-ins"){ coachPicker={mode:"insert", idx:(+b.dataset.i||0)}; coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
   if(a==="save-routine"){ b.textContent="Guardando..."; (async()=>{ try{ const r=await sb.from("routines").upsert({client_id:coachSel, days:coachData.routine, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"}); if(r.error) throw r.error; alert("Rutina guardada. El cliente la va a ver al abrir la app."); }catch(err){ alert("No se pudo guardar: "+((err&&err.message)||err)); } renderCoach(); })(); return; }
 });
 document.body.addEventListener("change", e=>{
