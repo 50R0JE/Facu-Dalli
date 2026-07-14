@@ -434,6 +434,10 @@
   .co-tbl td.em { color:var(--txt-3); }
   .co-tbl .rp { color:var(--txt-2); font-size:12px; }
   .co-tbl th.mx, .co-tbl td.mx { text-align:right; color:var(--blue-2); font-weight:700; }
+  .co-daystats { display:flex; gap:18px; margin:12px 2px 14px; }
+  .co-stat { font-size:12px; color:var(--txt-2); }
+  .co-stat b { color:var(--blue-2); font-size:15px; font-weight:800; margin-right:3px; font-variant-numeric:tabular-nums; }
+  .co-exc-sets { flex-shrink:0; font-size:11px; color:var(--txt-3); font-weight:700; white-space:nowrap; padding:0 4px; }
   .co-note-wrap { margin-top:10px; }
   .co-note-lbl { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
   .co-setline { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
@@ -805,7 +809,7 @@ function renderEntreno(){
       <input class="day-sub" type="text" value="${esc(d.subtitle)}" placeholder="Grupos musculares…" data-action="subtitle" ${routineLocked()?'readonly':''}>
       <div class="progress-row">
         <div class="bar"><div style="width:${pct}%"></div></div>
-        <span class="count">${done}/${total} sets</span>
+        <span class="count">${done}/${total} series</span>
         <button class="clear" data-action="clear">Limpiar</button>
       </div>
     </div>
@@ -1714,16 +1718,19 @@ function renderCoachRoutine(d){
   if(coachEditDay>=rt.length) coachEditDay=0;
   const tabs=rt.map((x,i)=>'<button class="co-daytab'+(i===coachEditDay?' on':'')+'" data-coach="edit-day" data-i="'+i+'">'+esc(x.name||('D\u00eda '+(i+1)))+'</button>').join("");
   const day=rt[coachEditDay];
+  const totalSets=(day.exercises||[]).reduce((n,x)=>n+((x.sets||[]).length),0);
+  const totalEx=(day.exercises||[]).length;
   const cards=(day.exercises||[]).map((ex,i)=>{
     const sets=(ex.sets||[]).map((st,j)=>'<div class="co-set-row"><span class="co-set-n">'+(j+1)+'</span><input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="8-12"><span class="co-set-u">reps objetivo</span><button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie">\u2715</button></div>').join("");
     return '<button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+
       '<div class="co-exc"><div class="co-exc-head"><input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
+      '<span class="co-exc-sets">'+((ex.sets||[]).length)+' series</span>'+
       '<button class="co-exc-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio">\u21c4</button>'+
       '<button class="co-exc-btn del" data-coach="rt-del" data-i="'+i+'" title="Eliminar">\u2715</button></div>'+
       '<div class="co-exc-grid">'+
         '<div class="co-exc-plan">'+sets+
           '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
-          '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="Si esta semana hiciste 50, la que viene prob\u00e1 con 55"></div>'+
+          '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder=""></div>'+
         '</div>'+
         '<div class="co-exc-prog">'+exChart(d, day.name, ex.name)+'</div>'+
         '<div class="co-exc-tbl">'+exTable(d, day.name, ex.name)+'</div>'+
@@ -1732,7 +1739,8 @@ function renderCoachRoutine(d){
   return '<div class="co-sec">Rutina y progreso</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+
     '<div class="co-dayname-row"><input class="co-dayname" data-coach="day-name" value="'+esc(day.name||"")+'" placeholder="Nombre del d\u00eda">'+(rt.length>1?'<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>':'')+'</div>'+
-    '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder="Semana de descarga: baj\u00e1 series y cargas"></div>'+
+    '<div class="co-daystats"><span class="co-stat"><b>'+totalEx+'</b> ejercicios</span><span class="co-stat"><b>'+totalSets+'</b> series en total</span></div>'+
+    '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
     '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
     '<button class="co-save-rt" data-coach="save-routine">Guardar rutina del cliente</button>';
