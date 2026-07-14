@@ -1108,6 +1108,54 @@ function renderWChart(ws, evenX, sz){
 }
 function muscleOf(name){ const n=(name||"").trim().toLowerCase(); for(const cat in EX_DB){ if(EX_DB[cat].some(x=>x.toLowerCase()===n)) return cat; } return "otros"; }
 function exMuscle(ex){ if(ex && ex.mus && EX_DB[ex.mus]) return ex.mus; return muscleOf(ex && ex.name); }
+
+// ===== Migración automática: nombres viejos (inglés/abreviados) -> español =====
+const ES_DAYS = {"Upper 1":"Torso 1","Upper 2":"Torso 2","Lower 1":"Pierna 1","Lower 2":"Pierna 2","Upper":"Torso","Lower":"Pierna"};
+const ES_MAP = {
+  "Cable Lateral Raises":"Vuelos laterales en polea","DB Lateral Raises":"Vuelos laterales con mancuernas",
+  "Press Plano Mancuernas":"Press plano con mancuernas","Press Banca":"Press de banca plano (barra)",
+  "Máquina Remo Unilateral":"Remo en máquina unilateral","Maquina Remo Unilateral":"Remo en máquina unilateral","Remo Hammer":"Remo en máquina unilateral",
+  "Upper pec Cable Flies":"Vuelos en polea","Aperturas Descendentes (Upper Pec)":"Aperturas inclinadas",
+  "Jalón Polea Abierto":"Jalón al pecho","Jalon Polea Abierto":"Jalón al pecho","Jalón V":"Jalón en V","Jalón Neutro":"Jalón neutro",
+  "Extensiones de Tríceps":"Extensión en polea","Extensiones de Triceps":"Extensión en polea","Extensión de Tríceps":"Extensión en polea",
+  "Bíceps Polea Barra Dado Vuelta":"Curl en polea","Biceps Polea Barra Dado Vuelta":"Curl en polea","Biceps Curl en Polea":"Curl en polea","Biceps Curl":"Curl con mancuernas",
+  "Gemelos":"Gemelos de pie","Standing Calves":"Gemelos de pie","Gemelos burro (donkey)":"Gemelos burro",
+  "Isquios Acostado":"Curl femoral acostado","Leg Curl":"Curl femoral acostado",
+  "RDL":"Peso muerto rumano","Peso muerto rumano (RDL)":"Peso muerto rumano",
+  "Prensa":"Prensa 45","Extensión Cuad":"Extensión de cuádriceps","Extension Cuad":"Extensión de cuádriceps",
+  "Extensiones Cuads":"Extensión de cuádriceps","Extensión de quads":"Extensión de cuádriceps","Extensión unilateral":"Extensión de cuádriceps a una pierna",
+  "Abdominales Bandera":"Bandera","Dragon flag":"Bandera","Crunches":"Encogimiento abdominal","Crunch":"Encogimiento abdominal",
+  "Decline Crunches":"Encogimiento declinado","Crunch declinado":"Encogimiento declinado","Crunch en polea":"Encogimiento en polea",
+  "Crunch invertido":"Encogimiento invertido","Crunch en máquina":"Encogimiento en máquina",
+  "T-Bar Row":"Remo en barra T","Horizontal Row":"Remo en máquina","Remo Unilateral":"Remo unilateral con mancuerna",
+  "Smith OHP":"Press de hombros en Smith","Press Smith Inclinado":"Press inclinado en Smith","Pecho Inclinado Smith":"Press inclinado en Smith",
+  "Smith Squat":"Sentadilla en Smith","Hack Squat":"Sentadilla hack","Sissy squat":"Sentadilla sissy","Búlgaras":"Sentadilla búlgara",
+  "Sentadilla goblet":"Sentadilla con mancuerna al pecho","Step Up":"Subida al cajón",
+  "Pec Dec":"Aperturas en máquina","Pec Deck":"Aperturas en máquina","Posterior en Pec Deck":"Posterior en máquina","Chest Press (máquina)":"Press de pecho en máquina",
+  "Press Francés":"Press francés con barra","Press francés (barra)":"Press francés con barra","Francés":"Press francés con barra",
+  "Predicador Unilat Mancuerna":"Curl predicador","Curl predicador (Scott)":"Curl predicador","Bayesian":"Curl en polea detrás del cuerpo","Curl Bayesian":"Curl en polea detrás del cuerpo",
+  "Lower back hyperextension":"Hiperextensiones lumbares","Posterior":"Vuelos posteriores","Vuelos con Mancuernas":"Vuelos laterales con mancuernas",
+  "Hip Thrust":"Empuje de cadera","Hip Thrust en máquina":"Empuje de cadera en máquina",
+  "Press militar (barra)":"Press militar con barra","Encogimientos (shrugs)":"Encogimientos de hombros","Face Pull":"Jalón a la cara",
+  "Pullover en polea":"Jalón con brazos rectos en polea","Pullover con mancuerna":"Jalón con brazos rectos y mancuerna",
+  "Buenos días (good morning)":"Buenos días","Russian Twist":"Giro ruso","Mountain Climbers":"Escaladores","Toes to bar":"Puntas a la barra",
+  "Hollow hold":"Plancha hueca","Dead bug":"Bicho muerto","V-ups":"Abdominales en V",
+  "Curl Reverse con barra":"Curl invertido con barra","Curl antebrazo + Reverse":"Curl de muñeca","Farmer Walk":"Caminata del granjero",
+  "Wrist roller (enrollador)":"Enrollador de muñeca","Dead hang (colgarse)":"Colgarse de la barra","Plate pinch":"Pinza con disco","Grippers de mano":"Pinza de mano",
+  "Neck curl con arnés":"Flexión de cuello con arnés","Puente de cuello (lucha)":"Puente de cuello"
+};
+function migrateNames(days){
+  let changed=false;
+  (days||[]).forEach(d=>{
+    if(ES_DAYS[d.name]){ d.name=ES_DAYS[d.name]; changed=true; }
+    (d.exercises||[]).forEach(ex=>{
+      if(ES_MAP[ex.name]){ ex.name=ES_MAP[ex.name]; changed=true; }
+      if(!ex.mus || !EX_DB[ex.mus]){ const m=muscleOf(ex.name); if(m!=="otros"){ ex.mus=m; changed=true; } }
+    });
+  });
+  return changed;
+}
+
 function renderVolumen(daysArg){
   const labels={pecho:"Pecho",espalda:"Espalda",hombros:"Hombros",biceps:"Bíceps",triceps:"Tríceps",cuadriceps:"Cuádriceps",isquios:"Isquios",gluteos:"Glúteos",gemelos:"Gemelos",abs:"Abdominales",antebrazo:"Antebrazo",cuello:"Cuello",otros:"Otros"};
   const tally={};
@@ -1482,6 +1530,7 @@ async function loadCloud(){
     const rt=await sb.from("routines").select("days").eq("client_id",cloudUser.id).maybeSingle();
     if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
       state.days=rt.data.days;
+      migrateNames(state.days);
       if(!state.days.find(d=>d.id===activeId)) activeId=state.days[0].id;
     } else {
       await sb.from("routines").upsert({client_id:cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"});
@@ -1600,6 +1649,7 @@ async function openClient(id){
     const weights=(ws.data||[]).map(w=>({date:w.measured_on, kg:Number(w.kg)}));
     const sessions=(ss.data||[]).map(se=>{ const byEx={}; (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); }); return {date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))}; });
     const routine=(rt.data&&Array.isArray(rt.data.days))?JSON.parse(JSON.stringify(rt.data.days)):[];
+    migrateNames(routine);
     const c=coachClients.find(x=>x.id===id);
     coachData={id:id, name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, routine:routine, loadEx:null};
   }catch(e){ coachData={error:true}; console.error("openClient",e); }
@@ -1810,6 +1860,7 @@ async function cloudBoot(){
   }catch(e){ renderApp(); }
 }
 
+if (migrateNames(state.days)) save();
 cloudBoot();
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
 </script>
