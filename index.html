@@ -404,6 +404,7 @@
   .ins-ex { display:block; width:100%; height:22px; margin:0 0 6px; padding:0; background:none; border:1px dashed #2a2a2a; border-radius:4px; color:var(--txt-3); font-size:13px; line-height:1; cursor:pointer; opacity:.45; transition:.15s; }
   .ins-ex:hover, .ins-ex:active { opacity:1; border-color:var(--blue); color:var(--blue); }
   .goal { flex-shrink:0; font-size:10px; font-weight:700; color:var(--blue-2); background:var(--card-2); border:1px solid var(--border); border-radius:3px; padding:4px 5px; font-variant-numeric:tabular-nums; }
+  .coach-banner { background:var(--card-2); border:1px solid var(--blue); border-left-width:3px; border-radius:4px; padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--blue-2); font-weight:600; }
   .navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); }
@@ -710,6 +711,7 @@ async function startLive(){
 function stopLive(){ try{ window.removeEventListener("devicemotion", onMotion); }catch(e){} liveCounting=false; save(); renderApp(); }
 
 // ---- Render: Entreno ----
+function routineLocked(){ try { return !!(cloudProfile && cloudProfile.role!=="coach" && cloudProfile.coach_id); } catch(e){ return false; } }
 function renderEntreno(){
   const d = day();
   const total = d.exercises.reduce((a,e)=>a+e.sets.length,0);
@@ -717,7 +719,7 @@ function renderEntreno(){
   const pct = total ? Math.round(done/total*100) : 0;
   const tabs = state.days.map(x =>
     `<button class="tab${x.id===activeId?' active':''}" data-action="tab" data-day="${x.id}">${esc(x.name)}</button>`
-  ).join("") + `<button class="tab tab-add" data-action="addday" title="Agregar día">+</button>`;
+  ).join("") + (routineLocked() ? "" : `<button class="tab tab-add" data-action="addday" title="Agregar día">+</button>`);
   const cards = d.exercises.map((ex, exIdx) => {
     const sets = ex.sets.map((s,i) => `
       <div class="set">
@@ -726,37 +728,37 @@ function renderEntreno(){
         <div class="field"><input class="reps" type="text" inputmode="numeric" placeholder="${s.target?esc(s.target):'0'}" value="${esc(s.reps)}" data-action="reps" data-ex="${ex.id}" data-set="${s.id}"><span class="unit">reps</span></div>
         ${s.target?`<span class="goal" title="Objetivo del coach">${esc(s.target)}</span>`:''}
         <button class="done${s.done?' on':''}" data-action="toggle" data-ex="${ex.id}" data-set="${s.id}">${s.done?checkSvg:''}</button>
-        <button class="rm" data-action="removeset" data-ex="${ex.id}" data-set="${s.id}" title="Quitar serie">✕</button>
+        ${routineLocked()?'':`<button class="rm" data-action="removeset" data-ex="${ex.id}" data-set="${s.id}" title="Quitar serie">✕</button>`}
       </div>`).join("");
-    return `<button class="ins-ex" data-action="ex-insert" data-i="${exIdx}" title="Insertar ejercicio acá">+</button><div class="card">
+    return `${routineLocked()?'':`<button class="ins-ex" data-action="ex-insert" data-i="${exIdx}" title="Insertar ejercicio acá">+</button>`}<div class="card">
       <div class="card-head">
-        <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${ex.id}">
-        <button class="icon-mini" data-action="ex-swap" data-ex="${ex.id}" title="Cambiar ejercicio">${swapSvg}</button>
-        <button class="trash" data-action="removeex" data-ex="${ex.id}" title="Eliminar ejercicio">${trashSvg}</button>
+        <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${ex.id}" ${routineLocked()?'readonly':''}>
+        ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${ex.id}" title="Cambiar ejercicio">${swapSvg}</button>
+        <button class="trash" data-action="removeex" data-ex="${ex.id}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
       ${sets}
-      <button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>
+      ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>`}
     </div>`;
   }).join("");
   return `
+    ${routineLocked()?'<div class="coach-banner">Rutina asignada por tu coach</div>':''}
     <div class="tabs">${tabs}</div>
     <div class="day-head">
       <div class="day-top">
-        <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname">
-        <button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>
+        <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname" ${routineLocked()?'readonly':''}>
+        ${routineLocked()?'':`<button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>`}
       </div>
-      <input class="day-sub" type="text" value="${esc(d.subtitle)}" placeholder="Grupos musculares…" data-action="subtitle">
+      <input class="day-sub" type="text" value="${esc(d.subtitle)}" placeholder="Grupos musculares…" data-action="subtitle" ${routineLocked()?'readonly':''}>
       <div class="progress-row">
         <div class="bar"><div style="width:${pct}%"></div></div>
         <span class="count">${done}/${total} sets</span>
         <button class="clear" data-action="clear">Limpiar</button>
       </div>
     </div>
-    ${cards || '<div class="empty">Día vacío.<br>Agregá ejercicios acá abajo 👇</div>'}
-    <button class="add-ex" data-action="ex-add-open">+ Agregar ejercicio</button>
+    ${cards || '<div class="empty">Día vacío.<br>' + (routineLocked()?'Tu coach todavía no te cargó ejercicios.':'Agregá ejercicios acá abajo 👇') + '</div>'}
+    ${routineLocked()?'':'<button class="add-ex" data-action="ex-add-open">+ Agregar ejercicio</button>'}
     ${d.exercises.length ? '<button class="save-session" data-action="save-session">✓ Guardar entreno de hoy</button>' : ''}
-    <button class="reset-routine" data-action="load-default-routine">↻ Cargar rutina por defecto</button>
-    <p class="foot">Se guarda solo en este dispositivo</p>`;
+    <p class="foot">${cloudUser ? 'Sincronizado con tu cuenta' : 'Se guarda solo en este dispositivo'}</p>`;
 }
 
 // ---- Render: Hábitos ----
@@ -1257,6 +1259,7 @@ document.body.addEventListener("click", e => {
   if (navBtn) { view = navBtn.dataset.view; selectedFood=null; editEntry=null; calEditing=false; creatingFood=false; exPicker=null; renderApp(); return; }
   const el = e.target.closest("[data-action]"); if(!el) return;
   const a = el.dataset.action;
+  if (routineLocked() && ["addday","delday","removeex","addset","removeset","ex-add-open","ex-swap","ex-insert","ex-choose","ex-custom","load-default-routine"].indexOf(a)>=0) return;
 
   // Hábitos
   if (a === "habit-add") { addHabit(); return; }
@@ -1373,9 +1376,10 @@ function showLogin(msg, mode, vals){
     '<div class="auth-card">'+
       '<div class="auth-logo"><span class="b">J-</span>FIT</div>'+
       '<div class="auth-sub">Facundo Dalli · Personal Routine</div>'+
-      (mode==="up"?'<input id="auName" class="auth-in" placeholder="Tu nombre" value="'+eq(vals.name)+'">':'')+
+      (mode==="up"?'<input id="auName" class="auth-in" placeholder="Tu nombre y apellido" value="'+eq(vals.name)+'">':'')+
       '<input id="auEmail" class="auth-in" type="email" placeholder="Email (ej: nombre@gmail.com)" autocomplete="username" value="'+eq(vals.email)+'">'+
       '<input id="auPass" class="auth-in" type="password" placeholder="Contraseña (mínimo 6)" autocomplete="current-password">'+
+      (mode==="up"?'<input id="auCode" class="auth-in" placeholder="Código de tu coach" value="'+eq(vals.code)+'">':'')+
       (msg?'<div class="auth-msg">'+msg+'</div>':'')+
       '<button class="auth-btn" data-auth="'+(mode==="up"?"do-signup":"do-login")+'">'+(mode==="up"?"Crear cuenta":"Ingresar")+'</button>'+
       '<div class="auth-switch" data-auth="'+(mode==="up"?"to-login":"to-signup")+'">'+(mode==="up"?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
@@ -1386,6 +1390,13 @@ function hideLogin(){ const h=document.getElementById("authHost"); if(h){ h.styl
 async function afterLogin(){
   try { const r=await sb.auth.getUser(); cloudUser=r.data.user; } catch(e){}
   await loadCloud();
+  try{
+    const pc=localStorage.getItem("jfit_pending_code");
+    if(pc && cloudProfile && cloudProfile.role!=="coach" && !cloudProfile.coach_id){
+      const r2=await sb.rpc("join_coach",{code:pc});
+      if(r2.data===true){ localStorage.removeItem("jfit_pending_code"); const pr=await sb.from("profiles").select("*").eq("id",cloudUser.id).maybeSingle(); if(pr.data) cloudProfile=pr.data; await loadCloud(); }
+    }
+  }catch(e){ console.error("pending code",e); }
   hideLogin();
   if (cloudProfile && cloudProfile.role==="coach"){ await loadCoachClients(); renderCoach(); }
   else { renderApp(); }
@@ -1456,21 +1467,25 @@ document.body.addEventListener("click", async e=>{
   if(a==="to-signup"){ showLogin("","up"); return; }
   if(a==="to-login"){ showLogin("","in"); return; }
   if(a==="logout"){ try{ await sb.auth.signOut(); }catch(e){} location.reload(); return; }
-  if(a==="join"){ const code=((document.getElementById("joinCode")||{}).value||"").trim(); if(!code){ alert("Poné el código de tu coach."); return; } try{ const r=await sb.rpc("join_coach",{code:code}); if(r.data===true){ if(cloudProfile) cloudProfile.coach_id="linked"; alert("¡Listo! Te vinculaste con tu coach."); renderApp(); } else { alert("Código inválido. Revisalo con tu coach."); } }catch(err){ alert("No se pudo vincular: "+((err&&err.message)||err)); } return; }
+  if(a==="join"){ const code=((document.getElementById("joinCode")||{}).value||"").trim(); if(!code){ alert("Poné el código de tu coach."); return; } try{ const r=await sb.rpc("join_coach",{code:code}); if(r.data===true){ const pr=await sb.from("profiles").select("*").eq("id",cloudUser.id).maybeSingle(); if(pr.data) cloudProfile=pr.data; await loadCloud(); alert("¡Listo! Te vinculaste con tu coach."); renderApp(); } else { alert("Código inválido. Revisalo con tu coach."); } }catch(err){ alert("No se pudo vincular: "+((err&&err.message)||err)); } return; }
   if(a==="do-login"||a==="do-signup"){
     const mode = a==="do-signup"?"up":"in";
     const email=((document.getElementById("auEmail")||{}).value||"").trim();
     const pass=(document.getElementById("auPass")||{}).value||"";
     const name=((document.getElementById("auName")||{}).value||"").trim();
-    if(!email||!pass){ showLogin("Completá email y contraseña.", mode, {name:name, email:email}); return; }
-    if(!/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(email)){ showLogin("Poné un email válido, con @ y punto (ej: nombre@gmail.com).", mode, {name:name, email:email}); return; }
-    if(pass.length<6){ showLogin("La contraseña necesita al menos 6 caracteres.", mode, {name:name, email:email}); return; }
+    const code=((document.getElementById("auCode")||{}).value||"").trim();
+    const V={name:name, email:email, code:code};
+    if(!email||!pass){ showLogin("Completá email y contraseña.", mode, V); return; }
+    if(!/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(email)){ showLogin("Poné un email válido, con @ y punto (ej: nombre@gmail.com).", mode, V); return; }
+    if(pass.length<6){ showLogin("La contraseña necesita al menos 6 caracteres.", mode, V); return; }
+    if(mode==="up" && name.length<2){ showLogin("Poné tu nombre y apellido, así tu coach sabe quién sos.", mode, V); return; }
     b.textContent="Cargando..."; b.disabled=true;
     try{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
         const r=await sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name}}});
         if(r.error) throw r.error;
+        if(code) { try{ localStorage.setItem("jfit_pending_code", code.toUpperCase()); }catch(e){} }
       } else {
         const r=await sb.auth.signInWithPassword({email:email, password:pass});
         if(r.error) throw r.error;
@@ -1478,7 +1493,7 @@ document.body.addEventListener("click", async e=>{
       const sess=await sb.auth.getSession();
       if(!sess.data.session){ showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
       await afterLogin();
-    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email}); }
+    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code}); }
     return;
   }
 });
@@ -1653,6 +1668,18 @@ document.body.addEventListener("input", e=>{
   if(a==="rt-name"){ if(day.exercises[+el.dataset.i]) day.exercises[+el.dataset.i].name=el.value; }
   else if(a==="day-name"){ day.name=el.value; }
   else if(a==="rt-target"){ const ex=day.exercises[+el.dataset.i]; const st=ex&&ex.sets[+el.dataset.j]; if(st){ const v=el.value.trim(); if(v) st.target=v; else delete st.target; } }
+});
+
+document.addEventListener("visibilitychange", async ()=>{
+  if(document.visibilityState!=="visible" || !sb || !cloudUser || !routineLocked()) return;
+  try{
+    const rt=await sb.from("routines").select("days").eq("client_id",cloudUser.id).maybeSingle();
+    if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
+      state.days=rt.data.days;
+      if(!state.days.find(x=>x.id===activeId)) activeId=state.days[0].id;
+      renderApp();
+    }
+  }catch(e){}
 });
 
 async function cloudBoot(){
