@@ -325,7 +325,10 @@
   @media (min-width: 900px){
     .co-grid { display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:start; }
     .co-col { min-width: 0; }
-    .co-col .w-chart svg { min-height: 260px; }
+    .co-top { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }
+    .co-top .co-panel { min-width:0; }
+    .co-exc-grid { display:grid; grid-template-columns: 320px 1fr; gap:20px; align-items:start; }
+    .co-exc-grid > div { min-width:0; }
     .co-title { font-size:26px; }
     .co-client-name { font-size:30px; }
     .co-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
@@ -422,6 +425,20 @@
   .dn-item { margin-bottom:8px; font-size:12px; line-height:1.45; }
   .dn-ex { display:block; color:var(--txt); font-weight:700; }
   .dn-tx { color:var(--txt-2); }
+  .co-top { display:block; margin-bottom:8px; }
+  .co-panel { min-width:0; }
+  .co-exc-grid { display:block; }
+  .co-mini { font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:8px; }
+  .co-exc-prog { margin-top:14px; }
+  .co-noprog { font-size:12px; color:var(--txt-3); padding:10px 0; }
+  .co-tbl { width:100%; border-collapse:collapse; margin-top:8px; font-variant-numeric:tabular-nums; }
+  .co-tbl th { text-align:left; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.06em; font-weight:700; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap; }
+  .co-tbl td { font-size:13px; color:var(--txt); padding:8px; border-bottom:1px solid #191919; white-space:nowrap; }
+  .co-tbl tr:last-child td { border-bottom:none; }
+  .co-tbl td.dt { color:var(--txt-2); font-size:12px; font-weight:600; }
+  .co-tbl td.em { color:var(--txt-3); }
+  .co-tbl .rp { color:var(--txt-2); font-size:12px; }
+  .co-tbl th.mx, .co-tbl td.mx { text-align:right; color:var(--blue-2); font-weight:700; }
   .co-note-wrap { margin-top:10px; }
   .co-note-lbl { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
   .co-setline { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
@@ -562,35 +579,35 @@ const FOODS = FOODS_RAW.map(a=>({name:a[0],kcal:a[1],p:a[2],c:a[3],f:a[4],portio
 
 const EX_CATS = [["pecho","Pecho"],["espalda","Espalda"],["hombros","Hombros"],["biceps","Bíceps"],["triceps","Tríceps"],["cuadriceps","Cuádriceps"],["isquios","Isquios"],["gluteos","Glúteos"],["gemelos","Gemelos"],["abs","Abdominales"],["antebrazo","Antebrazo"],["cuello","Cuello"]];
 const EX_DB = {
-  pecho:["Press de banca plano (barra)","Press de banca inclinado (barra)","Press de banca declinado","Press plano con mancuernas","Press inclinado con mancuernas","Press plano en Smith","Press inclinado en Smith","Aperturas con mancuernas","Aperturas inclinadas","Pec Deck","Cruce de poleas","Vuelos en polea","Fondos en paralelas","Flexiones de brazos","Chest Press (máquina)"],
-  espalda:["Dominadas","Dominadas neutras","Jalón al pecho","Jalón neutro","Jalón en V","Remo con barra","Remo Pendlay","Remo unilateral con mancuerna","Remo en máquina","Remo en polea baja","T-Bar Row","Remo Hammer","Pullover en polea","Pullover con mancuerna","Jalón en estocada","Hiperextensiones lumbares"],
-  hombros:["Press militar (barra)","Press Arnold","Press de hombros con mancuernas","Press de hombros en Smith","Vuelos laterales con mancuernas","Vuelos laterales en polea","Vuelos laterales en máquina","Vuelos posteriores","Posterior en Pec Deck","Posterior en polea","Elevaciones frontales","Face Pull","Encogimientos (shrugs)"],
-  biceps:["Curl con barra","Curl con barra Z","Curl con mancuernas","Curl alternado","Curl martillo","Curl predicador (Scott)","Curl en banco inclinado","Curl en polea","Curl Bayesian","Curl concentrado","Curl araña"],
-  triceps:["Press francés (barra)","Press francés con mancuernas","Extensión en polea","Extensión con soga","Patada de tríceps","Press cerrado","Fondos entre bancos","Extensión sobre la cabeza","Katana en polea","Katana en Smith","Fondos en paralelas"],
-  cuadriceps:["Sentadilla libre","Sentadilla frontal","Sentadilla en Smith","Hack Squat","Prensa 45","Prensa horizontal","Extensión de cuádriceps","Extensión unilateral","Zancadas","Búlgaras","Sentadilla goblet","Step Up","Sissy squat"],
-  isquios:["Curl femoral acostado","Curl femoral sentado","Curl femoral de pie","Peso muerto rumano (RDL)","Peso muerto rumano con mancuernas","Peso muerto piernas rígidas","Peso muerto convencional","Buenos días (good morning)","Curl nórdico"],
-  gluteos:["Hip Thrust","Hip Thrust en máquina","Puente de glúteo","Patada de glúteo en polea","Patada de glúteo en máquina","Abductores","Abducción en polea","Aductores","Peso muerto sumo"],
-  gemelos:["Gemelos de pie","Gemelos sentado","Gemelos en prensa","Gemelos en Smith","Gemelos burro (donkey)","Gemelos a una pierna","Gemelos en máquina"],
-  abs:["Crunch","Crunch declinado","Elevación de piernas","Elevación de piernas colgado","Plancha","Rueda abdominal","Crunch en polea","Russian Twist","Mountain Climbers","Oblicuos","Plancha lateral","Crunch invertido","Bicicleta abdominal","Toes to bar","Hollow hold","Dead bug","Leñador en polea","Crunch en máquina","Dragon flag","V-ups"],
-  antebrazo:["Curl de muñeca","Curl de muñeca invertido","Curl Reverse con barra","Farmer Walk","Curl de antebrazo en polea","Curl de muñeca con mancuerna","Curl Zottman","Wrist roller (enrollador)","Dead hang (colgarse)","Plate pinch","Grippers de mano"],
-  cuello:["Flexión de cuello con disco","Extensión de cuello con disco","Flexión lateral de cuello","Neck curl con arnés","Puente de cuello (lucha)","Rotaciones de cuello"]
+  pecho:["Press de banca plano (barra)","Press de banca inclinado (barra)","Press de banca declinado","Press plano con mancuernas","Press inclinado con mancuernas","Press plano en Smith","Press inclinado en Smith","Aperturas con mancuernas","Aperturas inclinadas","Aperturas en máquina","Cruce de poleas","Vuelos en polea","Fondos en paralelas","Flexiones de brazos","Press de pecho en máquina"],
+  espalda:["Dominadas","Dominadas neutras","Jalón al pecho","Jalón neutro","Jalón en V","Jalón en estocada","Jalón con brazos rectos en polea","Remo con barra","Remo Pendlay","Remo unilateral con mancuerna","Remo en máquina","Remo en máquina unilateral","Remo en polea baja","Remo en barra T","Jalón con brazos rectos y mancuerna","Hiperextensiones lumbares"],
+  hombros:["Press militar con barra","Press Arnold","Press de hombros con mancuernas","Press de hombros en Smith","Vuelos laterales con mancuernas","Vuelos laterales en polea","Vuelos laterales en máquina","Vuelos posteriores","Posterior en máquina","Posterior en polea","Elevaciones frontales","Jalón a la cara","Encogimientos de hombros"],
+  biceps:["Curl con barra","Curl con barra Z","Curl con mancuernas","Curl alternado","Curl martillo","Curl predicador","Curl en banco inclinado","Curl en polea","Curl en polea detrás del cuerpo","Curl concentrado","Curl araña"],
+  triceps:["Press francés con barra","Press francés con mancuernas","Extensión en polea","Extensión con soga","Patada de tríceps","Press cerrado","Fondos entre bancos","Extensión sobre la cabeza","Katana en polea","Katana en Smith","Fondos en paralelas"],
+  cuadriceps:["Sentadilla libre","Sentadilla frontal","Sentadilla en Smith","Sentadilla hack","Prensa 45","Prensa horizontal","Extensión de cuádriceps","Extensión de cuádriceps a una pierna","Zancadas","Sentadilla búlgara","Sentadilla con mancuerna al pecho","Subida al cajón","Sentadilla sissy"],
+  isquios:["Curl femoral acostado","Curl femoral sentado","Curl femoral de pie","Peso muerto rumano","Peso muerto rumano con mancuernas","Peso muerto piernas rígidas","Peso muerto convencional","Buenos días","Curl nórdico"],
+  gluteos:["Empuje de cadera","Empuje de cadera en máquina","Puente de glúteo","Patada de glúteo en polea","Patada de glúteo en máquina","Abductores","Abducción en polea","Aductores","Peso muerto sumo"],
+  gemelos:["Gemelos de pie","Gemelos sentado","Gemelos en prensa","Gemelos en Smith","Gemelos burro","Gemelos a una pierna","Gemelos en máquina"],
+  abs:["Encogimiento abdominal","Encogimiento declinado","Elevación de piernas","Elevación de piernas colgado","Plancha","Rueda abdominal","Encogimiento en polea","Giro ruso","Escaladores","Oblicuos","Plancha lateral","Encogimiento invertido","Bicicleta abdominal","Puntas a la barra","Plancha hueca","Bicho muerto","Leñador en polea","Encogimiento en máquina","Bandera","Abdominales en V"],
+  antebrazo:["Curl de muñeca","Curl de muñeca invertido","Curl invertido con barra","Caminata del granjero","Curl de antebrazo en polea","Curl de muñeca con mancuerna","Curl Zottman","Enrollador de muñeca","Colgarse de la barra","Pinza con disco","Pinza de mano"],
+  cuello:["Flexión de cuello con disco","Extensión de cuello con disco","Flexión lateral de cuello","Flexión de cuello con arnés","Puente de cuello","Rotaciones de cuello"]
 };
 
 const DEFAULT = {
   days: [
-    { id:"up1", name:"Upper 1", subtitle:"Hombros · Pecho · Espalda · Brazos", exercises:[
-      mkEx("Vuelos laterales en polea",2,"hombros"), mkEx("Press plano con mancuernas",2,"pecho"), mkEx("Remo Hammer",2,"espalda"),
+    { id:"up1", name:"Torso 1", subtitle:"Hombros · Pecho · Espalda · Brazos", exercises:[
+      mkEx("Vuelos laterales en polea",2,"hombros"), mkEx("Press plano con mancuernas",2,"pecho"), mkEx("Remo en máquina unilateral",2,"espalda"),
       mkEx("Vuelos en polea",2,"pecho"), mkEx("Jalón al pecho",2,"espalda"), mkEx("Extensión en polea",3,"triceps"),
       mkEx("Curl en polea",2,"biceps") ]},
-    { id:"low1", name:"Lower 1", subtitle:"Isquios · Cuádriceps · Glúteos · Gemelos · Abs", exercises:[
-      mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos de pie",2,"gemelos"), mkEx("Curl femoral acostado",1,"isquios"), mkEx("Peso muerto rumano (RDL)",2,"isquios"),
-      mkEx("Prensa 45",2,"cuadriceps"), mkEx("Extensión de cuádriceps",2,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Dragon flag",2,"abs") ]},
-    { id:"up2", name:"Upper 2", subtitle:"Hombros · Espalda · Pecho · Brazos", exercises:[
-      mkEx("Vuelos laterales con mancuernas",2,"hombros"), mkEx("T-Bar Row",2,"espalda"), mkEx("Press de hombros en Smith",1,"hombros"), mkEx("Press inclinado en Smith",2,"pecho"),
-      mkEx("Jalón en estocada",2,"espalda"), mkEx("Pec Deck",1,"pecho"), mkEx("Press francés (barra)",2,"triceps"), mkEx("Curl predicador (Scott)",3,"biceps") ]},
-    { id:"low2", name:"Lower 2", subtitle:"Isquios · Cuádriceps · Glúteos · Gemelos · Abs", exercises:[
+    { id:"low1", name:"Pierna 1", subtitle:"Isquios · Cuádriceps · Glúteos · Gemelos · Abdominales", exercises:[
+      mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos de pie",2,"gemelos"), mkEx("Curl femoral acostado",1,"isquios"), mkEx("Peso muerto rumano",2,"isquios"),
+      mkEx("Prensa 45",2,"cuadriceps"), mkEx("Extensión de cuádriceps",2,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Bandera",2,"abs") ]},
+    { id:"up2", name:"Torso 2", subtitle:"Hombros · Espalda · Pecho · Brazos", exercises:[
+      mkEx("Vuelos laterales con mancuernas",2,"hombros"), mkEx("Remo en barra T",2,"espalda"), mkEx("Press de hombros en Smith",1,"hombros"), mkEx("Press inclinado en Smith",2,"pecho"),
+      mkEx("Jalón en estocada",2,"espalda"), mkEx("Aperturas en máquina",1,"pecho"), mkEx("Press francés con barra",2,"triceps"), mkEx("Curl predicador",3,"biceps") ]},
+    { id:"low2", name:"Pierna 2", subtitle:"Isquios · Cuádriceps · Glúteos · Gemelos · Abdominales", exercises:[
       mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos de pie",2,"gemelos"), mkEx("Hiperextensiones lumbares",2,"espalda"), mkEx("Curl femoral acostado",2,"isquios"),
-      mkEx("Sentadilla en Smith",2,"cuadriceps"), mkEx("Extensión de cuádriceps",1,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Crunch",2,"abs") ]}
+      mkEx("Sentadilla en Smith",2,"cuadriceps"), mkEx("Extensión de cuádriceps",1,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Encogimiento abdominal",2,"abs") ]}
   ],
   habits: [
     { id: uid(), name: "Creatina · 5 g", done: false },
@@ -1554,6 +1571,16 @@ async function loadCoachClients(){
 }
 function coachExercises(sessions){ const m={}; (sessions||[]).forEach(se=>se.exercises.forEach(ex=>{ if(ex.name) m[ex.name]=1; })); return Object.keys(m).sort((a,b)=>a.localeCompare(b,"es")); }
 function coachSeries(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ let mx=0; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(x=>{ const k=+x.kg||0; if(k>mx) mx=k; }); }); if(mx>0) out.push({date:se.date, kg:mx}); }); return out; }
+function coachLogFor(sessions, dayName, name){
+  const out=[];
+  (sessions||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).forEach(se=>{
+    if(dayName && se.day && se.day!==dayName) return;
+    const sets=[];
+    se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0}); }); });
+    if(sets.length) out.push({date:se.date, ts:se.ts, sets:sets});
+  });
+  return out;
+}
 function coachExerciseLog(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ const sets=[]; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0}); }); }); if(sets.length) out.push({date:se.date, ts:se.ts, sets:sets}); }); return out; }
 async function openClient(id){
   coachSel=id; coachData={loading:true}; coachDayFilter=null; coachEditDay=0; renderCoach();
@@ -1597,9 +1624,30 @@ function renderCoachCargas(d){
   out+='<select class="form-input" data-coach="ex">'+exOpts+'</select><div class="load-cap">Gráfico: máximo de kg por sesión</div>'+cch+(detail?'<div class="co-sub">Registro por sesión (peso \u00d7 reps de cada serie)</div>'+detail:'');
   return out;
 }
+function renderExProgress(d, dayName, exName){
+  const log=coachLogFor(d.sessions, dayName, exName);
+  if(!log.length) return '<div class="co-noprog">Sin entrenos registrados todav\u00eda en este ejercicio.</div>';
+  const asc=log.slice().reverse();
+  const series=asc.map(e=>({date:e.date, kg:Math.max.apply(null,e.sets.map(x=>x.kg||0))})).filter(x=>x.kg>0);
+  const chart=series.length>0 ? renderWChart(series,true) : "";
+  let maxS=1; log.forEach(e=>{ if(e.sets.length>maxS) maxS=e.sets.length; });
+  const th=['<th>Fecha</th>']; for(let i=0;i<maxS;i++) th.push('<th>Serie '+(i+1)+'</th>'); th.push('<th class="mx">M\u00e1x</th>');
+  const rows=log.slice(0,10).map(e=>{
+    const tds=['<td class="dt">'+fmtDate(e.date)+'</td>'];
+    for(let i=0;i<maxS;i++){
+      const st=e.sets[i];
+      if(!st) tds.push('<td class="em">\u2014</td>');
+      else { const kg=+st.kg||0, rp=+st.reps||0; tds.push('<td>'+(kg>0?(Math.round(kg*10)/10)+' kg':'\u2014')+(rp>0?' <span class="rp">\u00d7 '+rp+'</span>':'')+'</td>'); }
+    }
+    const mx=Math.max.apply(null,e.sets.map(x=>x.kg||0));
+    tds.push('<td class="mx">'+(mx>0?(Math.round(mx*10)/10)+' kg':'\u2014')+'</td>');
+    return '<tr>'+tds.join("")+'</tr>';
+  }).join("");
+  return chart+'<table class="co-tbl"><thead><tr>'+th.join("")+'</tr></thead><tbody>'+rows+'</tbody></table>';
+}
 function renderCoachRoutine(d){
   const rt=d.routine||[];
-  if(!rt.length) return '<div class="co-sec">Rutina del cliente</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina. Cre\u00e1 el primer d\u00eda.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';
+  if(!rt.length) return '<div class="co-sec">Rutina y progreso</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';
   if(coachEditDay>=rt.length) coachEditDay=0;
   const tabs=rt.map((x,i)=>'<button class="co-daytab'+(i===coachEditDay?' on':'')+'" data-coach="edit-day" data-i="'+i+'">'+esc(x.name||('D\u00eda '+(i+1)))+'</button>').join("");
   const day=rt[coachEditDay];
@@ -1609,10 +1657,15 @@ function renderCoachRoutine(d){
       '<div class="co-exc"><div class="co-exc-head"><input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
       '<button class="co-exc-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio">\u21c4</button>'+
       '<button class="co-exc-btn del" data-coach="rt-del" data-i="'+i+'" title="Eliminar">\u2715</button></div>'+
-      sets+'<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
-      '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="Si esta semana hiciste 50, la que viene prob\u00e1 con 55"></div></div>';
+      '<div class="co-exc-grid">'+
+        '<div class="co-exc-plan"><div class="co-mini">Plan</div>'+sets+
+          '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
+          '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="Si esta semana hiciste 50, la que viene prob\u00e1 con 55"></div>'+
+        '</div>'+
+        '<div class="co-exc-prog"><div class="co-mini">Progreso</div>'+renderExProgress(d, day.name, ex.name)+'</div>'+
+      '</div></div>';
   }).join("");
-  return '<div class="co-sec">Rutina del cliente</div>'+coachDatalist()+
+  return '<div class="co-sec">Rutina y progreso</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+
     '<div class="co-dayname-row"><input class="co-dayname" data-coach="day-name" value="'+esc(day.name||"")+'" placeholder="Nombre del d\u00eda">'+(rt.length>1?'<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>':'')+'</div>'+
     '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder="Semana de descarga: baj\u00e1 series y cargas"></div>'+
@@ -1620,8 +1673,6 @@ function renderCoachRoutine(d){
     '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
     '<button class="co-save-rt" data-coach="save-routine">Guardar rutina del cliente</button>';
 }
-// ----- Selector de ejercicios del coach -----
-let coachPicker=null, coachPCat="pecho", coachPQ="";
 function renderCoachPicker(){
   const host=document.getElementById("coachSheetHost"); if(!host) return;
   if(!coachPicker){ host.innerHTML=""; return; }
@@ -1680,8 +1731,13 @@ function renderCoach(){
       const wchart=d.weights.length ? renderWChart(d.weights,false,true) : '<div class="cal-hint">Sin registros de peso.</div>';
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
-      const vol=(d.routine&&d.routine.length)?('<div class="co-sec">Volumen semanal por m\u00fasculo</div>'+renderVolumen(d.routine)):'';
-      body='<div class="co-grid"><div class="co-col"><div class="co-sec">Peso corporal</div>'+wchart+wlist+renderCoachCargas(d)+vol+'</div><div class="co-col">'+renderCoachRoutine(d)+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'')+'</div></div>';
+      const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
+      body='<div class="co-top">'+
+             '<div class="co-panel"><div class="co-sec">Peso corporal</div>'+wchart+wlist+'</div>'+
+             '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
+           '</div>'+
+           renderCoachRoutine(d)+
+           (sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'');
     }
     host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">↻ Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
