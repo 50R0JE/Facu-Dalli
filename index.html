@@ -325,10 +325,6 @@
   @media (min-width: 900px){
     .co-grid { display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:start; }
     .co-col { min-width: 0; }
-    .co-top { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }
-    .co-top .co-panel { min-width:0; }
-    .co-exc-grid { display:grid; grid-template-columns: 320px 1fr; gap:20px; align-items:start; }
-    .co-exc-grid > div { min-width:0; }
     .co-title { font-size:26px; }
     .co-client-name { font-size:30px; }
     .co-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
@@ -425,15 +421,14 @@
   .dn-item { margin-bottom:8px; font-size:12px; line-height:1.45; }
   .dn-ex { display:block; color:var(--txt); font-weight:700; }
   .dn-tx { color:var(--txt-2); }
-  .co-top { display:block; margin-bottom:8px; }
-  .co-panel { min-width:0; }
+  .co-bottom { display:block; margin-top:26px; }
+  .co-panel { min-width:0; margin-bottom:20px; }
   .co-exc-grid { display:block; }
-  .co-mini { font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:8px; }
-  .co-exc-prog { margin-top:14px; }
+  .co-exc-prog { margin-top:12px; }
   .co-noprog { font-size:12px; color:var(--txt-3); padding:10px 0; }
   .co-tbl { width:100%; border-collapse:collapse; margin-top:8px; font-variant-numeric:tabular-nums; }
   .co-tbl th { text-align:left; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.06em; font-weight:700; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap; }
-  .co-tbl td { font-size:13px; color:var(--txt); padding:8px; border-bottom:1px solid #191919; white-space:nowrap; }
+  .co-tbl td { font-size:12.5px; color:var(--txt); padding:7px 8px; border-bottom:1px solid #191919; white-space:nowrap; }
   .co-tbl tr:last-child td { border-bottom:none; }
   .co-tbl td.dt { color:var(--txt-2); font-size:12px; font-weight:600; }
   .co-tbl td.em { color:var(--txt-3); }
@@ -455,6 +450,16 @@
   .nav-item svg { width: 22px; height: 22px; }
   .nav-item.active { color: var(--blue-2); }
   .nav-item.active svg { filter: drop-shadow(0 0 6px var(--glow)); }
+
+  /* ---- Escritorio: layout del panel del coach ---- */
+  @media (min-width: 1000px){
+    .co-bottom { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }
+    .co-bottom .co-panel { min-width:0; margin-bottom:0; }
+    .co-exc-grid { display:grid; grid-template-columns: 1fr 340px; gap:22px; align-items:start; }
+    .co-exc-grid > div { min-width:0; }
+    .co-exc-prog { margin-top:0; }
+    .co-exc-tbl { grid-column: 1 / -1; }
+  }
 </style>
 </head>
 <body>
@@ -1069,16 +1074,20 @@ function renderPasos(){
 
 function fmtDate(d){ const p=(d||"").split("-"); if(p.length!==3) return d; const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return parseInt(p[2],10)+" "+(m[parseInt(p[1],10)-1]||""); }
 function fmtDInput(d){ const p=(d||"").split("-"); if(p.length!==3) return d; return p[2]+"/"+p[1]+"/"+p[0]; }
-function renderWChart(ws, evenX, big){
-  const W=big?720:340, H=big?330:180, pl=big?56:40, pr=big?20:14, pt=big?22:16, pb=big?34:24, plotW=W-pl-pr, plotH=H-pt-pb;
-  const FS=big?13:9, DR=big?6:4, DR2=big?5:3, SW=big?3.5:2.5;
+function renderWChart(ws, evenX, sz){
+  const S = sz==="mini" ? {W:320,H:130,pl:36,pr:10,pt:12,pb:22,FS:9,DR:3.5,DR2:2.5,SW:2}
+          : sz==="med"  ? {W:560,H:210,pl:46,pr:14,pt:16,pb:26,FS:11,DR:5,DR2:3.5,SW:2.5}
+          : {W:340,H:180,pl:40,pr:14,pt:16,pb:24,FS:9,DR:4,DR2:3,SW:2.5};
+  const W=S.W,H=S.H,pl=S.pl,pr=S.pr,pt=S.pt,pb=S.pb, plotW=W-pl-pr, plotH=H-pt-pb;
+  const FS=S.FS, DR=S.DR, DR2=S.DR2, SW=S.SW;
   const times=ws.map(e=>new Date(e.date+"T00:00:00").getTime());
   const kgs=ws.map(e=>e.kg);
   let minK=Math.min.apply(null,kgs), maxK=Math.max.apply(null,kgs);
   if(maxK-minK < 0.0001){ minK-=0.5; maxK+=0.5; }
   const NICE=[0.2,0.25,0.5,1,1.25,1.5,2,2.5,5,10,20,25,50,100,200,250,500];
   let stepK=NICE[NICE.length-1];
-  for(let i=0;i<NICE.length;i++){ if((maxK-minK)/NICE[i] <= 4){ stepK=NICE[i]; break; } }
+  const TGT = (sz==="mini") ? 2.5 : 4;
+  for(let i=0;i<NICE.length;i++){ if((maxK-minK)/NICE[i] <= TGT){ stepK=NICE[i]; break; } }
   let loK=Math.floor(minK/stepK)*stepK; if(minK-loK < stepK*0.2) loK-=stepK;
   let hiK=Math.ceil(maxK/stepK)*stepK; if(hiK-maxK < stepK*0.2) hiK+=stepK;
   const decK=(String(stepK).split(".")[1]||"").length;
@@ -1624,15 +1633,19 @@ function renderCoachCargas(d){
   out+='<select class="form-input" data-coach="ex">'+exOpts+'</select><div class="load-cap">Gráfico: máximo de kg por sesión</div>'+cch+(detail?'<div class="co-sub">Registro por sesión (peso \u00d7 reps de cada serie)</div>'+detail:'');
   return out;
 }
-function renderExProgress(d, dayName, exName){
+function exChart(d, dayName, exName){
   const log=coachLogFor(d.sessions, dayName, exName);
-  if(!log.length) return '<div class="co-noprog">Sin entrenos registrados todav\u00eda en este ejercicio.</div>';
   const asc=log.slice().reverse();
   const series=asc.map(e=>({date:e.date, kg:Math.max.apply(null,e.sets.map(x=>x.kg||0))})).filter(x=>x.kg>0);
-  const chart=series.length>0 ? renderWChart(series,true) : "";
+  if(!series.length) return '<div class="co-noprog">Sin registros</div>';
+  return renderWChart(series,true,"mini");
+}
+function exTable(d, dayName, exName){
+  const log=coachLogFor(d.sessions, dayName, exName);
+  if(!log.length) return "";
   let maxS=1; log.forEach(e=>{ if(e.sets.length>maxS) maxS=e.sets.length; });
   const th=['<th>Fecha</th>']; for(let i=0;i<maxS;i++) th.push('<th>Serie '+(i+1)+'</th>'); th.push('<th class="mx">M\u00e1x</th>');
-  const rows=log.slice(0,10).map(e=>{
+  const rows=log.slice(0,8).map(e=>{
     const tds=['<td class="dt">'+fmtDate(e.date)+'</td>'];
     for(let i=0;i<maxS;i++){
       const st=e.sets[i];
@@ -1643,7 +1656,7 @@ function renderExProgress(d, dayName, exName){
     tds.push('<td class="mx">'+(mx>0?(Math.round(mx*10)/10)+' kg':'\u2014')+'</td>');
     return '<tr>'+tds.join("")+'</tr>';
   }).join("");
-  return chart+'<table class="co-tbl"><thead><tr>'+th.join("")+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  return '<table class="co-tbl"><thead><tr>'+th.join("")+'</tr></thead><tbody>'+rows+'</tbody></table>';
 }
 function renderCoachRoutine(d){
   const rt=d.routine||[];
@@ -1658,11 +1671,12 @@ function renderCoachRoutine(d){
       '<button class="co-exc-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio">\u21c4</button>'+
       '<button class="co-exc-btn del" data-coach="rt-del" data-i="'+i+'" title="Eliminar">\u2715</button></div>'+
       '<div class="co-exc-grid">'+
-        '<div class="co-exc-plan"><div class="co-mini">Plan</div>'+sets+
+        '<div class="co-exc-plan">'+sets+
           '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
           '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="Si esta semana hiciste 50, la que viene prob\u00e1 con 55"></div>'+
         '</div>'+
-        '<div class="co-exc-prog"><div class="co-mini">Progreso</div>'+renderExProgress(d, day.name, ex.name)+'</div>'+
+        '<div class="co-exc-prog">'+exChart(d, day.name, ex.name)+'</div>'+
+        '<div class="co-exc-tbl">'+exTable(d, day.name, ex.name)+'</div>'+
       '</div></div>';
   }).join("");
   return '<div class="co-sec">Rutina y progreso</div>'+coachDatalist()+
@@ -1728,16 +1742,15 @@ function renderCoach(){
     if(!d||d.loading){ body='<div class="cal-hint">Cargando…</div>'; }
     else if(d.error){ body='<div class="cal-hint">No se pudo cargar. Reintentá.</div>'; }
     else {
-      const wchart=d.weights.length ? renderWChart(d.weights,false,true) : '<div class="cal-hint">Sin registros de peso.</div>';
+      const wchart=d.weights.length ? renderWChart(d.weights,false,"med") : '<div class="cal-hint">Sin registros de peso.</div>';
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
       const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
-      body='<div class="co-top">'+
-             '<div class="co-panel"><div class="co-sec">Peso corporal</div>'+wchart+wlist+'</div>'+
+      body=renderCoachRoutine(d)+
+           '<div class="co-bottom">'+
              '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
-           '</div>'+
-           renderCoachRoutine(d)+
-           (sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'');
+             '<div class="co-panel"><div class="co-sec">Peso corporal</div>'+wchart+wlist+'</div>'+
+           '</div>';
     }
     host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">↻ Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
