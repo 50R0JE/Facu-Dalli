@@ -320,10 +320,12 @@
   .reset-routine:active { background:var(--card-2); }
   #coachHost { display:none; position:fixed; inset:0; z-index:150; background:var(--bg); overflow-y:auto; }
   #coachSheetHost { position:relative; z-index:300; }
-  .co-wrap { max-width:1180px; margin:0 auto; padding:22px 20px 60px; }
+  .co-wrap { max-width:1340px; margin:0 auto; padding:22px 20px 60px; }
   .co-grid { display:block; }
   @media (min-width: 900px){
     .co-grid { display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:start; }
+    .co-col { min-width: 0; }
+    .co-col .w-chart svg { min-height: 260px; }
     .co-title { font-size:26px; }
     .co-client-name { font-size:30px; }
     .co-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
@@ -1608,12 +1610,12 @@ function renderCoachRoutine(d){
       '<button class="co-exc-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio">\u21c4</button>'+
       '<button class="co-exc-btn del" data-coach="rt-del" data-i="'+i+'" title="Eliminar">\u2715</button></div>'+
       sets+'<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
-      '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="ej: si esta semana hiciste 50, la que viene prob\u00e1 con 55"></div></div>';
+      '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="Si esta semana hiciste 50, la que viene prob\u00e1 con 55"></div></div>';
   }).join("");
   return '<div class="co-sec">Rutina del cliente</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+
     '<div class="co-dayname-row"><input class="co-dayname" data-coach="day-name" value="'+esc(day.name||"")+'" placeholder="Nombre del d\u00eda">'+(rt.length>1?'<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>':'')+'</div>'+
-    '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder="ej: semana de descarga: baj\u00e1 series y cargas"></div>'+
+    '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder="Semana de descarga: baj\u00e1 series y cargas"></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
     '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
     '<button class="co-save-rt" data-coach="save-routine">Guardar rutina del cliente</button>';
