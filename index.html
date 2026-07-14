@@ -9,7 +9,14 @@
 <meta name="apple-mobile-web-app-title" content="J-FIT">
 <meta name="theme-color" content="#060911">
 <title>Facundo Dalli · Personal Routine</title>
-<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="3" fill="%23f97316"/><g stroke="white" stroke-width="2.3" stroke-linecap="round" fill="none"><path d="M9 9v14M6 12v8M23 9v14M26 12v8M9 16h14"/></g></svg>'>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="J-FIT">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="3" fill="%23f97316"/><g stroke="white" stroke-width="2.3" stroke-linecap="round" fill="none"><path d="M9 9v14M6 12v8M23 9v14M26 12v8M9 16h14"/></g></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&display=swap" rel="stylesheet">
@@ -405,6 +412,8 @@
   .ins-ex:hover, .ins-ex:active { opacity:1; border-color:var(--blue); color:var(--blue); }
   .goal { flex-shrink:0; font-size:10px; font-weight:700; color:var(--blue-2); background:var(--card-2); border:1px solid var(--border); border-radius:3px; padding:4px 5px; font-variant-numeric:tabular-nums; }
   .coach-banner { background:var(--card-2); border:1px solid var(--blue); border-left-width:3px; border-radius:4px; padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--blue-2); font-weight:600; }
+  .ex-note { background:var(--card-2); border-left:2px solid var(--blue); border-radius:3px; padding:8px 10px; margin-bottom:10px; font-size:12px; color:var(--txt-2); line-height:1.45; }
+  .co-note { width:100%; margin-top:8px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:9px 10px; color:var(--txt); font-size:12px; }
   .navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); }
@@ -425,8 +434,8 @@
       <div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div>
       <div class="wordmark"><span class="b">J-</span><span class="w">FIT</span></div>
     </div>
-    <div class="client-tag">
-      <div class="client-name">Facundo Dalli</div>
+    <div class="client-tag" id="brandTag" style="display:none">
+      <div class="client-name" id="brandName"></div>
       <div class="client-sub">Personal Routine</div>
     </div>
   </div>
@@ -539,7 +548,7 @@ const FOODS = FOODS_RAW.map(a=>({name:a[0],kcal:a[1],p:a[2],c:a[3],f:a[4],portio
 const EX_CATS = [["pecho","Pecho"],["espalda","Espalda"],["hombros","Hombros"],["biceps","Bíceps"],["triceps","Tríceps"],["cuadriceps","Cuádriceps"],["isquios","Isquios"],["gluteos","Glúteos"],["gemelos","Gemelos"],["abs","Abdominales"],["antebrazo","Antebrazo"],["cuello","Cuello"]];
 const EX_DB = {
   pecho:["Press de banca plano (barra)","Press de banca inclinado (barra)","Press de banca declinado","Press plano con mancuernas","Press inclinado con mancuernas","Press plano en Smith","Press inclinado en Smith","Aperturas con mancuernas","Aperturas inclinadas","Pec Deck","Cruce de poleas","Vuelos en polea","Fondos en paralelas","Flexiones de brazos","Chest Press (máquina)"],
-  espalda:["Dominadas","Dominadas neutras","Jalón al pecho","Jalón neutro","Jalón en V","Remo con barra","Remo Pendlay","Remo unilateral con mancuerna","Remo en máquina","Remo en polea baja","T-Bar Row","Remo Hammer","Pullover en polea","Pullover con mancuerna","Hiperextensiones lumbares"],
+  espalda:["Dominadas","Dominadas neutras","Jalón al pecho","Jalón neutro","Jalón en V","Remo con barra","Remo Pendlay","Remo unilateral con mancuerna","Remo en máquina","Remo en polea baja","T-Bar Row","Remo Hammer","Pullover en polea","Pullover con mancuerna","Jalón en estocada","Hiperextensiones lumbares"],
   hombros:["Press militar (barra)","Press Arnold","Press de hombros con mancuernas","Press de hombros en Smith","Vuelos laterales con mancuernas","Vuelos laterales en polea","Vuelos laterales en máquina","Vuelos posteriores","Posterior en Pec Deck","Posterior en polea","Elevaciones frontales","Face Pull","Encogimientos (shrugs)"],
   biceps:["Curl con barra","Curl con barra Z","Curl con mancuernas","Curl alternado","Curl martillo","Curl predicador (Scott)","Curl en banco inclinado","Curl en polea","Curl Bayesian","Curl concentrado","Curl araña"],
   triceps:["Press francés (barra)","Press francés con mancuernas","Extensión en polea","Extensión con soga","Patada de tríceps","Press cerrado","Fondos entre bancos","Extensión sobre la cabeza","Katana en polea","Katana en Smith","Fondos en paralelas"],
@@ -555,18 +564,18 @@ const EX_DB = {
 const DEFAULT = {
   days: [
     { id:"up1", name:"Upper 1", subtitle:"Hombros · Pecho · Espalda · Brazos", exercises:[
-      mkEx("Cable Lateral Raises",2,"hombros"), mkEx("Press Plano Mancuernas",2,"pecho"), mkEx("Máquina Remo Unilateral",2,"espalda"),
-      mkEx("Upper pec Cable Flies",2,"pecho"), mkEx("Jalón Polea Abierto",2,"espalda"), mkEx("Extensiones de Tríceps",3,"triceps"),
-      mkEx("Bíceps Polea Barra Dado Vuelta",2,"biceps") ]},
+      mkEx("Vuelos laterales en polea",2,"hombros"), mkEx("Press plano con mancuernas",2,"pecho"), mkEx("Remo Hammer",2,"espalda"),
+      mkEx("Vuelos en polea",2,"pecho"), mkEx("Jalón al pecho",2,"espalda"), mkEx("Extensión en polea",3,"triceps"),
+      mkEx("Curl en polea",2,"biceps") ]},
     { id:"low1", name:"Lower 1", subtitle:"Isquios · Cuádriceps · Glúteos · Gemelos · Abs", exercises:[
-      mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos",2,"gemelos"), mkEx("Isquios Acostado",1,"isquios"), mkEx("RDL",2,"isquios"),
-      mkEx("Prensa",2,"cuadriceps"), mkEx("Extensión Cuad",2,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Abdominales Bandera",2,"abs") ]},
+      mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos de pie",2,"gemelos"), mkEx("Curl femoral acostado",1,"isquios"), mkEx("Peso muerto rumano (RDL)",2,"isquios"),
+      mkEx("Prensa 45",2,"cuadriceps"), mkEx("Extensión de cuádriceps",2,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Dragon flag",2,"abs") ]},
     { id:"up2", name:"Upper 2", subtitle:"Hombros · Espalda · Pecho · Brazos", exercises:[
-      mkEx("DB Lateral Raises",2,"hombros"), mkEx("T-Bar Row",2,"espalda"), mkEx("Smith OHP",1,"hombros"), mkEx("Press Smith Inclinado",2,"pecho"),
-      mkEx("Jalón en estocada",2,"espalda"), mkEx("Pec Dec",1,"pecho"), mkEx("Press Francés",2,"triceps"), mkEx("Predicador Unilat Mancuerna",3,"biceps") ]},
+      mkEx("Vuelos laterales con mancuernas",2,"hombros"), mkEx("T-Bar Row",2,"espalda"), mkEx("Press de hombros en Smith",1,"hombros"), mkEx("Press inclinado en Smith",2,"pecho"),
+      mkEx("Jalón en estocada",2,"espalda"), mkEx("Pec Deck",1,"pecho"), mkEx("Press francés (barra)",2,"triceps"), mkEx("Curl predicador (Scott)",3,"biceps") ]},
     { id:"low2", name:"Lower 2", subtitle:"Isquios · Cuádriceps · Glúteos · Gemelos · Abs", exercises:[
-      mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos",2,"gemelos"), mkEx("Lower back hyperextension",2,"espalda"), mkEx("Isquios Acostado",2,"isquios"),
-      mkEx("Smith Squat",2,"cuadriceps"), mkEx("Extensiones Cuads",1,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Crunches",2,"abs") ]}
+      mkEx("Posterior en polea",2,"hombros"), mkEx("Gemelos de pie",2,"gemelos"), mkEx("Hiperextensiones lumbares",2,"espalda"), mkEx("Curl femoral acostado",2,"isquios"),
+      mkEx("Sentadilla en Smith",2,"cuadriceps"), mkEx("Extensión de cuádriceps",1,"cuadriceps"), mkEx("Aductores",1,"gluteos"), mkEx("Crunch",2,"abs") ]}
   ],
   habits: [
     { id: uid(), name: "Creatina · 5 g", done: false },
@@ -736,6 +745,7 @@ function renderEntreno(){
         ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${ex.id}" title="Cambiar ejercicio">${swapSvg}</button>
         <button class="trash" data-action="removeex" data-ex="${ex.id}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
+      ${ex.note?`<div class="ex-note">${esc(ex.note)}</div>`:''}
       ${sets}
       ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>`}
     </div>`;
@@ -1048,10 +1058,10 @@ function renderWChart(ws, evenX){
 }
 function muscleOf(name){ const n=(name||"").trim().toLowerCase(); for(const cat in EX_DB){ if(EX_DB[cat].some(x=>x.toLowerCase()===n)) return cat; } return "otros"; }
 function exMuscle(ex){ if(ex && ex.mus && EX_DB[ex.mus]) return ex.mus; return muscleOf(ex && ex.name); }
-function renderVolumen(){
+function renderVolumen(daysArg){
   const labels={pecho:"Pecho",espalda:"Espalda",hombros:"Hombros",biceps:"Bíceps",triceps:"Tríceps",cuadriceps:"Cuádriceps",isquios:"Isquios",gluteos:"Glúteos",gemelos:"Gemelos",abs:"Abdominales",antebrazo:"Antebrazo",cuello:"Cuello",otros:"Otros"};
   const tally={};
-  (state.days||[]).forEach(d=>{ (d.exercises||[]).forEach(ex=>{ const m=exMuscle(ex); const sets=(ex.sets||[]).length; tally[m]=(tally[m]||0)+sets; }); });
+  ((daysArg||state.days)||[]).forEach(d=>{ (d.exercises||[]).forEach(ex=>{ const m=exMuscle(ex); const sets=(ex.sets||[]).length; tally[m]=(tally[m]||0)+sets; }); });
   const rows=Object.keys(tally).filter(k=>tally[k]>0).map(k=>({label:labels[k]||k,sets:tally[k]})).sort((a,b)=>b.sets-a.sets);
   if(!rows.length) return "";
   const total=rows.reduce((x,r)=>x+r.sets,0), max=rows[0].sets;
@@ -1364,7 +1374,13 @@ document.body.addEventListener("click", e => {
 
 
 // ============ Supabase · Fase 1 (login + nube) ============
-let sb=null, cloudUser=null, cloudProfile=null, cloudLoading=false, routineTimer=null;
+let sb=null, cloudUser=null, cloudProfile=null, cloudLoading=false, routineTimer=null, brandName="";
+function applyBrand(){
+  const t=document.getElementById("brandTag"), n=document.getElementById("brandName");
+  if(!t||!n) return;
+  if(brandName){ n.textContent=brandName; t.style.display="block"; document.title=brandName+" \u00b7 J-FIT"; }
+  else { t.style.display="none"; document.title="J-FIT"; }
+}
 try { if (window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){}
 
 function showLogin(msg, mode, vals){
@@ -1375,7 +1391,7 @@ function showLogin(msg, mode, vals){
   host.innerHTML =
     '<div class="auth-card">'+
       '<div class="auth-logo"><span class="b">J-</span>FIT</div>'+
-      '<div class="auth-sub">Facundo Dalli · Personal Routine</div>'+
+      '<div class="auth-sub">Personal Routine</div>'+
       (mode==="up"?'<input id="auName" class="auth-in" placeholder="Tu nombre y apellido" value="'+eq(vals.name)+'">':'')+
       '<input id="auEmail" class="auth-in" type="email" placeholder="Email (ej: nombre@gmail.com)" autocomplete="username" value="'+eq(vals.email)+'">'+
       '<input id="auPass" class="auth-in" type="password" placeholder="Contraseña (mínimo 6)" autocomplete="current-password">'+
@@ -1398,6 +1414,11 @@ async function afterLogin(){
     }
   }catch(e){ console.error("pending code",e); }
   hideLogin();
+  try{
+    if(cloudProfile && cloudProfile.role==="coach"){ brandName=cloudProfile.full_name||""; }
+    else { const cn=await sb.rpc("my_coach_name"); brandName=cn.data||""; }
+  }catch(e){ brandName=""; }
+  applyBrand();
   if (cloudProfile && cloudProfile.role==="coach"){ await loadCoachClients(); renderCoach(); }
   else { renderApp(); }
 }
@@ -1564,7 +1585,8 @@ function renderCoachRoutine(d){
       '<div class="co-exc"><div class="co-exc-head"><input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
       '<button class="co-exc-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio">\u21c4</button>'+
       '<button class="co-exc-btn del" data-coach="rt-del" data-i="'+i+'" title="Eliminar">\u2715</button></div>'+
-      sets+'<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button></div>';
+      sets+'<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
+      '<input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder="\u270e Nota para el cliente (t\u00e9cnica, tempo, etc.)"></div>';
   }).join("");
   return '<div class="co-sec">Rutina del cliente</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+
@@ -1633,7 +1655,8 @@ function renderCoach(){
       const wchart=d.weights.length ? renderWChart(d.weights) : '<div class="cal-hint">Sin registros de peso.</div>';
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
-      body='<div class="co-grid"><div class="co-col"><div class="co-sec">Peso corporal</div>'+wchart+wlist+renderCoachCargas(d)+'</div><div class="co-col">'+renderCoachRoutine(d)+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'')+'</div></div>';
+      const vol=(d.routine&&d.routine.length)?('<div class="co-sec">Volumen semanal por m\u00fasculo</div>'+renderVolumen(d.routine)):'';
+      body='<div class="co-grid"><div class="co-col"><div class="co-sec">Peso corporal</div>'+wchart+wlist+renderCoachCargas(d)+vol+'</div><div class="co-col">'+renderCoachRoutine(d)+(sess?'<div class="co-sec">Historial de entrenos</div>'+sess:'')+'</div></div>';
     }
     host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">↻ Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
@@ -1668,6 +1691,7 @@ document.body.addEventListener("input", e=>{
   if(a==="rt-name"){ if(day.exercises[+el.dataset.i]) day.exercises[+el.dataset.i].name=el.value; }
   else if(a==="day-name"){ day.name=el.value; }
   else if(a==="rt-target"){ const ex=day.exercises[+el.dataset.i]; const st=ex&&ex.sets[+el.dataset.j]; if(st){ const v=el.value.trim(); if(v) st.target=v; else delete st.target; } }
+  else if(a==="rt-note"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const v=el.value.trim(); if(v) ex.note=v; else delete ex.note; } }
 });
 
 document.addEventListener("visibilitychange", async ()=>{
@@ -1692,6 +1716,7 @@ async function cloudBoot(){
 }
 
 cloudBoot();
+if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
 </script>
 </body>
 </html>
