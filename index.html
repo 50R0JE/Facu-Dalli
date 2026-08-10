@@ -439,6 +439,36 @@
   .co-stat b { color:var(--blue-2); font-size:15px; font-weight:800; margin-right:3px; font-variant-numeric:tabular-nums; }
   .co-exc-sets { flex-shrink:0; font-size:11px; color:var(--txt-3); font-weight:700; white-space:nowrap; padding:0 4px; }
   .co-scroll { overflow-x:auto; }
+  .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
+  .ci-f { margin-bottom:10px; }
+  .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
+  .bw-grid { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 4px; }
+  .bw { width:38px; height:38px; background:var(--card-2); border:1px solid var(--border); border-radius:3px; color:var(--txt-2); font-size:12px; font-weight:700; cursor:pointer; }
+  .bw.dl { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .bw.now { box-shadow:0 0 0 2px var(--blue-2); }
+  .blk { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--blue); border-radius:4px; padding:12px 14px; margin-bottom:12px; }
+  .blk.deload { border-color:#eab308; border-left-color:#eab308; }
+  .blk-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .blk-w { font-size:13px; font-weight:800; color:#fff; }
+  .blk-meta { font-size:11px; color:var(--txt-2); }
+  .blk-dl { margin-top:8px; font-size:12px; color:#eab308; font-weight:700; line-height:1.45; }
+  .blk-note { margin-top:8px; font-size:12px; color:var(--txt-2); line-height:1.45; }
+  .fi-card { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-bottom:8px; }
+  .fi-chips { display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin-bottom:12px; }
+  .fi-chip { background:var(--card-2); border-radius:3px; padding:8px 10px; }
+  .fi-chip span { display:block; font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; }
+  .fi-chip b { font-size:14px; color:var(--txt); }
+  .fi-line { font-size:12px; color:var(--txt-2); line-height:1.5; margin-bottom:7px; }
+  .fi-line span { display:block; font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; }
+  .cp-macros { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+  .cp-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-bottom:5px; }
+  .co-pin2 { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:10px; color:var(--txt); font-size:15px; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; }
+  .ph-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; margin:8px 0; }
+  .ph-grid.big { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+  .ph-thumb { position:relative; display:block; aspect-ratio:3/4; border-radius:4px; overflow:hidden; border:1px solid var(--border); background:var(--card-2); }
+  .ph-thumb img { width:100%; height:100%; object-fit:cover; }
+  .ph-del { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.7); border:none; color:#fff; width:22px; height:22px; border-radius:3px; cursor:pointer; font-size:12px; }
+  .ph-date { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.7); color:#fff; font-size:10px; text-align:center; padding:3px; }
   .co-ord { width:44px; flex-shrink:0; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:9px 6px; color:var(--blue-2); font-size:12px; font-weight:800; text-align:center; }
   .co-prow { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .co-prow .co-note-lbl { margin-bottom:0; }
@@ -463,6 +493,17 @@
   .ep-rest { background:var(--card-2); border:1px solid var(--blue); color:var(--blue-2); font-size:11px; font-weight:700; padding:4px 8px; border-radius:3px; cursor:pointer; }
   .ep-rest:active { background:var(--blue); color:#fff; }
   .ep-goal { flex:1; min-width:120px; font-size:11px; color:var(--txt-3); font-style:italic; }
+  .fb-bg { position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:400; }
+  .fb-card { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,92vw); max-height:88vh; overflow-y:auto; background:var(--card); border:1px solid var(--blue); border-radius:6px; padding:22px; z-index:401; }
+  .fb-title { font-size:19px; font-weight:800; color:#fff; margin-bottom:4px; }
+  .fb-sub { font-size:12px; color:var(--txt-3); margin-bottom:20px; }
+  .fb-row { margin-bottom:16px; }
+  .fb-lbl { font-size:13px; color:var(--txt); font-weight:700; margin-bottom:8px; }
+  .fb-hint { display:block; font-size:10px; color:var(--txt-3); font-weight:500; margin-top:2px; }
+  .fb-opts { display:flex; gap:6px; }
+  .fb-n { flex:1; padding:12px 0; background:var(--card-2); border:1px solid var(--border); border-radius:3px; color:var(--txt-2); font-size:14px; font-weight:700; cursor:pointer; }
+  .fb-n.wide { font-size:13px; }
+  .fb-n.on { background:var(--blue); color:#fff; border-color:var(--blue); }
   .daily-card, .ci-card { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-bottom:8px; }
   .daily-top { display:flex; gap:10px; margin-bottom:12px; }
   .dfield { flex:1; min-width:0; }
@@ -477,6 +518,14 @@
   .ci-q { margin-bottom:14px; }
   .ci-q label { display:block; font-size:12px; color:var(--txt); font-weight:600; margin-bottom:6px; line-height:1.4; }
   .ci-in { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:10px; color:var(--txt); font-size:13px; font-family:inherit; resize:vertical; }
+  .plan-banner { background:var(--card); border:1px solid var(--blue); border-radius:4px; padding:13px 14px; margin-bottom:16px; }
+  .plan-t { font-size:10px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:8px; }
+  .plan-macros { display:flex; gap:16px; flex-wrap:wrap; }
+  .plan-macros span { font-size:13px; color:var(--txt-2); }
+  .plan-macros b { color:var(--txt); font-size:16px; font-weight:800; margin-right:2px; font-variant-numeric:tabular-nums; }
+  .plan-notes { font-size:12px; color:var(--txt-2); margin-top:10px; line-height:1.5; padding-top:10px; border-top:1px solid var(--border); white-space:pre-wrap; }
+  .ex-video { display:inline-block; background:var(--card-2); border:1px solid var(--blue); color:var(--blue-2); font-size:12px; font-weight:700; padding:7px 11px; border-radius:4px; margin-bottom:10px; text-decoration:none; }
+  .ex-video:active { background:var(--blue); color:#fff; }
   .navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); }
@@ -502,6 +551,7 @@
   <div id="authHost"></div>
   <div id="coachHost"></div>
   <div id="coachSheetHost"></div>
+  <div id="fbHost"></div>
   <div class="topbar">
     <div class="brand">
       <div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div>
@@ -704,6 +754,9 @@ if (!Array.isArray(state.foods)) state.foods = [];
 if (!Array.isArray(state.diary)) state.diary = [];
 if (!state.diaryDate) state.diaryDate = today();
 if (typeof state.calTarget === "undefined") state.calTarget = null;
+if (typeof state.coachPlan === "undefined") state.coachPlan = null;
+if (typeof state.info === "undefined") state.info = null;
+if (typeof state.block === "undefined") state.block = null;
 if (typeof state.calProfile === "undefined") state.calProfile = null;
 if (typeof state.steps === "undefined") state.steps = 0;
 if (!state.stepsDate) state.stepsDate = today();
@@ -804,8 +857,16 @@ const CHECKIN_Q = [
   ["q12","Preguntá lo que necesites"],
   ["q13","¿Alguna interrupción la semana/mes que viene?"]
 ];
+function blockWeek(b, dstr){
+  if(!b || !b.start_date) return 0;
+  const a=new Date(b.start_date+"T00:00:00"), c=new Date((dstr||today())+"T00:00:00");
+  const w=Math.floor((c-a)/(7*24*3600*1000))+1;
+  return (w<1) ? 0 : w;
+}
+function isDeload(b, wk){ return !!(b && Array.isArray(b.deloads) && b.deloads.indexOf(wk)>=0); }
 function mondayOf(dstr){ const d=new Date((dstr||today())+"T00:00:00"); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return d.toISOString().slice(0,10); }
-let dailyForm=null, checkinOpen=false, checkinForm=null;
+let dailyForm=null, checkinOpen=false, checkinForm=null, myPhotos=[];
+let fbSession=null, fbForm=null;
 let loadEx = null;
 let calForm={sex:"m",age:"",height:"",weight:"",activity:"mod",goal:"mantener"};
 let foodForm={name:"",kcal:"",p:"",c:"",f:""};
@@ -828,6 +889,7 @@ function calcTarget(p){
   return Math.round(bmr*act*g);
 }
 function macroTargets(){
+  if(state.coachPlan){ const p=state.coachPlan; return {p:+p.protein||0, c:+p.carbs||0, f:+p.fat||0}; }
   const t = state.calTarget||0;
   const w = state.calProfile && state.calProfile.weight ? +state.calProfile.weight : 0;
   let p = w>0 ? Math.round(w*2) : Math.round(t*0.30/4);
@@ -863,6 +925,17 @@ function stopLive(){ try{ window.removeEventListener("devicemotion", onMotion); 
 
 // ---- Render: Entreno ----
 function routineLocked(){ try { return !!(cloudProfile && cloudProfile.role!=="coach" && cloudProfile.coach_id); } catch(e){ return false; } }
+function renderBlockBanner(){
+  const b=state.block; if(!b) return "";
+  const wk=blockWeek(b, today());
+  if(wk<1) return "";
+  const dl=isDeload(b,wk);
+  const meta=[b.phase, b.calories].filter(Boolean).join(" \u00b7 ");
+  return '<div class="blk'+(dl?' deload':'')+'">'+
+    '<div class="blk-top"><span class="blk-w">Semana '+wk+(b.weeks?' de '+b.weeks:'')+'</span>'+(meta?'<span class="blk-meta">'+esc(meta)+'</span>':'')+'</div>'+
+    (dl?'<div class="blk-dl">SEMANA DE DESCARGA \u2014 No faltes al gimnasio: baj\u00e1 series y cargas para recuperarte.</div>':'')+
+    (b.notes?'<div class="blk-note">'+esc(b.notes)+'</div>':'')+'</div>';
+}
 function renderDayNotes(d){
   const exN=(d.exercises||[]).filter(x=>x.note);
   if(!d.note && !exN.length) return "";
@@ -894,6 +967,7 @@ function renderEntreno(){
         ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${ex.id}" title="Cambiar ejercicio">${swapSvg}</button>
         <button class="trash" data-action="removeex" data-ex="${ex.id}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
+      ${ex.video?`<a class="ex-video" href="${esc(ex.video)}" target="_blank" rel="noopener">▶ Ver video del ejercicio</a>`:''}
       ${(ex.o||ex.rir||ex.rest||ex.goal)?`<div class="ex-prog">
         ${ex.o?`<span class="ep-ord">${esc(ex.o)}</span>`:''}
         ${ex.rir?`<span class="ep-chip">RIR ${esc(ex.rir)}</span>`:''}
@@ -906,6 +980,7 @@ function renderEntreno(){
     </div>`;
   }).join("");
   return `
+    ${renderBlockBanner()}
     ${routineLocked()?'<div class="coach-banner">Rutina asignada por tu coach</div>':''}
     <div class="tabs">${tabs}</div>
     <div class="day-head">
@@ -1093,7 +1168,7 @@ function renderExSheet(){
 function renderComida(){
   if (calEditing) return renderCalForm();
   if (creatingFood) return renderFoodForm();
-  if (!state.calTarget) {
+  if (!state.calTarget && !state.coachPlan) {
     return `<div class="cal-empty">
       <div class="cal-empty-ic">${flameSvg}</div>
       <div class="cal-empty-title">Configurá tu meta</div>
@@ -1101,7 +1176,8 @@ function renderComida(){
       <button class="ctrl primary" style="max-width:240px;margin:0 auto" data-action="cal-open">Configurar meta</button>
     </div>`;
   }
-  const t = state.calTarget, tot = diaryTotals(), mt = macroTargets();
+  const t = (state.coachPlan && state.coachPlan.kcal) ? state.coachPlan.kcal : state.calTarget, tot = diaryTotals(), mt = macroTargets();
+  const planBanner = state.coachPlan ? `<div class="plan-banner"><div class="plan-t">Plan de tu coach</div><div class="plan-macros"><span><b>${state.coachPlan.kcal||"-"}</b> kcal</span><span><b>${state.coachPlan.protein||"-"}</b>P</span><span><b>${state.coachPlan.carbs||"-"}</b>C</span><span><b>${state.coachPlan.fat||"-"}</b>G</span></div>${state.coachPlan.notes?`<div class="plan-notes">${esc(state.coachPlan.notes)}</div>`:''}</div>` : '';
   const wml = state.water||0, wgoal = state.waterGoal||3000, wpct = wgoal?Math.min(Math.round(wml/wgoal*100),100):0;
   const Lstr = v => (v/1000).toLocaleString("es-AR",{maximumFractionDigits:2});
   const pct = t ? Math.min(tot.kcal/t, 1) : 0;
@@ -1117,6 +1193,7 @@ function renderComida(){
       <button class="diary-rm" data-action="diary-remove" data-id="${e.id}" title="Quitar">✕</button>
     </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
   return `
+    ${planBanner}
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
         <circle class="ring-track" cx="60" cy="60" r="52"></circle>
@@ -1325,8 +1402,36 @@ function saveSession(){
   state.sessions.push(_ns);
   save();
   try{ cloudInsertSession(_ns); }catch(e){}
-  alert("¡Entreno guardado! 💪  Mirá tu progreso en Progreso → Evolución de cargas.");
+  fbSession=_ns.id; fbForm={};
   renderApp();
+}
+function renderFeedback(){
+  const host=document.getElementById("fbHost"); if(!host) return;
+  if(!fbSession){ host.innerHTML=""; return; }
+  const f=fbForm||{};
+  const scale=(k,lbl,hint)=>{
+    const opts=[1,2,3,4,5].map(n=>'<button class="fb-n'+(String(f[k])===String(n)?' on':'')+'" data-action="fb-set" data-k="'+k+'" data-v="'+n+'">'+n+'</button>').join("");
+    return '<div class="fb-row"><div class="fb-lbl">'+lbl+'<span class="fb-hint">'+hint+'</span></div><div class="fb-opts">'+opts+'</div></div>';
+  };
+  const jp=["No","S\u00ed"].map(v=>'<button class="fb-n wide'+(f.joint===v?' on':'')+'" data-action="fb-set" data-k="joint" data-v="'+v+'">'+v+'</button>').join("");
+  host.innerHTML='<div class="fb-bg"></div><div class="fb-card">'+
+    '<div class="fb-title">\u00a1Entreno guardado! \U0001F4AA</div>'+
+    '<div class="fb-sub">Contale a tu coach c\u00f3mo te fue</div>'+
+    scale("rpe","Fatiga percibida","1 = nada \u00b7 5 = al l\u00edmite")+
+    scale("pump","Pump de la sesi\u00f3n","1 = nada \u00b7 5 = mucho")+
+    '<div class="fb-row"><div class="fb-lbl">Dolor articular<span class="fb-hint">\u00bfMolestia en alguna articulaci\u00f3n?</span></div><div class="fb-opts">'+jp+'</div></div>'+
+    '<button class="form-save" style="margin-top:16px" data-action="fb-save">Enviar a mi coach</button>'+
+    '<button class="logout-btn" style="margin-top:8px" data-action="fb-skip">Ahora no</button></div>';
+}
+function renderInfo(){
+  const i=state.info; if(!i) return "";
+  const F=[["age","Edad",""],["height_cm","Altura"," cm"],["availability","Disponibilidad",""],["stage","Etapa",""],["commitment","Compromiso",""],["steps_goal","Pasos diarios",""]];
+  const chips=F.filter(x=>i[x[0]]).map(x=>'<div class="fi-chip"><span>'+x[1]+'</span><b>'+esc(String(i[x[0]]))+x[2]+'</b></div>').join("");
+  const L=[["objective","Objetivo"],["block_goal","Objetivo del bloque"],["structure","Estructura"],["cardio","Cardio"],["injuries","Lesiones o patolog\u00edas"]];
+  const lines=L.filter(x=>i[x[0]]).map(x=>'<div class="fi-line"><span>'+x[1]+'</span>'+esc(i[x[0]])+'</div>').join("");
+  if(!chips && !lines) return "";
+  return '<div class="hb-head"><div class="hb-title">Mi ficha</div><div class="title-accent"></div></div>'+
+    '<div class="fi-card">'+(chips?'<div class="fi-chips">'+chips+'</div>':'')+lines+'</div>';
 }
 function renderDaily(){
   const d = dailyForm || (state.daily[today()] || {});
@@ -1354,6 +1459,11 @@ function renderCheckin(){
       <div class="ci-card">
         <div class="ci-status">${saved ? "\u2713 Ya respondiste el check-in de esta semana. Pod\u00e9s editarlo." : "Todav\u00eda no respondiste el check-in de esta semana."}</div>
         <button class="form-save" style="margin-top:10px" data-action="ci-open">${saved ? "Ver / editar mis respuestas" : "Responder el check-in"}</button>
+      </div>
+      <div class="ci-card">
+        <div class="ci-status">Fotos de progreso (las ve tu coach)</div>
+        <div class="ph-grid">${myPhotos.map(p=>'<div class="ph-thumb"><img src="'+p.url+'"><button class="ph-del" data-action="photo-del" data-id="'+p.id+'" data-path="'+esc(p.path)+'">\u2715</button></div>').join("")||'<div class="cal-hint" style="padding:8px 0">Todav\u00eda no subiste fotos.</div>'}</div>
+        <label class="form-save" style="margin-top:10px;display:block;text-align:center;cursor:pointer">\ud83d\udcf7 Subir foto<input type="file" accept="image/*" style="display:none" data-action="photo-pick"></label>
       </div>`;
   }
   const f = checkinForm || (saved ? JSON.parse(JSON.stringify(saved)) : {});
@@ -1393,6 +1503,7 @@ function renderProgreso(){
     ${list?`<div class="w-list-head">Historial de peso</div>${list}`:""}
     ${renderCargas()}
     ${renderHistorial()}
+    ${renderInfo()}
     ${renderDaily()}
     ${renderCheckin()}
     ${renderVolumen()}
@@ -1448,6 +1559,7 @@ async function onBarcode(code){
 }
 
 function renderApp(){
+  setTimeout(renderFeedback,0);
   checkDaily();
   document.getElementById("nav-entreno").classList.toggle("active", view==="entreno");
   document.getElementById("nav-habitos").classList.toggle("active", view==="habitos");
@@ -1482,7 +1594,7 @@ function tick(){
 setInterval(tick, 100);
 
 // ---- Eventos ----
-document.body.addEventListener("input", e => {
+document.body.addEventListener("input", async e => {
   const t = e.target, a = t.dataset.action; if(!a) return;
   if (a === "tm-min" || a === "tm-sec") {
     const mEl=document.getElementById("tmMin"), sEl=document.getElementById("tmSec");
@@ -1505,19 +1617,20 @@ document.body.addEventListener("input", e => {
   save();
 });
 
-document.body.addEventListener("keydown", e => {
+document.body.addEventListener("keydown", async e => {
   if (e.key === "Enter" && e.target.dataset && e.target.dataset.action === "habit-name-input") { e.preventDefault(); addHabit(); }
 });
 
-document.body.addEventListener("change", e => {
+document.body.addEventListener("change", async e => {
   const t=e.target, a=t.dataset.action; if(!a) return;
   if (a === "wdate-field") { weightForm.date = t.value; return; }
   if (a === "daily-kg" || a === "daily-steps" || a === "daily-com") { dailyForm = dailyForm || Object.assign({}, state.daily[today()]||{}); dailyForm[a==="daily-kg"?"kg":(a==="daily-steps"?"steps":"comment")] = t.value; return; }
   if (a === "ci-set") { checkinForm = checkinForm || JSON.parse(JSON.stringify(state.checkins[mondayOf(today())]||{})); checkinForm[t.dataset.k] = t.value; return; }
   if (a === "load-ex") { loadEx = t.value; renderApp(); return; }
+  if (a === "photo-pick") { const file=t.files&&t.files[0]; if(file){ try{ await cloudUploadPhoto(file); }catch(err){ alert("No se pudo subir la foto: "+((err&&err.message)||err)); } } t.value=""; return; }
 });
 
-document.body.addEventListener("click", e => {
+document.body.addEventListener("click", async e => {
   const navBtn = e.target.closest("[data-view]");
   if (navBtn) { view = navBtn.dataset.view; selectedFood=null; editEntry=null; calEditing=false; creatingFood=false; exPicker=null; renderApp(); return; }
   const el = e.target.closest("[data-action]"); if(!el) return;
@@ -1602,7 +1715,15 @@ document.body.addEventListener("click", e => {
     dailyForm=null; save(); try{ cloudSaveDaily(today(), rec); }catch(e){}
     alert("Registro guardado \u2713"); renderApp(); return;
   }
+  if (a === "fb-set") { fbForm=fbForm||{}; fbForm[el.dataset.k]=el.dataset.v; renderFeedback(); return; }
+  if (a === "fb-skip") { fbSession=null; fbForm=null; renderApp(); return; }
+  if (a === "fb-save") {
+    const se=state.sessions.find(x=>x.id===fbSession); const f=fbForm||{};
+    if(se){ if(f.rpe) se.rpe=+f.rpe; if(f.pump) se.pump=+f.pump; if(f.joint) se.joint=(f.joint==="S\u00ed"); save(); try{ cloudSessionFeedback(se); }catch(e){} }
+    fbSession=null; fbForm=null; renderApp(); return;
+  }
   if (a === "ci-open") { checkinOpen=true; checkinForm=null; renderApp(); return; }
+  if (a === "photo-del") { const path=el.dataset.path, id=el.dataset.id; try{ await cloudDeletePhoto(id, path); }catch(e){} return; }
   if (a === "ci-close") { checkinOpen=false; checkinForm=null; renderApp(); return; }
   if (a === "ci-adh") { checkinForm = checkinForm || JSON.parse(JSON.stringify(state.checkins[mondayOf(today())]||{})); checkinForm.adherence = parseInt(el.dataset.v); renderApp(); return; }
   if (a === "ci-save") {
@@ -1727,6 +1848,13 @@ async function loadCloud(){
     if(Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]={steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}; }); }
     const ck=await sb.from("checkins").select("*").eq("client_id",cloudUser.id);
     if(Array.isArray(ck.data)){ state.checkins={}; ck.data.forEach(r=>{ const o=Object.assign({}, r.answers||{}); if(r.adherence) o.adherence=r.adherence; state.checkins[r.week_start]=o; }); }
+    const ci=await sb.from("client_info").select("*").eq("client_id",cloudUser.id).maybeSingle();
+    state.info = ci.data || null;
+    const bl=await sb.from("blocks").select("*").eq("client_id",cloudUser.id).eq("active",true).order("start_date",{ascending:false}).limit(1);
+    state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;
+    const np=await sb.from("nutrition").select("*").eq("client_id",cloudUser.id).maybeSingle();
+    state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes} : null;
+    await loadMyPhotos();
     save();
   }catch(e){ console.error("loadCloud",e); }
   cloudLoading=false;
@@ -1748,6 +1876,35 @@ function cloudSyncCore(){
   },1200);
 }
 
+async function loadMyPhotos(){
+  if(!sb||!cloudUser) return;
+  try{
+    const r=await sb.from("checkin_photos").select("*").eq("client_id",cloudUser.id).order("created_at",{ascending:false});
+    myPhotos=[];
+    for(const p of (r.data||[])){
+      const u=await sb.storage.from("checkins").createSignedUrl(p.path, 3600);
+      myPhotos.push({id:p.id, path:p.path, url:(u.data&&u.data.signedUrl)||""});
+    }
+  }catch(e){ console.error("photos",e); }
+}
+async function cloudUploadPhoto(file){
+  if(!sb||!cloudUser) return;
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+  const path=cloudUser.id+"/"+Date.now()+"."+ext;
+  const up=await sb.storage.from("checkins").upload(path, file, {upsert:false});
+  if(up.error) throw up.error;
+  await sb.from("checkin_photos").insert({client_id:cloudUser.id, path:path, taken_on:today()});
+  await loadMyPhotos(); renderApp();
+}
+async function cloudDeletePhoto(id, path){
+  if(!sb||!cloudUser) return;
+  try{ await sb.storage.from("checkins").remove([path]); await sb.from("checkin_photos").delete().eq("id",id); await loadMyPhotos(); renderApp(); }catch(e){ console.error(e); }
+}
+async function cloudSessionFeedback(se){
+  if(!sb||!cloudUser||!se.cloudId) return;
+  try{ await sb.from("sessions").update({rpe:se.rpe||null, pump:se.pump||null, joint_pain:(typeof se.joint==="boolean")?se.joint:null}).eq("id",se.cloudId); }
+  catch(e){ console.error("fb",e); }
+}
 async function cloudSaveDaily(dt, rec){
   if(!sb||!cloudUser) return;
   try{
@@ -1818,7 +1975,7 @@ document.body.addEventListener("click", async e=>{
 });
 
 // ============ Panel del Coach (Fase 2) ============
-let coachClients=[], coachSel=null, coachData=null, coachInvite=null, coachDayFilter=null, coachEditDay=0, coachDL="";
+let coachClients=[], coachSel=null, coachData=null, coachInvite=null, coachDayFilter=null, coachEditDay=0, coachDL="", coachPlanForm=null, coachInfoForm=null, coachBlockForm=null;
 async function loadCoachClients(){
   try{
     const r=await sb.from("profiles").select("id, full_name").eq("coach_id",cloudUser.id).order("full_name");
@@ -1851,8 +2008,14 @@ async function openClient(id){
     migrateNames(routine);
     const dl=await sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false});
     const ck=await sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false});
+    const ci=await sb.from("client_info").select("*").eq("client_id",id).maybeSingle();
+    const bl=await sb.from("blocks").select("*").eq("client_id",id).eq("active",true).order("start_date",{ascending:false}).limit(1);
+    const np=await sb.from("nutrition").select("*").eq("client_id",id).maybeSingle();
+    const ph=await sb.from("checkin_photos").select("*").eq("client_id",id).order("created_at",{ascending:false});
+    const photos=[]; for(const p of (ph.data||[])){ const u=await sb.storage.from("checkins").createSignedUrl(p.path,3600); photos.push({id:p.id, taken_on:p.taken_on, url:(u.data&&u.data.signedUrl)||""}); }
     const c=coachClients.find(x=>x.id===id);
-    coachData={id:id, name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[])};
+    coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos};
+    coachPlanForm=null; coachInfoForm=null; coachBlockForm=null;
   }catch(e){ coachData={error:true}; console.error("openClient",e); }
   renderCoach();
 }
@@ -1952,6 +2115,59 @@ function renderCoachCheckins(d){
     return '<div class="ck-card"><div class="ck-head">Semana del '+fmtDate(c.week_start)+' '+adh+'</div>'+(qs||'<div class="cal-hint">Sin respuestas.</div>')+'</div>';
   }).join("");
 }
+function renderCoachPlan(d){
+  const p = coachPlanForm || d.plan || {};
+  return '<div class="co-sec">Plan nutricional</div>'+
+    '<div class="co-panel"><div class="cp-macros">'+
+      '<div class="cp-f"><label>Calorías</label><input class="co-pin2" data-coach="plan-kcal" value="'+esc(p.kcal||"")+'" placeholder="2000"></div>'+
+      '<div class="cp-f"><label>Proteína (g)</label><input class="co-pin2" data-coach="plan-protein" value="'+esc(p.protein||"")+'" placeholder="140"></div>'+
+      '<div class="cp-f"><label>Carbos (g)</label><input class="co-pin2" data-coach="plan-carbs" value="'+esc(p.carbs||"")+'" placeholder="240"></div>'+
+      '<div class="cp-f"><label>Grasas (g)</label><input class="co-pin2" data-coach="plan-fat" value="'+esc(p.fat||"")+'" placeholder="55"></div>'+
+    '</div>'+
+    '<div class="co-note-wrap"><span class="co-note-lbl">Notas del plan (pautas, comidas, reemplazos…)</span><textarea class="ci-in" rows="4" data-coach="plan-notes" placeholder="">'+esc(p.notes||"")+'</textarea></div>'+
+    '<button class="co-save-rt" data-coach="plan-save">Guardar plan nutricional</button></div>';
+}
+function renderCoachPhotos(d){
+  const ph=(d.photos||[]);
+  if(!ph.length) return '<div class="cal-hint">El cliente todav\u00eda no subi\u00f3 fotos.</div>';
+  return '<div class="ph-grid big">'+ph.map(p=>'<a class="ph-thumb" href="'+p.url+'" target="_blank"><img src="'+p.url+'"><span class="ph-date">'+fmtDate(p.taken_on)+'</span></a>').join("")+'</div>';
+}
+function renderCoachInfo(d){
+  const i = coachInfoForm || d.info || {};
+  const F=(k,lbl,ph,type)=>'<div class="ci-f"><label>'+lbl+'</label><input class="co-note" data-coach="info-'+k+'" value="'+esc(i[k]==null?"":String(i[k]))+'" placeholder="'+ph+'"'+(type?' inputmode="'+type+'"':'')+'></div>';
+  return '<div class="ci-grid">'+
+      F("age","Edad","","numeric")+F("height_cm","Altura (cm)","","numeric")+
+      F("availability","Disponibilidad","4 d\u00edas")+F("stage","Etapa","Definici\u00f3n")+
+      F("commitment","Compromiso","Alto")+F("steps_goal","Pasos diarios","10000","numeric")+
+    '</div>'+
+    F("objective","Objetivo","Conseguir un f\u00edsico est\u00e9tico")+
+    F("block_goal","Objetivo del bloque","Perder grasa a velocidad moderada")+
+    F("structure","Estructura","Torso - Pierna - Pecho/espalda - Pierna/brazo")+
+    F("cardio","Cardio","2 veces por semana, 25' bici. 120-140 lpm")+
+    F("injuries","Lesiones o patolog\u00edas","")+
+    '<button class="co-save-rt" data-coach="info-save">Guardar ficha del cliente</button>';
+}
+function renderCoachBlock(d){
+  const b = coachBlockForm || d.block || {};
+  const wks = parseInt(b.weeks)||8;
+  const dls = Array.isArray(b.deloads)?b.deloads:[];
+  const cur = b.start_date ? blockWeek(b, today()) : 0;
+  let grid="";
+  for(let w=1; w<=wks; w++){
+    const on=dls.indexOf(w)>=0;
+    grid+='<button class="bw'+(on?' dl':'')+(w===cur?' now':'')+'" data-coach="blk-dl" data-w="'+w+'" title="Marcar como semana de descarga">'+w+'</button>';
+  }
+  const F=(k,lbl,ph,type)=>'<div class="ci-f"><label>'+lbl+'</label><input class="co-note" data-coach="blk-'+k+'" value="'+esc(b[k]==null?"":String(b[k]))+'" placeholder="'+ph+'"'+(type?' type="'+type+'"':'')+'></div>';
+  return '<div class="ci-grid">'+
+      F("name","Nombre del bloque","Meso 2")+F("start_date","Inicio (lunes)","",'date')+
+      F("weeks","Semanas","8","numeric")+F("phase","Fase","Definici\u00f3n")+
+    '</div>'+
+    F("calories","Estrategia cal\u00f3rica","D\u00e9ficit")+
+    F("notes","Nota del bloque (la ve el cliente)","")+
+    '<div class="co-note-lbl" style="margin-top:14px">Semanas de descarga \u2014 toc\u00e1 para marcarlas'+(cur?' \u00b7 el cliente est\u00e1 en la semana '+cur:'')+'</div>'+
+    '<div class="bw-grid">'+grid+'</div>'+
+    '<button class="co-save-rt" data-coach="blk-save">Guardar bloque</button>';
+}
 function renderCoachRoutine(d){
   const rt=d.routine||[];
   if(!rt.length) return '<div class="co-sec">Rutina y progreso</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';
@@ -1971,6 +2187,7 @@ function renderCoachRoutine(d){
         '<div class="co-exc-plan">'+
           '<div class="co-prow"><span class="co-note-lbl">RIR</span><input class="co-pin" data-coach="rt-rir" data-i="'+i+'" value="'+esc(ex.rir||"")+'" placeholder="2-0"><span class="co-note-lbl">Descanso</span><input class="co-pin" data-coach="rt-rest" data-i="'+i+'" value="'+esc(ex.rest||"")+'" placeholder="2\'-3\'"></div>'+
           '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder=""></div>'+
+          '<div class="co-note-wrap"><span class="co-note-lbl">Link de video (YouTube)</span><input class="co-note" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="https://youtu.be/..."></div>'+
           sets+
           '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
           '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder=""></div>'+
@@ -2018,7 +2235,7 @@ function cpApply(name){
   else { day.exercises.push(mkEx(name,3,mm)); }
   coachPicker=null; renderCoachPicker(); renderCoach();
 }
-document.body.addEventListener("click", e=>{
+document.body.addEventListener("click", async e => {
   const b=e.target.closest("[data-cp]"); if(!b) return;
   const a=b.dataset.cp;
   if(a==="cancel"){ coachPicker=null; renderCoachPicker(); return; }
@@ -2027,7 +2244,7 @@ document.body.addEventListener("click", e=>{
   if(a==="choose"){ cpApply(b.dataset.name); return; }
   if(a==="custom"){ const nm=prompt(coachPicker&&coachPicker.mode==="swap"?"Nuevo nombre del ejercicio:":"Nombre del ejercicio:",""); if(nm&&nm.trim()) cpApply(nm.trim()); return; }
 });
-document.body.addEventListener("input", e=>{
+document.body.addEventListener("input", async e => {
   const el=e.target.closest('[data-cp="search"]'); if(!el) return;
   coachPQ=el.value; renderCoachPicker();
   const si=document.querySelector(".cp-search"); if(si){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
@@ -2047,7 +2264,11 @@ function renderCoach(){
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
       const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
-      body=renderCoachRoutine(d)+
+      body='<div class="co-bottom"><div class="co-panel"><div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+'</div>'+
+             '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div></div>'+
+           renderCoachRoutine(d)+
+           renderCoachPlan(d)+
+           '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
            '<div class="co-sec">Seguimiento diario</div>'+renderCoachDaily(d)+
            '<div class="co-sec">Check-in semanal</div>'+renderCoachCheckins(d)+
            '<div class="co-bottom">'+
@@ -2059,7 +2280,7 @@ function renderCoach(){
     host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">↻ Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
 }
-document.body.addEventListener("click", e=>{
+document.body.addEventListener("click", async e => {
   const b=e.target.closest("[data-coach]"); if(!b) return;
   const a=b.dataset.coach;
   if(a==="open"){ openClient(b.dataset.id); return; }
@@ -2075,15 +2296,44 @@ document.body.addEventListener("click", e=>{
   if(a==="rt-swap"){ coachPicker={mode:"swap", i:(+b.dataset.i||0)}; coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
   if(a==="rt-add"){ coachPicker={mode:"add"}; coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
   if(a==="rt-ins"){ coachPicker={mode:"insert", idx:(+b.dataset.i||0)}; coachPCat=null; coachPQ=""; renderCoachPicker(); return; }
+  if(a==="info-save"){
+    const i=coachInfoForm||coachData.info||{};
+    const row={client_id:coachData.id, age:parseInt(i.age)||null, height_cm:parseInt(i.height_cm)||null,
+      availability:i.availability||null, objective:i.objective||null, stage:i.stage||null, commitment:i.commitment||null,
+      structure:i.structure||null, block_goal:i.block_goal||null, injuries:i.injuries||null, cardio:i.cardio||null,
+      steps_goal:parseInt(i.steps_goal)||null, updated_at:new Date().toISOString(), updated_by:cloudUser.id};
+    try{ await sb.from("client_info").upsert(row,{onConflict:"client_id"}); coachData.info=row; coachInfoForm=null; alert("Ficha guardada \u2713"); }
+    catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    renderCoach(); return;
+  }
+  if(a==="blk-dl"){
+    coachBlockForm = coachBlockForm || Object.assign({}, coachData.block||{});
+    const w=parseInt(b.dataset.w); const arr=Array.isArray(coachBlockForm.deloads)?coachBlockForm.deloads.slice():[];
+    const k=arr.indexOf(w); if(k>=0) arr.splice(k,1); else arr.push(w);
+    coachBlockForm.deloads=arr.sort((x,y)=>x-y); renderCoach(); return;
+  }
+  if(a==="blk-save"){
+    const bf=coachBlockForm||coachData.block||{};
+    if(!bf.start_date){ alert("Pon\u00e9 la fecha de inicio del bloque (un lunes)."); return; }
+    const row={client_id:coachData.id, name:bf.name||null, start_date:bf.start_date, weeks:parseInt(bf.weeks)||8,
+      phase:bf.phase||null, calories:bf.calories||null, deloads:Array.isArray(bf.deloads)?bf.deloads:[], notes:bf.notes||null, active:true};
+    try{
+      if(coachData.block && coachData.block.id){ await sb.from("blocks").update(row).eq("id",coachData.block.id); row.id=coachData.block.id; }
+      else { const r=await sb.from("blocks").insert(row).select("id").single(); if(r.data) row.id=r.data.id; }
+      coachData.block=row; coachBlockForm=null; alert("Bloque guardado \u2713");
+    }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    renderCoach(); return;
+  }
+  if(a==="plan-save"){ const p=coachPlanForm||coachData.plan||{}; const row={client_id:coachData.id, kcal:parseInt(p.kcal)||null, protein:parseInt(p.protein)||null, carbs:parseInt(p.carbs)||null, fat:parseInt(p.fat)||null, notes:p.notes||null, updated_at:new Date().toISOString(), updated_by:cloudUser.id}; try{ await sb.from("nutrition").upsert(row,{onConflict:"client_id"}); coachData.plan=row; coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); } renderCoach(); return; }
   if(a==="save-routine"){ b.textContent="Guardando..."; (async()=>{ try{ const r=await sb.from("routines").upsert({client_id:coachSel, days:coachData.routine, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"}); if(r.error) throw r.error; alert("Rutina guardada. El cliente la va a ver al abrir la app."); }catch(err){ alert("No se pudo guardar: "+((err&&err.message)||err)); } renderCoach(); })(); return; }
 });
-document.body.addEventListener("change", e=>{
+document.body.addEventListener("change", async e => {
   const el=e.target.closest("[data-coach]"); if(!el||!coachData) return;
   const a=el.dataset.coach;
   if(a==="ex"){ coachData.loadEx=el.value; renderCoach(); }
   else if(a==="dayfilter"){ coachDayFilter=el.value||null; coachData.loadEx=null; renderCoach(); }
 });
-document.body.addEventListener("input", e=>{
+document.body.addEventListener("input", async e => {
   const el=e.target.closest("[data-coach]"); if(!el||!coachData||!coachData.routine) return;
   const a=el.dataset.coach; const day=coachData.routine[coachEditDay]; if(!day) return;
   if(a==="rt-name"){ if(day.exercises[+el.dataset.i]) day.exercises[+el.dataset.i].name=el.value; }
@@ -2091,7 +2341,10 @@ document.body.addEventListener("input", e=>{
   else if(a==="rt-target"){ const ex=day.exercises[+el.dataset.i]; const st=ex&&ex.sets[+el.dataset.j]; if(st){ const v=el.value.trim(); if(v) st.target=v; else delete st.target; } }
   else if(a==="rt-note"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const v=el.value.trim(); if(v) ex.note=v; else delete ex.note; } }
   else if(a==="day-note"){ const v=el.value.trim(); if(v) day.note=v; else delete day.note; }
-  else if(a==="rt-o"||a==="rt-rir"||a==="rt-rest"||a==="rt-goal"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const k=a.slice(3); const v=el.value.trim(); if(v) ex[k]=v; else delete ex[k]; } }
+  else if(a==="rt-o"||a==="rt-rir"||a==="rt-rest"||a==="rt-goal"||a==="rt-video"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const k=(a==="rt-video")?"video":a.slice(3); const v=el.value.trim(); if(v) ex[k]=v; else delete ex[k]; } }
+  else if(a.indexOf("info-")===0){ coachInfoForm = coachInfoForm || Object.assign({}, coachData.info||{}); coachInfoForm[a.slice(5)] = el.value; return; }
+  else if(a.indexOf("blk-")===0){ coachBlockForm = coachBlockForm || Object.assign({}, coachData.block||{}); coachBlockForm[a.slice(4)] = el.value; return; }
+  else if(a==="plan-kcal"||a==="plan-protein"||a==="plan-carbs"||a==="plan-fat"||a==="plan-notes"){ coachPlanForm = coachPlanForm || Object.assign({}, coachData.plan||{}); coachPlanForm[a.slice(5)] = el.value; }
 });
 
 document.addEventListener("visibilitychange", async ()=>{
