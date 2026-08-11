@@ -1,6 +1,6 @@
 {
-  "name": "J-FIT",
-  "short_name": "J-FIT",
+  "name": "FitSheet",
+  "short_name": "FitSheet",
   "description": "Tu rutina, tu progreso.",
   "start_url": "./",
   "scope": "./",
