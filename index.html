@@ -440,6 +440,7 @@
   .pl-add.sm { padding:5px 10px; font-size:11px; }
   .le-row, .sw-row { display:flex; gap:6px; align-items:center; margin-bottom:5px; }
   .sw-arrow { color:var(--txt-3); flex-shrink:0; }
+  .pl-help { font-size:11px; color:var(--txt-3); font-style:italic; line-height:1.5; margin:0 0 12px; padding:8px 10px; background:var(--card-2); border-radius:4px; border-left:2px solid var(--blue); }
   .opt-card { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:10px; margin-bottom:8px; }
   .opt-head { display:flex; gap:6px; margin-bottom:8px; }
   /* --- vista del cliente --- */
@@ -456,8 +457,11 @@
   .mc-tot td { font-weight:800; color:var(--blue-2); border-bottom:none; border-top:1px solid var(--border); }
   .mc-list { margin:0; padding-left:18px; color:var(--txt-2); font-size:13px; line-height:1.7; }
   .mc-ws { display:flex; flex-wrap:wrap; gap:16px; font-size:14px; color:var(--txt); font-weight:600; }
-  .mc-opt { margin-bottom:10px; }
-  .mc-optt { font-size:12px; color:var(--txt); font-weight:700; margin-bottom:4px; }
+  .mc-opthead { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:4px 0 2px; }
+  .mc-optcard { padding:12px 14px; }
+  .mc-optt { font-size:13px; color:var(--blue-2); font-weight:800; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .mc-optcard .mc-list { padding-left:16px; line-height:1.8; }
+  .mc-optcard .mc-list li { margin-bottom:3px; }
   .mc-swap { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--txt-2); padding:5px 0; }
   .mc-arr { color:var(--blue); }
   .cardio-rx { background:var(--card); border:1px solid var(--blue); border-left:3px solid var(--blue); border-radius:4px; padding:14px; margin-bottom:20px; }
@@ -1647,7 +1651,7 @@ function renderFeedback(){
   };
   const jp=["No","S\u00ed"].map(v=>'<button class="fb-n wide'+(f.joint===v?' on':'')+'" data-action="fb-set" data-k="joint" data-v="'+v+'">'+v+'</button>').join("");
   host.innerHTML='<div class="fb-bg"></div><div class="fb-card">'+
-    '<div class="fb-title">\u00a1Entreno guardado! \U0001F4AA</div>'+
+    '<div class="fb-title">\u00a1Entreno guardado! 💪</div>'+
     '<div class="fb-sub">Contale a tu coach c\u00f3mo te fue</div>'+
     scale("rpe","Fatiga percibida","1 = nada \u00b7 5 = al l\u00edmite")+
     scale("pump","Pump de la sesi\u00f3n","1 = nada \u00b7 5 = mucho")+
@@ -1721,12 +1725,13 @@ function renderClientPlan(p){
     return '<div class="mc-block"><div class="mc-title">'+title+'</div><table class="mc-tbl"><thead><tr><th>Comida</th><th>Kcal</th><th>Hidr.</th><th>Gras.</th><th>Prot.</th></tr></thead><tbody>'+body+
       '<tr class="mc-tot"><td>Objetivo</td><td>'+tk+'</td><td>'+tc+'</td><td>'+tf+'</td><td>'+tp+'</td></tr></tbody></table></div>';
   };
-  const list=(arr,title,icon)=>{ if(!arr||!arr.length) return ""; return '<div class="mc-block"><div class="mc-title">'+icon+' '+title+'</div><ul class="mc-list">'+arr.filter(x=>x&&x.trim()).map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>'; };
-  const ws=(p.water||p.salt)?'<div class="mc-block"><div class="mc-ws">'+(p.water?'<span>\U0001F4A7 '+esc(p.water)+'</span>':'')+(p.salt?'<span>\U0001F9C2 '+esc(p.salt)+'</span>':'')+'</div></div>':'';
-  const opts=(p.options&&p.options.length)?'<div class="mc-block"><div class="mc-title">\U0001F37D\uFE0F Opciones de comidas</div>'+p.options.filter(o=>o.title||( o.items&&o.items.some(i=>i&&i.trim()))).map(o=>'<div class="mc-opt"><div class="mc-optt">'+esc(o.title||"")+'</div><ul class="mc-list">'+(o.items||[]).filter(i=>i&&i.trim()).map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul></div>').join("")+'</div>':'';
-  const swaps=(p.swaps&&p.swaps.length)?'<div class="mc-block"><div class="mc-title">\U0001F501 Reemplazos</div>'+p.swaps.filter(s=>s.from||s.to).map(s=>'<div class="mc-swap"><span>'+esc(s.from||"")+'</span><span class="mc-arr">\u2192</span><span>'+esc(s.to||"")+'</span></div>').join("")+'</div>':'';
+  const list=(arr,title,icon)=>{ if(!arr||!arr.filter(x=>x&&x.trim()).length) return ""; return '<div class="mc-block"><div class="mc-title">'+icon+' '+title+'</div><ul class="mc-list">'+arr.filter(x=>x&&x.trim()).map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>'; };
+  const ws=(p.water||p.salt)?'<div class="mc-block"><div class="mc-ws">'+(p.water?'<span>💧 '+esc(p.water)+'</span>':'')+(p.salt?'<span>🧂 '+esc(p.salt)+'</span>':'')+'</div></div>':'';
+  const validOpts = (p.options||[]).filter(o=>(o.title&&o.title.trim())||(o.items&&o.items.some(i=>i&&i.trim())));
+  const opts = validOpts.length ? '<div class="mc-opthead">🍽️ Opciones de comidas</div>'+validOpts.map(o=>'<div class="mc-block mc-optcard"><div class="mc-optt">'+esc(o.title||"")+'</div><ul class="mc-list">'+(o.items||[]).filter(i=>i&&i.trim()).map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul></div>').join("") : '';
+  const swaps=(p.swaps&&p.swaps.length)?'<div class="mc-block"><div class="mc-title">🔁 Reemplazos</div>'+p.swaps.filter(s=>s.from||s.to).map(s=>'<div class="mc-swap"><span>'+esc(s.from||"")+'</span><span class="mc-arr">\u2192</span><span>'+esc(s.to||"")+'</span></div>').join("")+'</div>':'';
   const out = meals(p.trainDays,"Días de entrenamiento")+meals(p.restDays,"Días de descanso")+ws+
-    list(p.guidelines,"Pautas nutricionales","\U0001F4CB")+list(p.supps,"Suplementos recomendados","\U0001F48A")+
+    list(p.guidelines,"Pautas nutricionales","📋")+list(p.supps,"Suplementos recomendados","💊")+
     opts+list(p.extras,"Adicionales","\u2795")+swaps;
   if(!out) return "";
   return '<div class="hb-head" style="margin-top:20px"><div class="hb-title">Plan de comidas de tu coach</div><div class="title-accent"></div></div><div class="mc-wrap">'+out+'</div>';
@@ -1935,7 +1940,7 @@ document.body.addEventListener("click", async e => {
     state.checkins[wk] = Object.assign({}, state.checkins[wk]||{}, f);
     checkinOpen=false; checkinForm=null; save();
     try{ cloudSaveCheckin(wk, state.checkins[wk]); }catch(e){}
-    alert("\u00a1Check-in enviado a tu coach! \U0001F4AA"); renderApp(); return;
+    alert("\u00a1Check-in enviado a tu coach! 💪"); renderApp(); return;
   }
   if (a === "daily-set") { dailyForm = dailyForm || Object.assign({}, state.daily[today()]||{}); dailyForm[el.dataset.k] = el.dataset.v; renderApp(); return; }
   if (a === "weight-save") { const dEl=document.getElementById("wDate"), kEl=document.getElementById("wKg"); const date=dEl?dEl.value:""; const kg=parseFloat((kEl?kEl.value:"").replace(",",".")); if(!date){ alert("Elegí una fecha."); return; } if(!(kg>0)){ alert("Poné un peso válido."); return; } const exw=state.weights.find(w=>w.date===date); if(exw) exw.kg=kg; else state.weights.push({id:uid(),date,kg}); weightForm={date:today(),kg:""}; save(); renderApp(); return; }
@@ -2361,7 +2366,7 @@ function optionsEditor(p){
       (o.items||[]).map((it,j)=>'<div class="le-row"><input class="ml-in wide" data-coach="pl-optitem" data-i="'+i+'" data-j="'+j+'" value="'+esc(it)+'" placeholder="2 huevos enteros + 1 fruta"><button class="ml-del" data-coach="pl-optitemdel" data-i="'+i+'" data-j="'+j+'">\u2715</button></div>').join("")+
       '<button class="pl-add sm" data-coach="pl-optitemadd" data-i="'+i+'">+ Ítem</button>'+
     '</div>').join("");
-  return '<div class="co-note-lbl" style="margin-top:16px">Opciones de comidas (el cliente elige)</div>'+blocks+'<button class="pl-add" data-coach="pl-optadd">+ Agregar opción/sección</button>';
+  return '<div class="co-note-lbl" style="margin-top:16px">Opciones de comidas (el cliente elige)</div><div class="pl-help">Cre\u00e1 una secci\u00f3n por cada grupo (ej: "Merienda", "Almuerzo pre-entreno") y adentro un \u00edtem por cada opci\u00f3n. As\u00ed el cliente lo ve ordenado, no todo junto.</div>'+blocks+'<button class="pl-add" data-coach="pl-optadd">+ Agregar opci\u00f3n/secci\u00f3n</button>';
 }
 function swapsEditor(p){
   const arr=(p.swaps||[]);
