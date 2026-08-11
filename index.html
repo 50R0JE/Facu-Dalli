@@ -460,6 +460,13 @@
   .mc-optt { font-size:12px; color:var(--txt); font-weight:700; margin-bottom:4px; }
   .mc-swap { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--txt-2); padding:5px 0; }
   .mc-arr { color:var(--blue); }
+  .cardio-rx { background:var(--card); border:1px solid var(--blue); border-left:3px solid var(--blue); border-radius:4px; padding:14px; margin-bottom:20px; }
+  .cardio-rx-h { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:8px; }
+  .cardio-rx-txt { font-size:14px; color:var(--txt); line-height:1.5; margin-bottom:6px; }
+  .cardio-toolsec { margin-top:26px; padding-top:20px; border-top:1px solid var(--border); }
+  .cardio-tools-h { font-size:11px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:14px; text-align:center; }
+  .hb-item.coach { border-left:2px solid var(--blue); }
+  .hb-coach-tag { margin-left:auto; font-size:9px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; background:var(--card-2); padding:3px 6px; border-radius:3px; }
   .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
   .ci-f { margin-bottom:10px; }
   .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
@@ -967,6 +974,7 @@ if (typeof state.restDefault === "undefined") state.restDefault = 120;
 if (!Array.isArray(state.sessions)) state.sessions = [];
 if (!state.daily || typeof state.daily !== "object") state.daily = {};
 if (!state.checkins || typeof state.checkins !== "object") state.checkins = {};
+if (!state.habitsDone || typeof state.habitsDone !== "object") state.habitsDone = {};
 
 let view = "entreno";
 let activeId = ({1:"lun",2:"mar",3:"mie",4:"jue",5:"vie"})[new Date().getDay()] || "lun";
@@ -1062,6 +1070,7 @@ function blockWeek(b, dstr){
   return (w<1) ? 0 : w;
 }
 function isDeload(b, wk){ return !!(b && Array.isArray(b.deloads) && b.deloads.indexOf(wk)>=0); }
+function hkey(name){ return today()+"|"+name; }
 function mondayOf(dstr){ const d=new Date((dstr||today())+"T00:00:00"); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return d.toISOString().slice(0,10); }
 let dailyForm=null, checkinOpen=false, checkinForm=null, myPhotos=[];
 let fbSession=null, fbForm=null;
@@ -1202,8 +1211,20 @@ function renderEntreno(){
 
 // ---- Render: Hábitos ----
 function renderHabitos(){
-  const total = state.habits.length, done = state.habits.filter(h=>h.done).length, pct = total ? Math.round(done/total*100) : 0;
-  const items = state.habits.map(h => `
+  const coachHabits = (state.coachPlan && Array.isArray(state.coachPlan.habits)) ? state.coachPlan.habits.filter(x=>x&&x.trim()) : [];
+  const chDone = coachHabits.filter(name => state.habitsDone && state.habitsDone[hkey(name)]).length;
+  const total = state.habits.length + coachHabits.length;
+  const done = state.habits.filter(h=>h.done).length + chDone;
+  const pct = total ? Math.round(done/total*100) : 0;
+  const coachItems = coachHabits.map(name => {
+    const on = !!(state.habitsDone && state.habitsDone[hkey(name)]);
+    return `<div class="hb-item coach" data-action="chabit-toggle" data-name="${esc(name)}">
+      <span class="hb-check${on?' on':''}">${on?checkSvg:''}</span>
+      <span class="hb-name${on?' done':''}">${esc(name)}</span>
+      <span class="hb-coach-tag">coach</span>
+    </div>`;
+  }).join("");
+  const items = coachItems + state.habits.map(h => `
     <div class="hb-item" data-action="habit-toggle" data-id="${h.id}">
       <span class="hb-check${h.done?' on':''}">${h.done?checkSvg:''}</span>
       <span class="hb-name${h.done?' done':''}">${esc(h.name)}</span>
@@ -1227,11 +1248,23 @@ function renderHabitos(){
 }
 
 // ---- Render: Cardio ----
+function renderCardioPrescription(){
+  const cp = (state.coachPlan && state.coachPlan.cardio) ? state.coachPlan.cardio : null;
+  if(!cp || (!cp.text && !(cp.items&&cp.items.length))) return "";
+  const items = (cp.items&&cp.items.length) ? '<ul class="mc-list">'+cp.items.filter(x=>x&&x.trim()).map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>' : "";
+  const txt = cp.text ? '<div class="cardio-rx-txt">'+esc(cp.text)+'</div>' : "";
+  return '<div class="cardio-rx"><div class="cardio-rx-h">Tu cardio de esta semana</div>'+txt+items+'</div>';
+}
 function renderCardio(){
   const modes = `<div class="cardio-modes">
     <button class="cmode${cardioMode==='stopwatch'?' active':''}" data-action="cardio-mode" data-mode="stopwatch">Cronómetro</button>
     <button class="cmode${cardioMode==='timer'?' active':''}" data-action="cardio-mode" data-mode="timer">Temporizador</button>
   </div>`;
+  const rx = renderCardioPrescription();
+  const tools = renderCardioTools(modes);
+  return rx + '<div class="cardio-toolsec"><div class="cardio-tools-h">Cronómetro y temporizador</div>' + tools + '</div>';
+}
+function renderCardioTools(modes){
   if (cardioMode === "stopwatch") {
     const elapsed = swRunning ? swAccum + (Date.now()-swStartTs) : swAccum;
     const laps = swLaps.length ? `<div class="laps">${swLaps.map((t,i)=>({t,i})).reverse().map(o=>`<div class="lap"><span>Vuelta ${o.i+1}</span><span>${fmt(o.t)}</span></div>`).join("")}</div>` : "";
@@ -1812,6 +1845,7 @@ document.body.addEventListener("click", async e => {
 
   // Hábitos
   if (a === "habit-add") { addHabit(); return; }
+  if (a === "chabit-toggle") { const k=hkey(el.dataset.name); state.habitsDone[k]=!state.habitsDone[k]; save(); renderApp(); return; }
   if (a === "habit-toggle") { const h=state.habits.find(x=>x.id===el.dataset.id); if(h) h.done=!h.done; save(); renderApp(); return; }
   if (a === "habit-remove") { state.habits = state.habits.filter(x=>x.id!==el.dataset.id); save(); renderApp(); return; }
 
@@ -2022,7 +2056,7 @@ async function loadCloud(){
     const bl=await sb.from("blocks").select("*").eq("client_id",cloudUser.id).eq("active",true).order("start_date",{ascending:false}).limit(1);
     state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;
     const np=await sb.from("nutrition").select("*").eq("client_id",cloudUser.id).maybeSingle();
-    state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes, plan:np.data.plan||null} : null;
+    state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes, plan:np.data.plan||null, cardio:(np.data.plan&&np.data.plan.cardio)||null, habits:(np.data.plan&&np.data.plan.habits)||null} : null;
     await loadMyPhotos();
     save();
   }catch(e){ console.error("loadCloud",e); }
@@ -2285,7 +2319,7 @@ function renderCoachCheckins(d){
   }).join("");
 }
 function planDefault(){
-  return { trainDays:[], restDays:[], water:"", salt:"", guidelines:[], supps:[], options:[], extras:[], swaps:[] };
+  return { trainDays:[], restDays:[], water:"", salt:"", guidelines:[], supps:[], options:[], extras:[], swaps:[], cardio:{text:"",items:[]}, habits:[] };
 }
 function coachPlanObj(d){
   if(!coachPlanForm){ coachPlanForm = Object.assign(planDefault(), (d.plan && d.plan.plan) ? JSON.parse(JSON.stringify(d.plan.plan)) : {}); 
@@ -2334,6 +2368,16 @@ function swapsEditor(p){
   const rows=arr.map((sw,i)=>'<div class="sw-row"><input class="ml-in wide" data-coach="pl-swap" data-i="'+i+'" data-k="from" value="'+esc(sw.from||"")+'" placeholder="Arroz / Pasta"><span class="sw-arrow">\u2192</span><input class="ml-in wide" data-coach="pl-swap" data-i="'+i+'" data-k="to" value="'+esc(sw.to||"")+'" placeholder="Pan / Papa"><button class="ml-del" data-coach="pl-swapdel" data-i="'+i+'">\u2715</button></div>').join("");
   return '<div class="co-note-lbl" style="margin-top:16px">Reemplazos (equivalencias)</div>'+rows+'<button class="pl-add" data-coach="pl-swapadd">+ Agregar reemplazo</button>';
 }
+function cardioItemsEditor(p){
+  const arr=(p.cardio&&p.cardio.items)?p.cardio.items:[];
+  const rows=arr.map((t,i)=>'<div class="le-row"><input class="ml-in wide" data-coach="pl-cardioitem" data-i="'+i+'" value="'+esc(t)+'" placeholder="Lunes: 25 min cinta en ayunas"><button class="ml-del" data-coach="pl-cardioitemdel" data-i="'+i+'">\u2715</button></div>').join("");
+  return '<div class="co-note-lbl" style="margin-top:10px">Sesiones puntuales (opcional)</div>'+rows+'<button class="pl-add" data-coach="pl-cardioitemadd">+ Agregar sesión</button>';
+}
+function habitsEditor(p){
+  const arr=Array.isArray(p.habits)?p.habits:[];
+  const rows=arr.map((t,i)=>'<div class="le-row"><input class="ml-in wide" data-coach="pl-habit" data-i="'+i+'" value="'+esc(t)+'" placeholder="Tomar creatina · 5 g"><button class="ml-del" data-coach="pl-habitdel" data-i="'+i+'">\u2715</button></div>').join("");
+  return rows+'<button class="pl-add" data-coach="pl-habitadd">+ Agregar hábito</button>';
+}
 function renderCoachPlan(d){
   const p = coachPlanObj(d);
   return '<div class="co-sec">Plan nutricional</div><div class="co-panel plan-edit">'+
@@ -2348,6 +2392,11 @@ function renderCoachPlan(d){
     optionsEditor(p)+
     listEditor(p,"extras","Adicionales (aderezos, condimentos permitidos)","1 cda de queso crema light")+
     swapsEditor(p)+
+    '<div class="pl-sub" style="margin-top:22px">Cardio prescripto</div>'+
+    '<div class="co-note-wrap"><span class="co-note-lbl">Indicación general de cardio</span><input class="co-note" data-coach="pl-cardiotext" value="'+esc((p.cardio&&p.cardio.text)||"")+'" placeholder="2 veces por semana, 25 min bici, 120-140 lpm"></div>'+
+    cardioItemsEditor(p)+
+    '<div class="pl-sub" style="margin-top:22px">Hábitos diarios (checklist del cliente)</div>'+
+    habitsEditor(p)+
     '<button class="co-save-rt" data-coach="plan-save">Guardar plan nutricional</button></div>';
 }
 function renderCoachPhotos(d){
@@ -2551,7 +2600,7 @@ document.body.addEventListener("click", async e => {
     const p=coachPlanForm||planDefault();
     // totales de días de entrenamiento como macros "globales" (compatibilidad con el banner del cliente)
     let tk=0,tp=0,tc=0,tf=0; (p.trainDays||[]).forEach(r=>{ tk+=+r.kcal||0; tp+=+r.prot||0; tc+=+r.cho||0; tf+=+r.fat||0; });
-    const clean={trainDays:p.trainDays||[], restDays:p.restDays||[], water:p.water||"", salt:p.salt||"", guidelines:p.guidelines||[], supps:p.supps||[], options:p.options||[], extras:p.extras||[], swaps:p.swaps||[]};
+    const clean={trainDays:p.trainDays||[], restDays:p.restDays||[], water:p.water||"", salt:p.salt||"", guidelines:p.guidelines||[], supps:p.supps||[], options:p.options||[], extras:p.extras||[], swaps:p.swaps||[], cardio:p.cardio||{text:"",items:[]}, habits:p.habits||[]};
     const row={client_id:coachData.id, kcal:tk||parseInt(p._kcal)||null, protein:tp||parseInt(p._protein)||null, carbs:tc||parseInt(p._carbs)||null, fat:tf||parseInt(p._fat)||null, notes:p._notes||null, plan:clean, updated_at:new Date().toISOString(), updated_by:cloudUser.id};
     try{ await sb.from("nutrition").upsert(row,{onConflict:"client_id"}); coachData.plan=row; coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     renderCoach(); return;
@@ -2565,6 +2614,10 @@ document.body.addEventListener("click", async e => {
   if(a==="pl-optitemadd"){ const p=coachPlanObj(coachData); const o=p.options[+b.dataset.i]; (o.items=o.items||[]).push(""); renderCoach(); return; }
   if(a==="pl-optitemdel"){ const p=coachPlanObj(coachData); p.options[+b.dataset.i].items.splice(+b.dataset.j,1); renderCoach(); return; }
   if(a==="pl-swapadd"){ const p=coachPlanObj(coachData); (p.swaps=p.swaps||[]).push({from:"",to:""}); renderCoach(); return; }
+  if(a==="pl-cardioitemadd"){ const p=coachPlanObj(coachData); p.cardio=p.cardio||{text:"",items:[]}; (p.cardio.items=p.cardio.items||[]).push(""); renderCoach(); return; }
+  if(a==="pl-cardioitemdel"){ const p=coachPlanObj(coachData); p.cardio.items.splice(+b.dataset.i,1); renderCoach(); return; }
+  if(a==="pl-habitadd"){ const p=coachPlanObj(coachData); (p.habits=p.habits||[]).push(""); renderCoach(); return; }
+  if(a==="pl-habitdel"){ const p=coachPlanObj(coachData); p.habits.splice(+b.dataset.i,1); renderCoach(); return; }
   if(a==="pl-swapdel"){ const p=coachPlanObj(coachData); p.swaps.splice(+b.dataset.i,1); renderCoach(); return; }
   if(a==="save-routine"){ b.textContent="Guardando..."; (async()=>{ try{ const r=await sb.from("routines").upsert({client_id:coachSel, days:coachData.routine, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"}); if(r.error) throw r.error; alert("Rutina guardada. El cliente la va a ver al abrir la app."); }catch(err){ alert("No se pudo guardar: "+((err&&err.message)||err)); } renderCoach(); })(); return; }
 });
@@ -2593,6 +2646,9 @@ document.body.addEventListener("input", async e => {
   else if(a==="pl-opt"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i][el.dataset.k]=el.value; }
   else if(a==="pl-optitem"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i].items[+el.dataset.j]=el.value; }
   else if(a==="pl-swap"){ const p=coachPlanObj(coachData); p.swaps[+el.dataset.i][el.dataset.k]=el.value; }
+  else if(a==="pl-cardiotext"){ const p=coachPlanObj(coachData); p.cardio=p.cardio||{text:"",items:[]}; p.cardio.text=el.value; }
+  else if(a==="pl-cardioitem"){ const p=coachPlanObj(coachData); p.cardio.items[+el.dataset.i]=el.value; }
+  else if(a==="pl-habit"){ const p=coachPlanObj(coachData); p.habits[+el.dataset.i]=el.value; }
 });
 
 document.addEventListener("visibilitychange", async ()=>{
