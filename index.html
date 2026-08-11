@@ -534,8 +534,11 @@
   .ex-prog { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px; }
   .ep-ord { background:var(--blue); color:#fff; font-size:10px; font-weight:800; padding:3px 6px; border-radius:3px; letter-spacing:.04em; }
   .ep-chip { background:var(--card-2); border:1px solid var(--border); color:var(--txt-2); font-size:11px; font-weight:700; padding:4px 7px; border-radius:3px; }
-  .ep-rest { background:var(--card-2); border:1px solid var(--blue); color:var(--blue-2); font-size:11px; font-weight:700; padding:4px 8px; border-radius:3px; cursor:pointer; }
-  .ep-rest:active { background:var(--blue); color:#fff; }
+  .rest-btn-full { display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:10px; padding:12px 14px; background:var(--card-2); border:1px solid var(--blue); border-radius:4px; color:var(--blue-2); font-size:13px; font-weight:700; cursor:pointer; }
+  .rest-btn-full:active { background:var(--blue); color:#fff; }
+  .rbf-play { letter-spacing:.02em; }
+  .rbf-time { font-size:12px; color:var(--txt-3); font-weight:600; }
+  .rest-btn-full:active .rbf-time { color:#fff; }
   .ep-goal { flex:1; min-width:120px; font-size:11px; color:var(--txt-3); font-style:italic; }
   .fb-bg { position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:400; }
   .fb-card { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,92vw); max-height:88vh; overflow-y:auto; background:var(--card); border:1px solid var(--blue); border-radius:6px; padding:22px; z-index:401; }
@@ -1183,15 +1186,15 @@ function renderEntreno(){
         <button class="trash" data-action="removeex" data-ex="${ex.id}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
       ${ex.video?`<a class="ex-video" href="${esc(ex.video)}" target="_blank" rel="noopener">▶ Ver video del ejercicio</a>`:''}
-      ${(ex.o||ex.rir||ex.rest||ex.goal)?`<div class="ex-prog">
+      ${(ex.o||ex.rir||ex.goal)?`<div class="ex-prog">
         ${ex.o?`<span class="ep-ord">${esc(ex.o)}</span>`:''}
         ${ex.rir?`<span class="ep-chip">RIR ${esc(ex.rir)}</span>`:''}
-        ${ex.rest?`<button class="ep-rest" data-action="rest-from-ex" data-sec="${parseRest(ex.rest)}" title="Iniciar descanso">▶ ${esc(ex.rest)}</button>`:''}
         ${ex.goal?`<span class="ep-goal">${esc(ex.goal)}</span>`:''}
       </div>`:''}
       ${sets}
       ${ex.note?`<div class="ex-note"><span class="ex-note-t">Nota de tu coach</span>${esc(ex.note)}</div>`:''}
       ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>`}
+      ${ex.rest?`<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${parseRest(ex.rest)}"><span class="rbf-play">▶ Iniciar descanso</span><span class="rbf-time">${esc(ex.rest)}</span></button>`:''}
     </div>`;
   }).join("");
   return `
