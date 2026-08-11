@@ -292,6 +292,7 @@
   .rest-prog { height:100%; background: var(--blue-2); transition: width 1s linear; }
   .rest-done { justify-content: space-between; border-color: var(--blue-2); }
   .rest-msg { font-size: 14px; font-weight:600; color:#fff; }
+  .rest-lbl2 { font-size:11px; color:var(--txt-2); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-right:4px; }
   .rest-play { margin-left:auto; width:40px; height:40px; border-radius:4px; background: var(--blue); border:none; color:#fff; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .rest-idle .rest-opts { margin-left: 10px; }
   .save-session { width:100%; margin-top:14px; padding:14px; border-radius:4px; border:none; background:var(--blue); color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
@@ -441,6 +442,13 @@
   .le-row, .sw-row { display:flex; gap:6px; align-items:center; margin-bottom:5px; }
   .sw-arrow { color:var(--txt-3); flex-shrink:0; }
   .pl-help { font-size:11px; color:var(--txt-3); font-style:italic; line-height:1.5; margin:0 0 12px; padding:8px 10px; background:var(--card-2); border-radius:4px; border-left:2px solid var(--blue); }
+  .opt-sec { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:12px; margin-bottom:10px; }
+  .opt-sec-head { display:flex; gap:6px; margin-bottom:10px; }
+  .opt-sectitle { flex:1; font-weight:800; color:#fff; font-size:14px; }
+  .opt-item { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:10px; margin-bottom:8px; }
+  .opt-item-head { display:flex; gap:6px; margin-bottom:6px; }
+  .opt-label { flex:1; color:var(--blue-2); font-weight:700; }
+  .opt-body { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:9px 10px; color:var(--txt); font-size:13px; font-family:inherit; resize:vertical; }
   .opt-card { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:10px; margin-bottom:8px; }
   .opt-head { display:flex; gap:6px; margin-bottom:8px; }
   /* --- vista del cliente --- */
@@ -458,8 +466,12 @@
   .mc-list { margin:0; padding-left:18px; color:var(--txt-2); font-size:13px; line-height:1.7; }
   .mc-ws { display:flex; flex-wrap:wrap; gap:16px; font-size:14px; color:var(--txt); font-weight:600; }
   .mc-opthead { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:4px 0 2px; }
-  .mc-optcard { padding:12px 14px; }
-  .mc-optt { font-size:13px; color:var(--blue-2); font-weight:800; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .mc-optcard { padding:14px; }
+  .mc-optt { font-size:15px; color:#fff; font-weight:800; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--blue); }
+  .mc-optrow { margin-bottom:12px; }
+  .mc-optrow:last-child { margin-bottom:0; }
+  .mc-optlabel { font-size:12px; color:var(--blue-2); font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:3px; }
+  .mc-optbody { font-size:14px; color:var(--txt); line-height:1.5; }
   .mc-optcard .mc-list { padding-left:16px; line-height:1.8; }
   .mc-optcard .mc-list li { margin-bottom:3px; }
   .mc-swap { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--txt-2); padding:5px 0; }
@@ -1023,15 +1035,7 @@ function renderRestBar(finished){
   if(finished){ el.style.display="block"; el.innerHTML='<div class="rest-inner rest-done"><span class="rest-msg">¡Descanso terminado! 💪</span><button class="rest-x" data-action="rest-stop">Cerrar</button></div>'; return; }
   if(rest.active){
     el.style.display="block";
-    const opts=[60,120,180,240].map(sec=>'<button class="rest-opt'+(rest.total===sec?' on':'')+'" data-action="rest-set" data-sec="'+sec+'">'+(sec/60)+'′</button>').join("");
-    el.innerHTML='<div class="rest-inner"><span id="restTime" class="rest-time">'+restFmt(rest.remaining)+'</span><div class="rest-opts">'+opts+'</div><button class="rest-x" data-action="rest-stop" title="Saltar">✕</button><div class="rest-prog-track"><div id="restProg" class="rest-prog" style="width:'+Math.round((1-rest.remaining/rest.total)*100)+'%"></div></div></div>';
-    return;
-  }
-  if(view==="entreno"){
-    el.style.display="block";
-    const sel=state.restDefault||120;
-    const opts=[60,120,180,240].map(sec=>'<button class="rest-opt'+(sel===sec?' on':'')+'" data-action="rest-pick" data-sec="'+sec+'">'+(sec/60)+'′</button>').join("");
-    el.innerHTML='<div class="rest-inner rest-idle"><span class="rest-lbl">Descanso</span><div class="rest-opts">'+opts+'</div><button class="rest-play" data-action="rest-play" title="Iniciar">▶</button></div>';
+    el.innerHTML='<div class="rest-inner"><span class="rest-lbl2">Descanso</span><span id="restTime" class="rest-time">'+restFmt(rest.remaining)+'</span><button class="rest-x" data-action="rest-stop" title="Saltar">✕</button><div class="rest-prog-track"><div id="restProg" class="rest-prog" style="width:'+Math.round((1-rest.remaining/rest.total)*100)+'%"></div></div></div>';
     return;
   }
   el.style.display="none"; el.innerHTML="";
@@ -1167,7 +1171,7 @@ function renderEntreno(){
       <div class="set">
         <span class="idx">${i+1}</span>
         <div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${ex.id}" data-set="${s.id}"><span class="unit">kg</span></div>
-        <div class="field"><input class="reps" type="text" inputmode="numeric" placeholder="${s.target?esc(s.target):'0'}" value="${esc(s.reps)}" data-action="reps" data-ex="${ex.id}" data-set="${s.id}"><span class="unit">reps</span></div>
+        <div class="field"><input class="reps" type="text" inputmode="numeric" placeholder="0" value="${esc(s.reps)}" data-action="reps" data-ex="${ex.id}" data-set="${s.id}"><span class="unit">reps</span></div>
         ${s.target?`<span class="goal" title="Objetivo del coach">${esc(s.target)}</span>`:''}
         <button class="done${s.done?' on':''}" data-action="toggle" data-ex="${ex.id}" data-set="${s.id}">${s.done?checkSvg:''}</button>
         ${routineLocked()?'':`<button class="rm" data-action="removeset" data-ex="${ex.id}" data-set="${s.id}" title="Quitar serie">✕</button>`}
@@ -1727,8 +1731,18 @@ function renderClientPlan(p){
   };
   const list=(arr,title,icon)=>{ if(!arr||!arr.filter(x=>x&&x.trim()).length) return ""; return '<div class="mc-block"><div class="mc-title">'+icon+' '+title+'</div><ul class="mc-list">'+arr.filter(x=>x&&x.trim()).map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>'; };
   const ws=(p.water||p.salt)?'<div class="mc-block"><div class="mc-ws">'+(p.water?'<span>💧 '+esc(p.water)+'</span>':'')+(p.salt?'<span>🧂 '+esc(p.salt)+'</span>':'')+'</div></div>':'';
-  const validOpts = (p.options||[]).filter(o=>(o.title&&o.title.trim())||(o.items&&o.items.some(i=>i&&i.trim())));
-  const opts = validOpts.length ? '<div class="mc-opthead">🍽️ Opciones de comidas</div>'+validOpts.map(o=>'<div class="mc-block mc-optcard"><div class="mc-optt">'+esc(o.title||"")+'</div><ul class="mc-list">'+(o.items||[]).filter(i=>i&&i.trim()).map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul></div>').join("") : '';
+  const secHasContent = sec => (sec.title&&sec.title.trim()) || (sec.opts&&sec.opts.some(o=>(o.label&&o.label.trim())||(o.body&&o.body.trim()))) || (sec.items&&sec.items.some(i=>i&&i.trim()));
+  const validSecs = (p.options||[]).filter(secHasContent);
+  const opts = validSecs.length ? '<div class="mc-opthead">🍽️ Opciones de comidas</div>'+validSecs.map(sec=>{
+    let inner;
+    if(sec.opts && sec.opts.length){
+      inner = sec.opts.filter(o=>(o.label&&o.label.trim())||(o.body&&o.body.trim())).map(o=>'<div class="mc-optrow">'+(o.label?'<div class="mc-optlabel">'+esc(o.label)+'</div>':'')+(o.body?'<div class="mc-optbody">'+esc(o.body)+'</div>':'')+'</div>').join("");
+    } else {
+      // compatibilidad con el formato viejo (items sueltos)
+      inner = '<ul class="mc-list">'+(sec.items||[]).filter(i=>i&&i.trim()).map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul>';
+    }
+    return '<div class="mc-block mc-optcard"><div class="mc-optt">'+esc(sec.title||"")+'</div>'+inner+'</div>';
+  }).join("") : '';
   const swaps=(p.swaps&&p.swaps.length)?'<div class="mc-block"><div class="mc-title">🔁 Reemplazos</div>'+p.swaps.filter(s=>s.from||s.to).map(s=>'<div class="mc-swap"><span>'+esc(s.from||"")+'</span><span class="mc-arr">\u2192</span><span>'+esc(s.to||"")+'</span></div>').join("")+'</div>':'';
   const out = meals(p.trainDays,"Días de entrenamiento")+meals(p.restDays,"Días de descanso")+ws+
     list(p.guidelines,"Pautas nutricionales","📋")+list(p.supps,"Suplementos recomendados","💊")+
@@ -2359,14 +2373,28 @@ function listEditor(p, key, label, ph){
 }
 function optionsEditor(p){
   const arr=(p.options||[]);
-  const blocks=arr.map((o,i)=>
-    '<div class="opt-card">'+
-      '<div class="opt-head"><input class="ml-in wide" data-coach="pl-opt" data-i="'+i+'" data-k="title" value="'+esc(o.title||"")+'" placeholder="Opción A / Almuerzo pre-entreno">'+
-      '<button class="ml-del" data-coach="pl-optdel" data-i="'+i+'">\u2715</button></div>'+
-      (o.items||[]).map((it,j)=>'<div class="le-row"><input class="ml-in wide" data-coach="pl-optitem" data-i="'+i+'" data-j="'+j+'" value="'+esc(it)+'" placeholder="2 huevos enteros + 1 fruta"><button class="ml-del" data-coach="pl-optitemdel" data-i="'+i+'" data-j="'+j+'">\u2715</button></div>').join("")+
-      '<button class="pl-add sm" data-coach="pl-optitemadd" data-i="'+i+'">+ Ítem</button>'+
-    '</div>').join("");
-  return '<div class="co-note-lbl" style="margin-top:16px">Opciones de comidas (el cliente elige)</div><div class="pl-help">Cre\u00e1 una secci\u00f3n por cada grupo (ej: "Merienda", "Almuerzo pre-entreno") y adentro un \u00edtem por cada opci\u00f3n. As\u00ed el cliente lo ve ordenado, no todo junto.</div>'+blocks+'<button class="pl-add" data-coach="pl-optadd">+ Agregar opci\u00f3n/secci\u00f3n</button>';
+  const blocks=arr.map((sec,i)=>{
+    const opts=(sec.opts||[]).map((o,j)=>
+      '<div class="opt-item">'+
+        '<div class="opt-item-head">'+
+          '<input class="ml-in opt-label" data-coach="pl-optlabel" data-i="'+i+'" data-j="'+j+'" value="'+esc(o.label||"")+'" placeholder="Opción A">'+
+          '<button class="ml-del" data-coach="pl-optdel" data-i="'+i+'" data-j="'+j+'" title="Quitar opción">\u2715</button>'+
+        '</div>'+
+        '<textarea class="opt-body" rows="2" data-coach="pl-optbody" data-i="'+i+'" data-j="'+j+'" placeholder="2 huevos enteros + 1 fruta + 4 rodajas de pan">'+esc(o.body||"")+'</textarea>'+
+      '</div>').join("");
+    return '<div class="opt-sec">'+
+      '<div class="opt-sec-head">'+
+        '<input class="ml-in opt-sectitle" data-coach="pl-optsec" data-i="'+i+'" value="'+esc(sec.title||"")+'" placeholder="Desayuno / Merienda / Almuerzo">'+
+        '<button class="ml-del" data-coach="pl-optsecdel" data-i="'+i+'" title="Borrar sección">\u2715</button>'+
+      '</div>'+
+      opts+
+      '<button class="pl-add sm" data-coach="pl-optadd" data-i="'+i+'">+ Agregar opción (A, B, C...)</button>'+
+    '</div>';
+  }).join("");
+  return '<div class="co-note-lbl" style="margin-top:16px">Opciones de comidas (el cliente elige)</div>'+
+    '<div class="pl-help">Cre\u00e1 una <b>secci\u00f3n</b> (Desayuno, Merienda, Almuerzo...) y adentro cada <b>opci\u00f3n</b> con su t\u00edtulo (Opci\u00f3n A) y su texto. As\u00ed el cliente lo ve como un men\u00fa ordenado.</div>'+
+    blocks+
+    '<button class="pl-add" data-coach="pl-optsecadd">+ Agregar secci\u00f3n (Desayuno, Almuerzo...)</button>';
 }
 function swapsEditor(p){
   const arr=(p.swaps||[]);
@@ -2614,10 +2642,10 @@ document.body.addEventListener("click", async e => {
   if(a==="pl-mealdel"){ const p=coachPlanObj(coachData); p[b.dataset.key].splice(+b.dataset.i,1); renderCoach(); return; }
   if(a==="pl-listadd"){ const p=coachPlanObj(coachData); (p[b.dataset.key]=p[b.dataset.key]||[]).push(""); renderCoach(); return; }
   if(a==="pl-listdel"){ const p=coachPlanObj(coachData); p[b.dataset.key].splice(+b.dataset.i,1); renderCoach(); return; }
-  if(a==="pl-optadd"){ const p=coachPlanObj(coachData); (p.options=p.options||[]).push({title:"",items:[""]}); renderCoach(); return; }
-  if(a==="pl-optdel"){ const p=coachPlanObj(coachData); p.options.splice(+b.dataset.i,1); renderCoach(); return; }
-  if(a==="pl-optitemadd"){ const p=coachPlanObj(coachData); const o=p.options[+b.dataset.i]; (o.items=o.items||[]).push(""); renderCoach(); return; }
-  if(a==="pl-optitemdel"){ const p=coachPlanObj(coachData); p.options[+b.dataset.i].items.splice(+b.dataset.j,1); renderCoach(); return; }
+  if(a==="pl-optsecadd"){ const p=coachPlanObj(coachData); (p.options=p.options||[]).push({title:"",opts:[{label:"Opción A",body:""}]}); renderCoach(); return; }
+  if(a==="pl-optsecdel"){ const p=coachPlanObj(coachData); p.options.splice(+b.dataset.i,1); renderCoach(); return; }
+  if(a==="pl-optadd"){ const p=coachPlanObj(coachData); const sec=p.options[+b.dataset.i]; sec.opts=sec.opts||[]; const L="Opción "+String.fromCharCode(65+sec.opts.length); sec.opts.push({label:L,body:""}); renderCoach(); return; }
+  if(a==="pl-optdel"){ const p=coachPlanObj(coachData); p.options[+b.dataset.i].opts.splice(+b.dataset.j,1); renderCoach(); return; }
   if(a==="pl-swapadd"){ const p=coachPlanObj(coachData); (p.swaps=p.swaps||[]).push({from:"",to:""}); renderCoach(); return; }
   if(a==="pl-cardioitemadd"){ const p=coachPlanObj(coachData); p.cardio=p.cardio||{text:"",items:[]}; (p.cardio.items=p.cardio.items||[]).push(""); renderCoach(); return; }
   if(a==="pl-cardioitemdel"){ const p=coachPlanObj(coachData); p.cardio.items.splice(+b.dataset.i,1); renderCoach(); return; }
@@ -2648,8 +2676,9 @@ document.body.addEventListener("input", async e => {
   else if(a==="pl-list"){ const p=coachPlanObj(coachData); p[el.dataset.key][+el.dataset.i]=el.value; }
   else if(a==="pl-water"){ coachPlanObj(coachData).water=el.value; }
   else if(a==="pl-salt"){ coachPlanObj(coachData).salt=el.value; }
-  else if(a==="pl-opt"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i][el.dataset.k]=el.value; }
-  else if(a==="pl-optitem"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i].items[+el.dataset.j]=el.value; }
+  else if(a==="pl-optsec"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i].title=el.value; }
+  else if(a==="pl-optlabel"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i].opts[+el.dataset.j].label=el.value; }
+  else if(a==="pl-optbody"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i].opts[+el.dataset.j].body=el.value; }
   else if(a==="pl-swap"){ const p=coachPlanObj(coachData); p.swaps[+el.dataset.i][el.dataset.k]=el.value; }
   else if(a==="pl-cardiotext"){ const p=coachPlanObj(coachData); p.cardio=p.cardio||{text:"",items:[]}; p.cardio.text=el.value; }
   else if(a==="pl-cardioitem"){ const p=coachPlanObj(coachData); p.cardio.items[+el.dataset.i]=el.value; }
