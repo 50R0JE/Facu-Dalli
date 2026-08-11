@@ -426,6 +426,40 @@
   .co-stat b { color:var(--blue-2); font-size:15px; font-weight:800; margin-right:3px; font-variant-numeric:tabular-nums; }
   .co-exc-sets { flex-shrink:0; font-size:11px; color:var(--txt-3); font-weight:700; white-space:nowrap; padding:0 4px; }
   .co-scroll { overflow-x:auto; }
+  .plan-edit .pl-sub { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:6px 0 10px; }
+  .ml-head, .ml-row, .ml-tot { display:grid; grid-template-columns: 1.4fr .8fr .7fr .8fr .8fr .8fr 1.4fr 28px; gap:5px; align-items:center; }
+  .ml-head { font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-bottom:5px; padding:0 2px; }
+  .ml-row { margin-bottom:5px; }
+  .ml-tot { font-size:12px; font-weight:800; color:var(--blue-2); padding:8px 2px; border-top:1px solid var(--border); margin-top:4px; }
+  .ml-in { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:8px 6px; color:var(--txt); font-size:12px; min-width:0; }
+  .ml-in.n { text-align:center; }
+  .ml-del { background:none; border:none; color:var(--txt-3); cursor:pointer; font-size:12px; }
+  .ml-del:hover { color:var(--red); }
+  .ml-row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .pl-add { background:none; border:1px dashed #333; border-radius:4px; color:var(--blue-2); font-size:12px; padding:8px 12px; cursor:pointer; margin-top:6px; }
+  .pl-add.sm { padding:5px 10px; font-size:11px; }
+  .le-row, .sw-row { display:flex; gap:6px; align-items:center; margin-bottom:5px; }
+  .sw-arrow { color:var(--txt-3); flex-shrink:0; }
+  .opt-card { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:10px; margin-bottom:8px; }
+  .opt-head { display:flex; gap:6px; margin-bottom:8px; }
+  /* --- vista del cliente --- */
+  .mc-wrap { display:flex; flex-direction:column; gap:14px; }
+  .mc-block { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; }
+  .mc-title { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:10px; }
+  .mc-tbl { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  .mc-tbl th { font-size:10px; color:var(--txt-3); text-transform:uppercase; font-weight:700; text-align:center; padding:5px 4px; border-bottom:1px solid var(--border); }
+  .mc-tbl th:first-child { text-align:left; }
+  .mc-tbl td { font-size:13px; color:var(--txt); text-align:center; padding:8px 4px; border-bottom:1px solid #191919; }
+  .mc-tbl td.mc-meal { text-align:left; font-weight:600; }
+  .mc-time { color:var(--txt-3); font-size:11px; font-weight:500; margin-left:6px; }
+  .mc-noter td { text-align:left; color:var(--txt-2); font-size:11px; font-style:italic; padding-top:0; }
+  .mc-tot td { font-weight:800; color:var(--blue-2); border-bottom:none; border-top:1px solid var(--border); }
+  .mc-list { margin:0; padding-left:18px; color:var(--txt-2); font-size:13px; line-height:1.7; }
+  .mc-ws { display:flex; flex-wrap:wrap; gap:16px; font-size:14px; color:var(--txt); font-weight:600; }
+  .mc-opt { margin-bottom:10px; }
+  .mc-optt { font-size:12px; color:var(--txt); font-weight:700; margin-bottom:4px; }
+  .mc-swap { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--txt-2); padding:5px 0; }
+  .mc-arr { color:var(--blue); }
   .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
   .ci-f { margin-bottom:10px; }
   .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
@@ -1341,6 +1375,7 @@ function renderComida(){
     </div>`;
   }
   const t = (state.coachPlan && state.coachPlan.kcal) ? state.coachPlan.kcal : state.calTarget, tot = diaryTotals(), mt = macroTargets();
+  const planFull = (state.coachPlan && state.coachPlan.plan) ? renderClientPlan(state.coachPlan.plan) : '';
   const planBanner = state.coachPlan ? `<div class="plan-banner"><div class="plan-t">Plan de tu coach</div><div class="plan-macros"><span><b>${state.coachPlan.kcal||"-"}</b> kcal</span><span><b>${state.coachPlan.protein||"-"}</b>P</span><span><b>${state.coachPlan.carbs||"-"}</b>C</span><span><b>${state.coachPlan.fat||"-"}</b>G</span></div>${state.coachPlan.notes?`<div class="plan-notes">${esc(state.coachPlan.notes)}</div>`:''}</div>` : '';
   const wml = state.water||0, wgoal = state.waterGoal||3000, wpct = wgoal?Math.min(Math.round(wml/wgoal*100),100):0;
   const Lstr = v => (v/1000).toLocaleString("es-AR",{maximumFractionDigits:2});
@@ -1358,6 +1393,7 @@ function renderComida(){
     </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
   return `
     ${planBanner}
+    ${planFull}
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
         <circle class="ring-track" cx="60" cy="60" r="52"></circle>
@@ -1640,6 +1676,27 @@ function renderCheckin(){
       <button class="form-save" style="margin-top:14px" data-action="ci-save">Enviar check-in a mi coach</button>
       <button class="logout-btn" style="margin-top:8px" data-action="ci-close">Cancelar</button>
     </div>`;
+}
+function renderClientPlan(p){
+  if(!p) return "";
+  const meals=(rows,title)=>{
+    if(!rows || !rows.length) return "";
+    let tk=0,tc=0,tf=0,tp=0;
+    const body=rows.map(r=>{ tk+=+r.kcal||0;tc+=+r.cho||0;tf+=+r.fat||0;tp+=+r.prot||0;
+      return '<tr><td class="mc-meal">'+esc(r.meal||"")+(r.time?'<span class="mc-time">'+esc(r.time)+'</span>':'')+'</td><td>'+esc(r.kcal||"-")+'</td><td>'+esc(r.cho||"-")+'</td><td>'+esc(r.fat||"-")+'</td><td>'+esc(r.prot||"-")+'</td></tr>'+
+        (r.note?'<tr class="mc-noter"><td colspan="5">'+esc(r.note)+'</td></tr>':''); }).join("");
+    return '<div class="mc-block"><div class="mc-title">'+title+'</div><table class="mc-tbl"><thead><tr><th>Comida</th><th>Kcal</th><th>Hidr.</th><th>Gras.</th><th>Prot.</th></tr></thead><tbody>'+body+
+      '<tr class="mc-tot"><td>Objetivo</td><td>'+tk+'</td><td>'+tc+'</td><td>'+tf+'</td><td>'+tp+'</td></tr></tbody></table></div>';
+  };
+  const list=(arr,title,icon)=>{ if(!arr||!arr.length) return ""; return '<div class="mc-block"><div class="mc-title">'+icon+' '+title+'</div><ul class="mc-list">'+arr.filter(x=>x&&x.trim()).map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>'; };
+  const ws=(p.water||p.salt)?'<div class="mc-block"><div class="mc-ws">'+(p.water?'<span>\U0001F4A7 '+esc(p.water)+'</span>':'')+(p.salt?'<span>\U0001F9C2 '+esc(p.salt)+'</span>':'')+'</div></div>':'';
+  const opts=(p.options&&p.options.length)?'<div class="mc-block"><div class="mc-title">\U0001F37D\uFE0F Opciones de comidas</div>'+p.options.filter(o=>o.title||( o.items&&o.items.some(i=>i&&i.trim()))).map(o=>'<div class="mc-opt"><div class="mc-optt">'+esc(o.title||"")+'</div><ul class="mc-list">'+(o.items||[]).filter(i=>i&&i.trim()).map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul></div>').join("")+'</div>':'';
+  const swaps=(p.swaps&&p.swaps.length)?'<div class="mc-block"><div class="mc-title">\U0001F501 Reemplazos</div>'+p.swaps.filter(s=>s.from||s.to).map(s=>'<div class="mc-swap"><span>'+esc(s.from||"")+'</span><span class="mc-arr">\u2192</span><span>'+esc(s.to||"")+'</span></div>').join("")+'</div>':'';
+  const out = meals(p.trainDays,"Días de entrenamiento")+meals(p.restDays,"Días de descanso")+ws+
+    list(p.guidelines,"Pautas nutricionales","\U0001F4CB")+list(p.supps,"Suplementos recomendados","\U0001F48A")+
+    opts+list(p.extras,"Adicionales","\u2795")+swaps;
+  if(!out) return "";
+  return '<div class="hb-head" style="margin-top:20px"><div class="hb-title">Plan de comidas de tu coach</div><div class="title-accent"></div></div><div class="mc-wrap">'+out+'</div>';
 }
 function renderProgreso(){
   const ws=(state.weights||[]).slice().sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
@@ -1965,7 +2022,7 @@ async function loadCloud(){
     const bl=await sb.from("blocks").select("*").eq("client_id",cloudUser.id).eq("active",true).order("start_date",{ascending:false}).limit(1);
     state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;
     const np=await sb.from("nutrition").select("*").eq("client_id",cloudUser.id).maybeSingle();
-    state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes} : null;
+    state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes, plan:np.data.plan||null} : null;
     await loadMyPhotos();
     save();
   }catch(e){ console.error("loadCloud",e); }
@@ -2227,16 +2284,70 @@ function renderCoachCheckins(d){
     return '<div class="ck-card"><div class="ck-head">Semana del '+fmtDate(c.week_start)+' '+adh+'</div>'+(qs||'<div class="cal-hint">Sin respuestas.</div>')+'</div>';
   }).join("");
 }
+function planDefault(){
+  return { trainDays:[], restDays:[], water:"", salt:"", guidelines:[], supps:[], options:[], extras:[], swaps:[] };
+}
+function coachPlanObj(d){
+  if(!coachPlanForm){ coachPlanForm = Object.assign(planDefault(), (d.plan && d.plan.plan) ? JSON.parse(JSON.stringify(d.plan.plan)) : {}); 
+    // arrastrar macros globales viejos si existían
+    if(d.plan){ coachPlanForm._kcal=d.plan.kcal||""; coachPlanForm._protein=d.plan.protein||""; coachPlanForm._carbs=d.plan.carbs||""; coachPlanForm._fat=d.plan.fat||""; coachPlanForm._notes=d.plan.notes||""; }
+  }
+  return coachPlanForm;
+}
+function mealRows(p, key){
+  const rows=(p[key]||[]);
+  const head='<div class="ml-head"><span>Comida</span><span>Horario</span><span>Kcal</span><span>Hidratos</span><span>Grasas</span><span>Proteína</span><span>Nota</span><span></span></div>';
+  const body=rows.map((r,i)=>
+    '<div class="ml-row">'+
+      '<input class="ml-in wide" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="meal" value="'+esc(r.meal||"")+'" placeholder="Almuerzo">'+
+      '<input class="ml-in sm" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="time" value="'+esc(r.time||"")+'" placeholder="13 hs">'+
+      '<input class="ml-in n" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="kcal" value="'+esc(r.kcal||"")+'" placeholder="660">'+
+      '<input class="ml-in n" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="cho" value="'+esc(r.cho||"")+'" placeholder="80">'+
+      '<input class="ml-in n" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="fat" value="'+esc(r.fat||"")+'" placeholder="20">'+
+      '<input class="ml-in n" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="prot" value="'+esc(r.prot||"")+'" placeholder="50">'+
+      '<input class="ml-in wide" data-coach="pl-meal" data-key="'+key+'" data-i="'+i+'" data-k="note" value="'+esc(r.note||"")+'" placeholder="">'+
+      '<button class="ml-del" data-coach="pl-mealdel" data-key="'+key+'" data-i="'+i+'" title="Quitar">\u2715</button>'+
+    '</div>').join("");
+  // fila total
+  let tk=0,tc=0,tf=0,tp=0; rows.forEach(r=>{ tk+=+r.kcal||0; tc+=+r.cho||0; tf+=+r.fat||0; tp+=+r.prot||0; });
+  const tot='<div class="ml-tot"><span>OBJETIVO</span><span></span><span>'+tk+'</span><span>'+tc+'</span><span>'+tf+'</span><span>'+tp+'</span><span></span><span></span></div>';
+  return head+body+tot+'<button class="pl-add" data-coach="pl-mealadd" data-key="'+key+'">+ Agregar comida</button>';
+}
+function listEditor(p, key, label, ph){
+  const arr=(p[key]||[]);
+  const rows=arr.map((t,i)=>'<div class="le-row"><input class="ml-in wide" data-coach="pl-list" data-key="'+key+'" data-i="'+i+'" value="'+esc(t)+'" placeholder="'+ph+'"><button class="ml-del" data-coach="pl-listdel" data-key="'+key+'" data-i="'+i+'">\u2715</button></div>').join("");
+  return '<div class="co-note-lbl" style="margin-top:16px">'+label+'</div>'+rows+'<button class="pl-add" data-coach="pl-listadd" data-key="'+key+'">+ Agregar</button>';
+}
+function optionsEditor(p){
+  const arr=(p.options||[]);
+  const blocks=arr.map((o,i)=>
+    '<div class="opt-card">'+
+      '<div class="opt-head"><input class="ml-in wide" data-coach="pl-opt" data-i="'+i+'" data-k="title" value="'+esc(o.title||"")+'" placeholder="Opción A / Almuerzo pre-entreno">'+
+      '<button class="ml-del" data-coach="pl-optdel" data-i="'+i+'">\u2715</button></div>'+
+      (o.items||[]).map((it,j)=>'<div class="le-row"><input class="ml-in wide" data-coach="pl-optitem" data-i="'+i+'" data-j="'+j+'" value="'+esc(it)+'" placeholder="2 huevos enteros + 1 fruta"><button class="ml-del" data-coach="pl-optitemdel" data-i="'+i+'" data-j="'+j+'">\u2715</button></div>').join("")+
+      '<button class="pl-add sm" data-coach="pl-optitemadd" data-i="'+i+'">+ Ítem</button>'+
+    '</div>').join("");
+  return '<div class="co-note-lbl" style="margin-top:16px">Opciones de comidas (el cliente elige)</div>'+blocks+'<button class="pl-add" data-coach="pl-optadd">+ Agregar opción/sección</button>';
+}
+function swapsEditor(p){
+  const arr=(p.swaps||[]);
+  const rows=arr.map((sw,i)=>'<div class="sw-row"><input class="ml-in wide" data-coach="pl-swap" data-i="'+i+'" data-k="from" value="'+esc(sw.from||"")+'" placeholder="Arroz / Pasta"><span class="sw-arrow">\u2192</span><input class="ml-in wide" data-coach="pl-swap" data-i="'+i+'" data-k="to" value="'+esc(sw.to||"")+'" placeholder="Pan / Papa"><button class="ml-del" data-coach="pl-swapdel" data-i="'+i+'">\u2715</button></div>').join("");
+  return '<div class="co-note-lbl" style="margin-top:16px">Reemplazos (equivalencias)</div>'+rows+'<button class="pl-add" data-coach="pl-swapadd">+ Agregar reemplazo</button>';
+}
 function renderCoachPlan(d){
-  const p = coachPlanForm || d.plan || {};
-  return '<div class="co-sec">Plan nutricional</div>'+
-    '<div class="co-panel"><div class="cp-macros">'+
-      '<div class="cp-f"><label>Calorías</label><input class="co-pin2" data-coach="plan-kcal" value="'+esc(p.kcal||"")+'" placeholder="2000"></div>'+
-      '<div class="cp-f"><label>Proteína (g)</label><input class="co-pin2" data-coach="plan-protein" value="'+esc(p.protein||"")+'" placeholder="140"></div>'+
-      '<div class="cp-f"><label>Carbos (g)</label><input class="co-pin2" data-coach="plan-carbs" value="'+esc(p.carbs||"")+'" placeholder="240"></div>'+
-      '<div class="cp-f"><label>Grasas (g)</label><input class="co-pin2" data-coach="plan-fat" value="'+esc(p.fat||"")+'" placeholder="55"></div>'+
+  const p = coachPlanObj(d);
+  return '<div class="co-sec">Plan nutricional</div><div class="co-panel plan-edit">'+
+    '<div class="pl-sub">Días de entrenamiento — reparto de comidas</div>'+mealRows(p,"trainDays")+
+    '<div class="pl-sub" style="margin-top:20px">Días de descanso — reparto de comidas</div>'+mealRows(p,"restDays")+
+    '<div class="ml-row2" style="margin-top:16px">'+
+      '<div class="ci-f"><label>Agua por día</label><input class="co-note" data-coach="pl-water" value="'+esc(p.water||"")+'" placeholder="5 L de agua al día"></div>'+
+      '<div class="ci-f"><label>Sal por día</label><input class="co-note" data-coach="pl-salt" value="'+esc(p.salt||"")+'" placeholder="5 pizcas de sal al día"></div>'+
     '</div>'+
-    '<div class="co-note-wrap"><span class="co-note-lbl">Notas del plan (pautas, comidas, reemplazos…)</span><textarea class="ci-in" rows="4" data-coach="plan-notes" placeholder="">'+esc(p.notes||"")+'</textarea></div>'+
+    listEditor(p,"guidelines","Pautas nutricionales","Pesar los alimentos en crudo")+
+    listEditor(p,"supps","Suplementos recomendados","Whey protein")+
+    optionsEditor(p)+
+    listEditor(p,"extras","Adicionales (aderezos, condimentos permitidos)","1 cda de queso crema light")+
+    swapsEditor(p)+
     '<button class="co-save-rt" data-coach="plan-save">Guardar plan nutricional</button></div>';
 }
 function renderCoachPhotos(d){
@@ -2436,7 +2547,25 @@ document.body.addEventListener("click", async e => {
     }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     renderCoach(); return;
   }
-  if(a==="plan-save"){ const p=coachPlanForm||coachData.plan||{}; const row={client_id:coachData.id, kcal:parseInt(p.kcal)||null, protein:parseInt(p.protein)||null, carbs:parseInt(p.carbs)||null, fat:parseInt(p.fat)||null, notes:p.notes||null, updated_at:new Date().toISOString(), updated_by:cloudUser.id}; try{ await sb.from("nutrition").upsert(row,{onConflict:"client_id"}); coachData.plan=row; coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); } renderCoach(); return; }
+  if(a==="plan-save"){
+    const p=coachPlanForm||planDefault();
+    // totales de días de entrenamiento como macros "globales" (compatibilidad con el banner del cliente)
+    let tk=0,tp=0,tc=0,tf=0; (p.trainDays||[]).forEach(r=>{ tk+=+r.kcal||0; tp+=+r.prot||0; tc+=+r.cho||0; tf+=+r.fat||0; });
+    const clean={trainDays:p.trainDays||[], restDays:p.restDays||[], water:p.water||"", salt:p.salt||"", guidelines:p.guidelines||[], supps:p.supps||[], options:p.options||[], extras:p.extras||[], swaps:p.swaps||[]};
+    const row={client_id:coachData.id, kcal:tk||parseInt(p._kcal)||null, protein:tp||parseInt(p._protein)||null, carbs:tc||parseInt(p._carbs)||null, fat:tf||parseInt(p._fat)||null, notes:p._notes||null, plan:clean, updated_at:new Date().toISOString(), updated_by:cloudUser.id};
+    try{ await sb.from("nutrition").upsert(row,{onConflict:"client_id"}); coachData.plan=row; coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    renderCoach(); return;
+  }
+  if(a==="pl-mealadd"){ const p=coachPlanObj(coachData); (p[b.dataset.key]=p[b.dataset.key]||[]).push({meal:"",time:"",kcal:"",cho:"",fat:"",prot:"",note:""}); renderCoach(); return; }
+  if(a==="pl-mealdel"){ const p=coachPlanObj(coachData); p[b.dataset.key].splice(+b.dataset.i,1); renderCoach(); return; }
+  if(a==="pl-listadd"){ const p=coachPlanObj(coachData); (p[b.dataset.key]=p[b.dataset.key]||[]).push(""); renderCoach(); return; }
+  if(a==="pl-listdel"){ const p=coachPlanObj(coachData); p[b.dataset.key].splice(+b.dataset.i,1); renderCoach(); return; }
+  if(a==="pl-optadd"){ const p=coachPlanObj(coachData); (p.options=p.options||[]).push({title:"",items:[""]}); renderCoach(); return; }
+  if(a==="pl-optdel"){ const p=coachPlanObj(coachData); p.options.splice(+b.dataset.i,1); renderCoach(); return; }
+  if(a==="pl-optitemadd"){ const p=coachPlanObj(coachData); const o=p.options[+b.dataset.i]; (o.items=o.items||[]).push(""); renderCoach(); return; }
+  if(a==="pl-optitemdel"){ const p=coachPlanObj(coachData); p.options[+b.dataset.i].items.splice(+b.dataset.j,1); renderCoach(); return; }
+  if(a==="pl-swapadd"){ const p=coachPlanObj(coachData); (p.swaps=p.swaps||[]).push({from:"",to:""}); renderCoach(); return; }
+  if(a==="pl-swapdel"){ const p=coachPlanObj(coachData); p.swaps.splice(+b.dataset.i,1); renderCoach(); return; }
   if(a==="save-routine"){ b.textContent="Guardando..."; (async()=>{ try{ const r=await sb.from("routines").upsert({client_id:coachSel, days:coachData.routine, updated_at:new Date().toISOString(), updated_by:cloudUser.id},{onConflict:"client_id"}); if(r.error) throw r.error; alert("Rutina guardada. El cliente la va a ver al abrir la app."); }catch(err){ alert("No se pudo guardar: "+((err&&err.message)||err)); } renderCoach(); })(); return; }
 });
 document.body.addEventListener("change", async e => {
@@ -2457,6 +2586,13 @@ document.body.addEventListener("input", async e => {
   else if(a.indexOf("info-")===0){ coachInfoForm = coachInfoForm || Object.assign({}, coachData.info||{}); coachInfoForm[a.slice(5)] = el.value; return; }
   else if(a.indexOf("blk-")===0){ coachBlockForm = coachBlockForm || Object.assign({}, coachData.block||{}); coachBlockForm[a.slice(4)] = el.value; return; }
   else if(a==="plan-kcal"||a==="plan-protein"||a==="plan-carbs"||a==="plan-fat"||a==="plan-notes"){ coachPlanForm = coachPlanForm || Object.assign({}, coachData.plan||{}); coachPlanForm[a.slice(5)] = el.value; }
+  else if(a==="pl-meal"){ const p=coachPlanObj(coachData); const r=p[el.dataset.key][+el.dataset.i]; if(r) r[el.dataset.k]=el.value; }
+  else if(a==="pl-list"){ const p=coachPlanObj(coachData); p[el.dataset.key][+el.dataset.i]=el.value; }
+  else if(a==="pl-water"){ coachPlanObj(coachData).water=el.value; }
+  else if(a==="pl-salt"){ coachPlanObj(coachData).salt=el.value; }
+  else if(a==="pl-opt"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i][el.dataset.k]=el.value; }
+  else if(a==="pl-optitem"){ const p=coachPlanObj(coachData); p.options[+el.dataset.i].items[+el.dataset.j]=el.value; }
+  else if(a==="pl-swap"){ const p=coachPlanObj(coachData); p.swaps[+el.dataset.i][el.dataset.k]=el.value; }
 });
 
 document.addEventListener("visibilitychange", async ()=>{
