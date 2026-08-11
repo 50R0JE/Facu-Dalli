@@ -301,6 +301,17 @@
   .save-session { width:100%; margin-top:14px; padding:14px; border-radius:4px; border:none; background:var(--blue); color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
   .save-session:active { background:var(--blue-2); }
   .load-sel { margin-bottom:6px; }
+  .hx-wrap { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+  .hx-row { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 12px; }
+  .hx-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .hx-date { font-size:12px; font-weight:700; color:var(--txt-2); }
+  .hx-best { font-size:12px; font-weight:800; color:var(--green); }
+  .hx-sets { display:flex; flex-wrap:wrap; gap:6px; }
+  .hx-set { display:flex; align-items:center; gap:3px; background:var(--card-2); border-radius:4px; padding:5px 8px; font-size:12px; }
+  .hx-n { color:var(--txt-3); font-weight:700; font-size:10px; }
+  .hx-kg { color:var(--txt); font-weight:800; }
+  .hx-x { color:var(--txt-3); }
+  .hx-reps { color:var(--txt-2); font-weight:600; }
   .load-cap { font-size:12px; color:var(--txt-2); margin:0 2px 12px; }
   .sess-item { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:12px 14px; margin-bottom:8px; }
   .sess-main { flex:1; min-width:0; }
@@ -1654,9 +1665,21 @@ function renderCargas(){
   const series=loadSeriesFor(loadEx);
   const opts=exs.map(n=>'<option value="'+esc(n)+'"'+(n===loadEx?' selected':'')+'>'+esc(n)+'</option>').join("");
   const chart=series.length?renderWChart(series,true):'<div class="cal-hint">Sin kg registrados para este ejercicio.</div>';
+  // tabla de historial detallado del ejercicio
+  const allSess=(state.sessions||[]).filter(se=>(se.exercises||[]).some(e=>e.name===loadEx))
+    .sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,16);
+  const histRows=allSess.map(se=>{
+    const ex=se.exercises.find(e=>e.name===loadEx);
+    const sets=(ex.sets||[]).filter(s=>+s.kg||+s.reps);
+    const setsHtml=sets.map((s,i)=>'<div class="hx-set"><span class="hx-n">S'+(i+1)+'</span><span class="hx-kg">'+(s.kg||0)+' kg</span><span class="hx-x">×</span><span class="hx-reps">'+(s.reps||0)+'</span></div>').join("");
+    const best=sets.reduce((m,s)=>Math.max(m,+s.kg||0),0);
+    return '<div class="hx-row"><div class="hx-meta"><span class="hx-date">'+fmtDate(se.date)+'</span><span class="hx-best">máx '+best+' kg</span></div><div class="hx-sets">'+setsHtml+'</div></div>';
+  }).join("");
+  const histBlock=allSess.length ? '<div class="hx-wrap">'+histRows+'</div>' : '<div class="cal-hint">Sin historial para este ejercicio.</div>';
   return '<div class="hb-head" style="margin-top:28px"><div class="hb-title">Evolución de cargas</div><div class="title-accent"></div></div>'+
     '<select class="form-input load-sel" data-action="load-ex">'+opts+'</select>'+
-    '<div class="load-cap">Máximo de kg levantado por sesión</div>'+chart;
+    '<div class="load-cap">Máximo de kg levantado por sesión</div>'+chart+
+    '<div class="load-cap" style="margin-top:18px">Historial detallado</div>'+histBlock;
 }
 function renderHistorial(){
   const sess=(state.sessions||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
@@ -2257,6 +2280,7 @@ async function loadCoachClients(){
     coachClients=r.data||[];
     const ic=await sb.rpc("my_invite_code"); coachInvite=ic.data||null;
   }catch(e){ console.error("coachClients",e); }
+  loadCoachStats();
 }
 function coachExercises(sessions){ const m={}; (sessions||[]).forEach(se=>se.exercises.forEach(ex=>{ if(ex.name) m[ex.name]=1; })); return Object.keys(m).sort((a,b)=>a.localeCompare(b,"es")); }
 function coachSeries(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ let mx=0; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(x=>{ const k=+x.kg||0; if(k>mx) mx=k; }); }); if(mx>0) out.push({date:se.date, kg:mx}); }); return out; }
@@ -2563,7 +2587,8 @@ function renderCoachRoutine(d){
     '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
     '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
-    '<button class="co-save-rt" data-coach="save-routine">Guardar rutina del cliente</button>';
+    '<button class="co-save-rt" data-coach="save-routine">Guardar rutina</button>'+
+    '<button class="co-copy-rt" data-coach="rt-copy">→ Copiar rutina a otro cliente</button>';
 }
 function renderCoachPicker(){
   const host=document.getElementById("coachSheetHost"); if(!host) return;
