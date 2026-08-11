@@ -524,6 +524,8 @@
   .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
   .ci-f { margin-bottom:10px; }
   .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
+  .co-copy-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; background:transparent; border:1px solid var(--border); border-radius:5px; color:var(--txt-3); font-size:12px; font-weight:600; cursor:pointer; letter-spacing:.01em; }
+  .co-copy-btn:hover { border-color:var(--green); color:var(--green); background:var(--card-2); }
   .bw-grid { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 4px; }
   .bw { width:38px; height:38px; background:var(--card-2); border:1px solid var(--border); border-radius:3px; color:var(--txt-2); font-size:12px; font-weight:700; cursor:pointer; }
   .bw.dl { background:var(--blue); color:#fff; border-color:var(--blue); }
@@ -534,6 +536,7 @@
   .blk-w { font-size:13px; font-weight:800; color:var(--txt); }
   .blk-meta { font-size:11px; color:var(--txt-2); }
   .blk-dl { margin-top:8px; font-size:12px; color:#00c801; font-weight:700; line-height:1.45; }
+  .blk-wkgoal { margin-top:8px; font-size:13px; color:var(--green); font-weight:700; }
   .blk-note { margin-top:8px; font-size:12px; color:var(--txt-2); line-height:1.45; }
   .fi-card { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-bottom:8px; }
   .fi-chips { display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin-bottom:12px; }
@@ -1193,10 +1196,15 @@ function renderBlockBanner(){
   if(wk<1) return "";
   const dl=isDeload(b,wk);
   const meta=[b.phase, b.calories].filter(Boolean).join(" \u00b7 ");
+  const wkData=(b.weekPlan||{})[wk]||{};
+  const wkGoal=wkData.goal||''; const wkNote=wkData.note||'';
   return '<div class="blk'+(dl?' deload':'')+'">'+
     '<div class="blk-top"><span class="blk-w">Semana '+wk+(b.weeks?' de '+b.weeks:'')+'</span>'+(meta?'<span class="blk-meta">'+esc(meta)+'</span>':'')+'</div>'+
     (dl?'<div class="blk-dl">SEMANA DE DESCARGA \u2014 No faltes al gimnasio: baj\u00e1 series y cargas para recuperarte.</div>':'')+
-    (b.notes?'<div class="blk-note">'+esc(b.notes)+'</div>':'')+'</div>';
+    (b.notes?'<div class="blk-note">'+esc(b.notes)+'</div>':'')+
+    (wkGoal?'<div class="blk-wkgoal">⭐ Objetivo: '+esc(wkGoal)+'</div>':'')+
+    (wkNote&&wkNote!==b.notes?'<div class="blk-note">'+esc(wkNote)+'</div>':'')+
+    '</div>';
 }
 function renderDayNotes(d){
   const exN=(d.exercises||[]).filter(x=>x.note);
@@ -2273,7 +2281,7 @@ document.body.addEventListener("click", async e=>{
 });
 
 // ============ Panel del Coach (Fase 2) ============
-let coachClients=[], coachSel=null, coachData=null, coachInvite=null, coachDayFilter=null, coachEditDay=0, coachDL="", coachPlanForm=null, coachInfoForm=null, coachBlockForm=null;
+let coachClients=[], coachSel=null, coachData=null, coachInvite=null, coachDayFilter=null, coachEditDay=0, coachDL="", coachPlanForm=null, coachInfoForm=null, coachBlockForm=null, coachSearch="", coachClientStats={}, coachCopyPicker=false, coachWeekSel=null;
 async function loadCoachClients(){
   try{
     const r=await sb.from("profiles").select("id, full_name").eq("coach_id",cloudUser.id).order("full_name");
@@ -2549,9 +2557,12 @@ function renderCoachBlock(d){
   const dls = Array.isArray(b.deloads)?b.deloads:[];
   const cur = b.start_date ? blockWeek(b, today()) : 0;
   let grid="";
+  const wPlan=(coachBlockForm||b).weekPlan||{};
   for(let w=1; w<=wks; w++){
     const on=dls.indexOf(w)>=0;
-    grid+='<button class="bw'+(on?' dl':'')+(w===cur?' now':'')+'" data-coach="blk-dl" data-w="'+w+'" title="Marcar como semana de descarga">'+w+'</button>';
+    const hasNote=!!(wPlan[w]&&(wPlan[w].goal||wPlan[w].note));
+    const sel=coachWeekSel===w;
+    grid+='<button class="bw'+(on?' dl':'')+(w===cur?' now':'')+(sel?' sel':'')+(hasNote?' has-note':'')+'" data-coach="blk-week" data-w="'+w+'">'+w+(hasNote?'<span class="bw-dot">•</span>':'')+'</button>';
   }
   const F=(k,lbl,ph,type)=>'<div class="ci-f"><label>'+lbl+'</label><input class="co-note" data-coach="blk-'+k+'" value="'+esc(b[k]==null?"":String(b[k]))+'" placeholder="'+ph+'"'+(type?' type="'+type+'"':'')+'></div>';
   return '<div class="ci-grid">'+
@@ -2562,6 +2573,19 @@ function renderCoachBlock(d){
     F("notes","Nota del bloque (la ve el cliente)","")+
     '<div class="co-note-lbl" style="margin-top:14px">Semanas de descarga \u2014 toc\u00e1 para marcarlas'+(cur?' \u00b7 el cliente est\u00e1 en la semana '+cur:'')+'</div>'+
     '<div class="bw-grid">'+grid+'</div>'+
+    (coachWeekSel!==null ? (() => {
+      const wp=(wPlan[coachWeekSel]||{});
+      const isDl=dls.indexOf(coachWeekSel)>=0;
+      return '<div class="week-editor">'+
+        '<div class="week-ed-head">Semana '+coachWeekSel+(cur===coachWeekSel?' · semana actual':'')+(isDl?' · DESCARGA':'')+
+        '<button class="co-copy-btn" style="margin-left:auto" data-coach="wk-dl" data-w="'+coachWeekSel+'">'+(isDl?'✓ Descarga':'Marcar descarga')+'</button></div>'+
+        '<div class="ci-f" style="margin-top:10px"><label>Objetivo de la semana</label><input class="co-note" data-coach="wk-goal" value="'+esc(wp.goal||'')+'"></div>'+
+        '<div class="ci-f" style="margin-top:8px"><label>Indicaciones para el cliente</label><input class="co-note" data-coach="wk-note" value="'+esc(wp.note||'')+'"></div>'+
+        '<div style="margin-top:10px;display:flex;gap:8px">'+
+          '<button class="co-save-rt" style="flex:1" data-coach="wk-save">Guardar semana '+coachWeekSel+'</button>'+
+          '<button class="co-copy-btn" data-coach="wk-close">✕ Cerrar</button>'+
+        '</div></div>';
+    })() : '')+
     '<button class="co-save-rt" data-coach="blk-save">Guardar bloque</button>';
 }
 function renderCoachRoutine(d){
@@ -2602,7 +2626,7 @@ function renderCoachRoutine(d){
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
     '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
     '<button class="co-save-rt" data-coach="save-routine">Guardar rutina</button>'+
-    '<button class="co-copy-rt" data-coach="rt-copy">→ Copiar rutina a otro cliente</button>';
+    "<div style='margin-top:8px'><button class='co-copy-btn' data-coach='rt-copy' title='Copiar esta rutina a otro cliente'>📋 Copiar rutina a otro cliente</button></div>";
 }
 function renderCoachPicker(){
   const host=document.getElementById("coachSheetHost"); if(!host) return;
