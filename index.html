@@ -2282,6 +2282,20 @@ async function loadCoachClients(){
   }catch(e){ console.error("coachClients",e); }
   loadCoachStats();
 }
+async function loadCoachStats(){
+  if(!sb||!cloudUser) return;
+  try{
+    const {data}=await sb.from("sessions").select("client_id, date").order("date",{ascending:false});
+    if(!Array.isArray(data)) return;
+    const stats={};
+    data.forEach(r=>{
+      if(!stats[r.client_id]) stats[r.client_id]={nSess:0, lastSess:null};
+      stats[r.client_id].nSess++;
+      if(!stats[r.client_id].lastSess) stats[r.client_id].lastSess=r.date;
+    });
+    coachClientStats=stats; renderCoach();
+  }catch(e){ console.error("coachStats",e); }
+}
 function coachExercises(sessions){ const m={}; (sessions||[]).forEach(se=>se.exercises.forEach(ex=>{ if(ex.name) m[ex.name]=1; })); return Object.keys(m).sort((a,b)=>a.localeCompare(b,"es")); }
 function coachSeries(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ let mx=0; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(x=>{ const k=+x.kg||0; if(k>mx) mx=k; }); }); if(mx>0) out.push({date:se.date, kg:mx}); }); return out; }
 function coachLogFor(sessions, dayName, name){
