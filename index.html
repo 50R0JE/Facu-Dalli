@@ -2694,7 +2694,7 @@ function renderCoachRoutine(d){
     '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
     '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
-    '<button class="co-save-rt" data-coach="save-routine">Guardar rutina</button>'+
+    (coachTplEdit ? '' : '<button class="co-save-rt" data-coach="save-routine">Guardar rutina</button>')+
     (coachTplEdit ? "" : "<div class='rt-actions'><button class='co-copy-btn' data-coach='rt-apply'>⬇ Aplicar una de mis rutinas</button><button class='co-copy-btn' data-coach='rt-copy'>📋 Copiar a otro cliente</button><button class='co-copy-btn' data-coach='rt-tosave'>💾 Guardar como rutina</button></div>");
 }
 function renderCoachPicker(){
@@ -2848,7 +2848,7 @@ document.body.addEventListener("click", async e => {
     try{ await sb.from("routine_templates").delete().eq("id",coachTplEdit.id); await loadTpls(); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     coachTplEdit=null; coachView="tpls"; renderCoach(); return;
   }
-  if(!coachData) return;
+  if(!coachData && !coachTplEdit) return;
   if(a==="edit-day"){ coachEditDay=+b.dataset.i||0; renderCoach(); return; }
   if(a==="rt-tosave"){
     const nm=prompt("Nombre para guardar esta rutina en tu biblioteca:","");
