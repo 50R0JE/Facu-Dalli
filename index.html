@@ -298,6 +298,8 @@
   .rest-lbl2 { font-size:11px; color:var(--txt-2); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-right:4px; }
   .rest-play { margin-left:auto; width:40px; height:40px; border-radius:4px; background: var(--green); border:none; color:#062e1a; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .rest-idle .rest-opts { margin-left: 10px; }
+  .load-def { width:100%; margin-top:10px; padding:11px; border-radius:4px; border:1px solid var(--border); background:transparent; color:var(--txt-3); font-size:12px; font-weight:600; cursor:pointer; }
+  .load-def:hover { border-color:var(--blue); color:var(--blue); }
   .save-session { width:100%; margin-top:14px; padding:14px; border-radius:4px; border:none; background:var(--blue); color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
   .save-session:active { background:var(--blue-2); }
   .load-sel { margin-bottom:6px; }
@@ -1287,6 +1289,7 @@ function renderEntreno(){
     ${routineLocked()?'':'<button class="add-ex" data-action="ex-add-open">+ Agregar ejercicio</button>'}
     ${renderDayNotes(d)}
     ${d.exercises.length ? '<button class="save-session" data-action="save-session">✓ Guardar entreno de hoy</button>' : ''}
+    ${routineLocked() ? '' : '<button class="load-def" data-action="load-default-routine">↻ Cargar Meso 2 · Microciclo 8</button>'}
     <p class="foot">${cloudUser ? 'Sincronizado con tu cuenta' : 'Se guarda solo en este dispositivo'}</p>`;
 }
 
@@ -2074,7 +2077,7 @@ document.body.addEventListener("click", async e => {
   if (a === "session-remove") { if(confirm("¿Borrar este entreno del historial?")){ const _s=state.sessions.find(x=>x.id===el.dataset.id); if(_s&&_s.cloudId){ try{ cloudDeleteSession(_s.cloudId); }catch(e){} } state.sessions=state.sessions.filter(x=>x.id!==el.dataset.id); save(); renderApp(); } return; }
 
   // Días
-  if (a === "load-default-routine") { if(confirm("Esto reemplaza tus días de rutina actuales por la rutina por defecto (Upper/Lower). No toca tus pesos, sesiones ni hábitos. ¿Seguro?")){ state.days = JSON.parse(JSON.stringify(DEFAULT.days)); activeId = state.days[0].id; save(); renderApp(); } return; }
+  if (a === "load-default-routine") { if(confirm("Esto reemplaza tus días de rutina por el Meso 2 \u00b7 Microciclo 8 (Torso / Piernas / Pecho-Espalda-Hombro / Pierna-Brazo). No toca tus pesos, sesiones ni h\u00e1bitos. \u00bfSeguro?")){ state.days = JSON.parse(JSON.stringify(DEFAULT.days)); activeId = state.days[0].id; save(); renderApp(); } return; }
   if (a === "addday") { const nd={id:uid(),name:"Nuevo",subtitle:"",exercises:[]}; state.days.push(nd); activeId=nd.id; pendingFocusDay=true; save(); renderApp(); return; }
   if (a === "delday") { if(state.days.length<=1){ alert("Tiene que quedar al menos un día."); return; } if(confirm("¿Eliminar este día?")){ state.days=state.days.filter(x=>x.id!==activeId); activeId=state.days[0].id; save(); renderApp(); } return; }
 
