@@ -2818,6 +2818,36 @@ document.body.addEventListener("click", async e => {
   if(a==="open"){ openClient(b.dataset.id); return; }
   if(a==="back"){ coachSel=null; coachData=null; renderCoach(); return; }
   if(a==="refresh"){ if(coachSel) openClient(coachSel); return; }
+  if(a==="view-clients"){ coachView="clients"; renderCoach(); return; }
+  if(a==="view-tpls"){ coachView="tpls"; await loadTpls(); renderCoach(); return; }
+  if(a==="tpl-seed"){
+    const days=JSON.parse(JSON.stringify(DEFAULT.days||[]));
+    days.forEach(d=>{ d.id=uid(); (d.exercises||[]).forEach(ex=>{ ex.id=uid(); (ex.sets||[]).forEach(st=>{ st.id=uid(); st.kg=""; st.reps=""; st.done=false; }); }); });
+    coachTplEdit={id:null, name:"Meso 2 \u00b7 Microciclo 8", days:days}; coachEditDay=0; renderCoach(); return;
+  }
+  if(a==="tpl-new"){ coachTplEdit={id:null, name:"", days:[]}; coachEditDay=0; renderCoach(); return; }
+  if(a==="tpl-open"){ const t=coachTpls.find(x=>x.id===b.dataset.id); if(t){ coachTplEdit=JSON.parse(JSON.stringify(t)); coachEditDay=0; renderCoach(); } return; }
+  if(a==="tpl-back"){ coachTplEdit=null; coachView="tpls"; renderCoach(); return; }
+  if(a==="tpl-save"){
+    if(!coachTplEdit) return;
+    const nm=(coachTplEdit.name||"").trim();
+    if(!nm){ alert("Ponele un nombre a la rutina."); return; }
+    b.textContent="Guardando...";
+    try{
+      const row={coach_id:cloudUser.id, name:nm, days:coachTplEdit.days||[], updated_at:new Date().toISOString()};
+      if(coachTplEdit.id) row.id=coachTplEdit.id;
+      const r=await sb.from("routine_templates").upsert(row).select();
+      if(r.error) throw r.error;
+      await loadTpls(); coachTplEdit=null; coachView="tpls"; alert("Rutina guardada \u2713");
+    }catch(err){ alert("No se pudo: "+((err&&err.message)||err)); }
+    renderCoach(); return;
+  }
+  if(a==="tpl-del"){
+    if(!coachTplEdit||!coachTplEdit.id){ coachTplEdit=null; coachView="tpls"; renderCoach(); return; }
+    if(!confirm("\u00bfBorrar esta rutina? No afecta a los clientes que ya la tienen aplicada.")) return;
+    try{ await sb.from("routine_templates").delete().eq("id",coachTplEdit.id); await loadTpls(); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    coachTplEdit=null; coachView="tpls"; renderCoach(); return;
+  }
   if(!coachData) return;
   if(a==="edit-day"){ coachEditDay=+b.dataset.i||0; renderCoach(); return; }
   if(a==="rt-tosave"){
@@ -2848,36 +2878,6 @@ document.body.addEventListener("click", async e => {
     coachEditDay=0; coachApplyPicker=null; renderApplyPicker(); renderCoach();
     alert("Rutina aplicada. Presioná “Guardar rutina” para sincronizar al cliente.");
     return;
-  }
-  if(a==="view-clients"){ coachView="clients"; renderCoach(); return; }
-  if(a==="view-tpls"){ coachView="tpls"; await loadTpls(); renderCoach(); return; }
-  if(a==="tpl-seed"){
-    const days=JSON.parse(JSON.stringify(DEFAULT.days||[]));
-    days.forEach(d=>{ d.id=uid(); (d.exercises||[]).forEach(ex=>{ ex.id=uid(); (ex.sets||[]).forEach(st=>{ st.id=uid(); st.kg=""; st.reps=""; st.done=false; }); }); });
-    coachTplEdit={id:null, name:"Meso 2 \u00b7 Microciclo 8", days:days}; coachEditDay=0; renderCoach(); return;
-  }
-  if(a==="tpl-new"){ coachTplEdit={id:null, name:"", days:[]}; coachEditDay=0; renderCoach(); return; }
-  if(a==="tpl-open"){ const t=coachTpls.find(x=>x.id===b.dataset.id); if(t){ coachTplEdit=JSON.parse(JSON.stringify(t)); coachEditDay=0; renderCoach(); } return; }
-  if(a==="tpl-back"){ coachTplEdit=null; coachView="tpls"; renderCoach(); return; }
-  if(a==="tpl-save"){
-    if(!coachTplEdit) return;
-    const nm=(coachTplEdit.name||"").trim();
-    if(!nm){ alert("Ponele un nombre a la rutina."); return; }
-    b.textContent="Guardando...";
-    try{
-      const row={coach_id:cloudUser.id, name:nm, days:coachTplEdit.days||[], updated_at:new Date().toISOString()};
-      if(coachTplEdit.id) row.id=coachTplEdit.id;
-      const r=await sb.from("routine_templates").upsert(row).select();
-      if(r.error) throw r.error;
-      await loadTpls(); coachTplEdit=null; coachView="tpls"; alert("Rutina guardada \u2713");
-    }catch(err){ alert("No se pudo: "+((err&&err.message)||err)); }
-    renderCoach(); return;
-  }
-  if(a==="tpl-del"){
-    if(!coachTplEdit||!coachTplEdit.id){ coachTplEdit=null; coachView="tpls"; renderCoach(); return; }
-    if(!confirm("\u00bfBorrar esta rutina? No afecta a los clientes que ya la tienen aplicada.")) return;
-    try{ await sb.from("routine_templates").delete().eq("id",coachTplEdit.id); await loadTpls(); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
-    coachTplEdit=null; coachView="tpls"; renderCoach(); return;
   }
   if(a==="day-add"){ if(coachTplEdit){ coachTplEdit.days.push({id:uid(), name:"Nuevo día", subtitle:"", exercises:[]}); coachEditDay=coachTplEdit.days.length-1; } else { if(!coachData.routine) coachData.routine=[]; coachData.routine.push({id:uid(), name:"Nuevo día", subtitle:"", exercises:[]}); coachEditDay=coachData.routine.length-1; } renderCoach(); return; }
   if(a==="day-del"){ const D=rtDays(); if(D&&D.length>1){ D.splice(coachEditDay,1); coachEditDay=0; renderCoach(); } return; }
