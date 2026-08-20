@@ -2312,12 +2312,15 @@ async function loadCoachClients(){
   }catch(e){ console.error("coachClients",e); }
   loadCoachStats(); loadTpls();
 }
+let tplsError=null;
 async function loadTpls(){
-  if(!sb||!cloudUser) return;
+  tplsError=null;
+  if(!sb||!cloudUser){ tplsError="Sin conexión a la cuenta."; return; }
   try{
     const r=await sb.from("routine_templates").select("*").eq("coach_id",cloudUser.id).order("name");
-    coachTpls=r.data||[];
-  }catch(e){ console.error("tpls",e); }
+    if(r.error){ tplsError=r.error.message||String(r.error); coachTpls=[]; }
+    else { coachTpls=r.data||[]; }
+  }catch(e){ tplsError=(e&&e.message)||String(e); coachTpls=[]; console.error("tpls",e); }
 }
 async function loadCoachStats(){
   if(!sb||!cloudUser) return;
@@ -2624,10 +2627,14 @@ function renderApplyPicker(){
   const st=coachApplyPicker;
   if(!st.tplId){
     // paso 1: elegir plantilla
-    const opts=coachTpls.length ? coachTpls.map(t=>{
+    let opts;
+    if(st.loading){ opts='<div class="cal-hint">Cargando tus rutinas…</div>'; }
+    else if(tplsError){ opts='<div class="cal-hint" style="color:var(--red)">No se pudieron cargar las rutinas.<br><br><b>'+esc(tplsError)+'</b><br><br>Si dice que la tabla no existe, falta correr el SQL de rutinas en Supabase.</div>'; }
+    else if(!coachTpls.length){ opts='<div class="cal-hint">Todavía no tenés rutinas guardadas.<br>Volvé al panel principal → pestaña “Mis rutinas” → creá una o importá el Microciclo 8.</div>'; }
+    else { opts=coachTpls.map(t=>{
       const nd=(t.days||[]).length;
       return '<div class="cp-copt" data-coach="ap-tpl" data-id="'+t.id+'">'+esc(t.name)+'<span class="ap-meta">'+nd+' día'+(nd===1?'':'s')+'</span></div>';
-    }).join("") : '<div class="cal-hint">No tenés rutinas creadas. Andá a “Mis rutinas” y creá una.</div>';
+    }).join(""); }
     el.innerHTML='<div class="cp-bg" data-coach="ap-cancel"></div><div class="cp-ccard">'+
       '<div class="cp-title">Aplicar una rutina</div>'+
       '<div class="cp-sub">Elegí cuál de tus rutinas querés usar para este cliente.</div>'+
@@ -2759,7 +2766,7 @@ function renderCoach(){
           '<div class="co-name">'+esc(t.name||"Sin nombre")+'</div>'+
           '<div class="co-item-meta">'+nd+' día'+(nd===1?'':'s')+' · '+nex+' ejercicios</div>'+
           '<div class="co-arrow">›</div></div>';
-      }).join("") : '<div class="cal-hint">Todavía no creaste ninguna rutina. Creá una y después aplicásela a los clientes que quieras.</div>';
+      }).join("") : (tplsError ? '<div class="cal-hint" style="color:var(--red)">No se pudieron cargar: <b>'+esc(tplsError)+'</b><br><br>Si dice que la tabla no existe, falta correr el SQL de rutinas en Supabase.</div>' : '<div class="cal-hint">Todavía no creaste ninguna rutina. Creá una y después aplicásela a los clientes que quieras.</div>');
       body='<div class="co-items">'+tl+'</div>'+
         '<button class="co-add-day" data-coach="tpl-new">+ Crear rutina nueva</button>'+
         '<button class="co-copy-btn" style="margin-top:8px" data-coach="tpl-seed">⬇ Importar Meso 2 · Microciclo 8</button>';
@@ -2862,7 +2869,13 @@ document.body.addEventListener("click", async e => {
     }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     return;
   }
-  if(a==="rt-apply"){ coachApplyPicker={tplId:null, days:{}, mode:"replace"}; await loadTpls(); renderApplyPicker(); return; }
+  if(a==="rt-apply"){
+    coachApplyPicker={tplId:null, days:{}, mode:"replace", loading:true};
+    renderApplyPicker();
+    await loadTpls();
+    if(coachApplyPicker){ coachApplyPicker.loading=false; renderApplyPicker(); }
+    return;
+  }
   if(a==="ap-cancel"){ coachApplyPicker=null; renderApplyPicker(); return; }
   if(a==="ap-back"){ coachApplyPicker={tplId:null, days:{}, mode:"replace"}; renderApplyPicker(); return; }
   if(a==="ap-tpl"){ coachApplyPicker.tplId=b.dataset.id; coachApplyPicker.days={}; renderApplyPicker(); return; }
