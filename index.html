@@ -89,8 +89,8 @@
   .day-del { background: none; border: none; color: var(--txt-3); cursor: pointer; flex-shrink: 0; padding: 6px; }
   .day-del svg { width: 18px; height: 18px; }
   .day-del:active { color: var(--red); }
-  .day-sub { width: 100%; background: transparent; border: none; color: var(--txt-2); font-size: 14px; padding: 2px 4px; border-radius: 4px; margin-top: 2px; }
-  .day-sub:focus { outline: none; background: var(--card); }
+  .day-sub { width: 100%; background: transparent; border: none; color: rgba(215,235,222,.62); font-size: 14px; padding: 2px 4px; border-radius: 4px; margin-top: 2px; }
+  .day-sub:focus { outline: none; background: var(--card); color: var(--txt); }
 
   .progress-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
   .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
@@ -201,7 +201,7 @@
   .food-name { font-size: 14px; }
   .food-kcal { font-size: 13px; color: var(--blue-2); font-variant-numeric: tabular-nums; display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
   .food-kcal span { font-size: 10px; color: var(--txt-3); }
-  .cal-hint { color: var(--txt-3); font-size: 13px; text-align: center; padding: 14px; }
+  .cal-hint { color: rgba(215,235,222,.5); font-size: 13px; text-align: center; padding: 14px; }
   .cal-create { margin: 10px 0 20px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;
     color: var(--blue-2); background: transparent; cursor: pointer; border: 1px dashed #3a3a38; border-radius: 4px; padding: 11px; }
   .cal-create:active { border-color: var(--blue); }
@@ -341,7 +341,12 @@
   .sess-exs { font-size:12px; color:var(--txt-2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:9px 16px; border-radius:4px; cursor:pointer; }
   .reset-routine:active { background:var(--card-2); }
-  #coachHost { display:none; position:fixed; inset:0; z-index:150; background:var(--bg); overflow-y:auto; }
+  #coachHost { display:none; position:fixed; inset:0; z-index:150; overflow-y:auto;
+    background:
+      radial-gradient(1100px 700px at 12% 0%, rgba(24,92,55,.45), transparent 60%),
+      radial-gradient(900px 600px at 88% 8%, rgba(20,70,45,.32), transparent 62%),
+      linear-gradient(160deg, #0a1210 0%, #070b08 60%, #060a07 100%);
+    background-attachment: fixed; }
   #coachSheetHost { position:relative; z-index:300; }
   .co-wrap { max-width:1340px; margin:0 auto; padding:22px 20px 60px; }
   .co-grid { display:block; }
@@ -402,7 +407,7 @@
   .co-row { display:flex; justify-content:space-between; align-items:center; padding:11px 14px; background:var(--card); border:1px solid var(--border); border-radius:4px; margin-bottom:6px; font-size:14px; color:var(--txt); }
   .co-val { font-weight:700; font-variant-numeric:tabular-nums; }
   .co-prog { margin-top:12px; padding:12px 14px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; font-size:14px; font-weight:700; color:var(--blue-2); text-align:center; }
-  .co-sub { font-size:12px; color:var(--txt-3); margin:16px 2px 8px; }
+  .co-sub { font-size:12px; color:rgba(215,235,222,.5); margin:16px 2px 8px; }
   .co-slog { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:11px 14px; margin-bottom:6px; }
   .co-slog-date { font-size:13px; color:var(--txt-2); font-weight:600; margin-bottom:7px; }
   .co-sets { display:block; }
@@ -425,7 +430,13 @@
   .co-rt-ins:hover { opacity:1; border-color:var(--blue); color:var(--blue); }
   .co-rt-add { display:block; width:100%; margin:6px 0 0; background:none; border:1px dashed var(--border); color:var(--blue-2); font-size:14px; padding:12px; border-radius:4px; cursor:pointer; }
   .co-save-rt { display:block; width:100%; margin-top:14px; background:var(--blue); color:#fff; border:none; font-size:15px; font-weight:700; padding:14px; border-radius:4px; cursor:pointer; }
-  .co-add-day { display:block; margin-top:10px; background:none; border:1px dashed var(--border); color:var(--blue-2); padding:10px 14px; border-radius:4px; cursor:pointer; }
+  /* dentro de tarjetas claras, las etiquetas vuelven a oscuro */
+  .co-exc .co-note-lbl, .opt-sec .co-note-lbl, .opt-item .co-note-lbl,
+  .week-editor .co-note-lbl, .week-editor .ci-f label, .co-exc .ci-f label,
+  .co-panel .co-note-lbl, .co-panel .ci-f label { color: var(--txt-3) !important; }
+  .cp-ccard .cal-hint, .co-exc .cal-hint, .week-editor .cal-hint,
+  .opt-sec .pl-help, .co-exc .pl-help { color: var(--txt-3) !important; }
+  .co-add-day { display:block; margin-top:10px; background:none; border:1px dashed rgba(140,200,168,.28); color:var(--blue-2); padding:10px 14px; border-radius:4px; cursor:pointer; }
   .join-box { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-top:24px; }
   .join-t { font-size:13px; color:var(--txt-2); margin-bottom:10px; font-weight:600; }
   #authHost { display:none; position:fixed; inset:0; z-index:200; align-items:center; justify-content:center; padding:24px;
@@ -489,11 +500,11 @@
   .co-stat b { color:var(--blue-2); font-size:15px; font-weight:800; margin-right:3px; font-variant-numeric:tabular-nums; }
   .co-exc-sets { flex-shrink:0; font-size:11px; color:var(--txt-3); font-weight:700; white-space:nowrap; padding:0 4px; }
   .co-scroll { overflow-x:auto; }
-  .plan-edit .pl-sub { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:6px 0 10px; }
+  .plan-edit .pl-sub { font-size:12px; color:#4fd694; text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:6px 0 10px; }
   .ml-head, .ml-row, .ml-tot { display:grid; grid-template-columns: 1.4fr .8fr .7fr .8fr .8fr .8fr 1.4fr 28px; gap:5px; align-items:center; }
-  .ml-head { font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-bottom:5px; padding:0 2px; }
+  .ml-head { font-size:9px; color:rgba(215,235,222,.5); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-bottom:5px; padding:0 2px; }
   .ml-row { margin-bottom:5px; }
-  .ml-tot { font-size:12px; font-weight:800; color:var(--green); padding:8px 2px; border-top:1px solid var(--border); margin-top:4px; }
+  .ml-tot { font-size:12px; font-weight:800; color:#4fd694; padding:8px 2px; border-top:1px solid var(--border); margin-top:4px; }
   .ml-in { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:8px 6px; color:var(--txt); font-size:12px; min-width:0; }
   .ml-in.n { text-align:center; }
   .ml-del { background:none; border:none; color:var(--txt-3); cursor:pointer; font-size:12px; }
@@ -503,7 +514,7 @@
   .pl-add.sm { padding:5px 10px; font-size:11px; }
   .le-row, .sw-row { display:flex; gap:6px; align-items:center; margin-bottom:5px; }
   .sw-arrow { color:var(--txt-3); flex-shrink:0; }
-  .pl-help { font-size:11px; color:var(--txt-3); font-style:italic; line-height:1.5; margin:0 0 12px; padding:8px 10px; background:var(--card-2); border-radius:4px; border-left:2px solid var(--blue); }
+  .pl-help { font-size:11px; color:rgba(215,235,222,.55); font-style:italic; line-height:1.5; margin:0 0 12px; padding:8px 10px; background:var(--card-2); border-radius:4px; border-left:2px solid var(--blue); }
   .opt-sec { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:12px; margin-bottom:10px; }
   .opt-sec-head { display:flex; gap:6px; margin-bottom:10px; }
   .opt-sectitle { flex:1; font-weight:800; color:var(--txt); font-size:14px; }
@@ -571,7 +582,7 @@
   .hb-coach-tag { margin-left:auto; font-size:9px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; background:var(--card-2); padding:3px 6px; border-radius:3px; }
   .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
   .ci-f { margin-bottom:10px; }
-  .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
+  .ci-f label { display:block; font-size:10px; color:rgba(215,235,222,.55); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
   .co-tabs { display:flex; gap:8px; margin:4px 0 14px; }
   .co-tab { flex:1; padding:10px 12px; background:var(--card-2); border:1px solid var(--border); border-radius:5px; color:var(--txt-2); font-size:13px; font-weight:700; cursor:pointer; }
   .co-tab.on { background:var(--blue); border-color:var(--blue); color:#fff; }
@@ -631,7 +642,7 @@
   .ck-qt { font-size:13px; color:var(--txt-2); font-weight:600; margin-bottom:5px; line-height:1.4; }
   .ck-qa { font-size:15px; color:var(--txt); line-height:1.55; padding:8px 11px; background:var(--card-2); border-radius:5px; border-left:2px solid var(--green); }
   .co-note-wrap { margin-top:10px; }
-  .co-note-lbl { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
+  .co-note-lbl { display:block; font-size:10px; color:rgba(215,235,222,.55); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
   .co-setline { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
   .co-setline:last-child { border-bottom:none; }
   .co-setno { font-size:11px; color:var(--txt-3); font-weight:700; text-transform:uppercase; letter-spacing:.06em; width:56px; flex-shrink:0; }
@@ -938,7 +949,7 @@ const FOODS_RAW = [
 ["Lechuga, cruda (SARA2/Min.Salud)",12,1.2,1.4,0.2,100],["Palmitos, enlatados (SARA2/Min.Salud)",25,2.5,2.2,0.6,100],["Pepino, crudo (SARA2/Min.Salud)",12,0.7,2,0.1,100],
 ["Perejil, crudo (SARA2/Min.Salud)",47,3.7,5.7,1,100],["Puerro, crudo (SARA2/Min.Salud)",38,2.5,6.1,0.4,100],["Rabanito, crudo (SARA2/Min.Salud)",23,1.3,4.2,0.1,100],
 ["Remolacha, cruda (SARA2/Min.Salud)",44,2.4,8.3,0.2,100],["Repollito de Bruselas, crudos (SARA2/Min.Salud)",43,4.4,5.1,0.5,100],["Repollo, crudo (SARA2/Min.Salud)",19,1.3,3.3,0.1,100],
-["R cula, cruda (SARA2/Min.Salud)",24,2.6,2.1,0.7,100],["Tomate, crudo (SARA2/Min.Salud)",17,1,2.9,0.2,100],["Tomate, puré de tomate (SARA2/Min.Salud)",37,1.7,7.1,0.2,100],
+["R�cula, cruda (SARA2/Min.Salud)",24,2.6,2.1,0.7,100],["Tomate, crudo (SARA2/Min.Salud)",17,1,2.9,0.2,100],["Tomate, puré de tomate (SARA2/Min.Salud)",37,1.7,7.1,0.2,100],
 ["Zanahoria, cruda (SARA2/Min.Salud)",43,1.1,9.2,0.2,100],["Zapallito, crudo (SARA2/Min.Salud)",15,0.8,2.1,0.3,100],["Zapallo, crudo (SARA2/Min.Salud)",36,1,7.8,0.1,100],
 ["Zucchini, crudo (SARA2/Min.Salud)",16,1.2,2.1,0.3,100],
 // ---- FRUTAS — fuente oficial: SARA 2, Ministerio de Salud / Argenfoods ----
