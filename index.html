@@ -152,6 +152,92 @@
     body.silk-on .ci-card::before, body.silk-on .ci-card::after { animation: none; opacity: 0; }
   }
 
+  /* ===== Estética del panel del coach — mismo lenguaje visual que el cliente =====
+     Reusa el canvas de partículas (showSilkBg) y el estilo "Meteors" de cajas. Scopeado a
+     body.silk-coach para no pisar la vista del cliente ni el login. Mismo criterio: las cajas
+     redefinen --card/--border/--txt* internamente y todo lo de adentro se adapta solo. */
+
+  /* --- Texto suelto del coach (sin card opaca detrás) --- */
+  body.silk-coach .co-title, body.silk-coach .co-client-name,
+  body.silk-coach .hb-title { color: #eafff2; }
+  body.silk-coach .co-sec, body.silk-coach .ci-f label, body.silk-coach .co-note-lbl,
+  body.silk-coach .co-sub, body.silk-coach .cal-hint, body.silk-coach .ml-head,
+  body.silk-coach .pl-help, body.silk-coach .foot { color: #a9d9bd; }
+  body.silk-coach .pl-sub, body.silk-coach .ml-tot { color: #7fe0a8; }
+  body.silk-coach .co-logout, body.silk-coach .co-back {
+    color: #cdeedd; border-color: rgba(234,255,242,.28); background: rgba(255,255,255,.04); }
+  body.silk-coach .co-logout:hover, body.silk-coach .co-back:hover { border-color: rgba(127,224,168,.55); color: #eafff2; }
+  body.silk-coach .co-add-day, body.silk-coach .co-copy-btn {
+    color: #7fe0a8; border-color: rgba(127,224,168,.42); }
+  body.silk-coach .co-day-del { color: #ff9b8f; }
+
+  /* --- Cajas del coach con el mismo tratamiento "Meteors" --- */
+  body.silk-coach .co-item, body.silk-coach .co-exc, body.silk-coach .co-invite,
+  body.silk-coach .opt-sec, body.silk-coach .opt-item, body.silk-coach .week-editor,
+  body.silk-coach .hx-row, body.silk-coach .cp-ccard, body.silk-coach .co-tab,
+  body.silk-coach .co-daytab, body.silk-coach .ap-day {
+    --card: #0d1b13; --card-2: #0a140e; --border: rgba(127,224,168,.22);
+    --txt: #eafff2; --txt-2: #a9d9bd; --txt-3: #7fbf9c; --glow: rgba(51,196,129,.22);
+    position: relative; overflow: hidden; isolation: isolate;
+    background: linear-gradient(160deg, #0e1a13 0%, #0a140e 60%, #070d09 100%);
+    border-color: rgba(127,224,168,.22); color: #eafff2;
+    box-shadow: 0 10px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  /* pestañas/estados activos mantienen el verde de marca */
+  body.silk-coach .co-tab.on, body.silk-coach .co-daytab.on {
+    background: var(--blue); border-color: var(--blue); color: #fff; }
+  body.silk-coach .ap-day.on { border-color: rgba(127,224,168,.55); }
+
+  /* --- Campos/controles sueltos del coach (sin card detrás): mismo tratamiento oscuro --- */
+  body.silk-coach .co-note, body.silk-coach .co-search, body.silk-coach .co-dayname,
+  body.silk-coach .ml-in, body.silk-coach .opt-body, body.silk-coach .bw {
+    background: rgba(10,20,14,.72); border-color: rgba(127,224,168,.22); color: #eafff2; }
+  body.silk-coach .co-note::placeholder, body.silk-coach .co-search::placeholder,
+  body.silk-coach .co-dayname::placeholder, body.silk-coach .ml-in::placeholder,
+  body.silk-coach .opt-body::placeholder { color: rgba(169,217,189,.5); }
+  body.silk-coach .co-note:focus, body.silk-coach .co-search:focus, body.silk-coach .co-dayname:focus,
+  body.silk-coach .ml-in:focus, body.silk-coach .opt-body:focus {
+    outline: none; border-color: rgba(127,224,168,.5); background: rgba(14,26,19,.9); }
+  body.silk-coach .bw.dl, body.silk-coach .bw.now { color: #fff; }
+  body.silk-coach .co-exc-name, body.silk-coach .co-exc-btn {
+    background: rgba(10,20,14,.6); border-color: rgba(127,224,168,.20); color: #eafff2; }
+  /* fecha nativa legible sobre oscuro */
+  body.silk-coach input[type="date"] { color-scheme: dark; }
+
+  /* estelas (mismo keyframe cardMeteor que usan las cajas del cliente) */
+  body.silk-coach .co-item::before, body.silk-coach .co-item::after,
+  body.silk-coach .co-exc::before, body.silk-coach .co-exc::after,
+  body.silk-coach .co-invite::before, body.silk-coach .co-invite::after,
+  body.silk-coach .opt-sec::before, body.silk-coach .opt-sec::after,
+  body.silk-coach .week-editor::before, body.silk-coach .week-editor::after,
+  body.silk-coach .hx-row::before, body.silk-coach .hx-row::after,
+  body.silk-coach .cp-ccard::before, body.silk-coach .cp-ccard::after {
+    content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
+    background: linear-gradient(90deg, #64e9a0, transparent);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+    transform: rotate(215deg); transform-origin: left center;
+    opacity: 0; z-index: 0; pointer-events: none;
+    animation: cardMeteor 6s linear infinite;
+  }
+  body.silk-coach .co-item::after, body.silk-coach .co-exc::after,
+  body.silk-coach .co-invite::after, body.silk-coach .opt-sec::after,
+  body.silk-coach .week-editor::after, body.silk-coach .hx-row::after,
+  body.silk-coach .cp-ccard::after { left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s; }
+
+  body.silk-coach .co-item > *, body.silk-coach .co-exc > *, body.silk-coach .co-invite > *,
+  body.silk-coach .opt-sec > *, body.silk-coach .opt-item > *, body.silk-coach .week-editor > *,
+  body.silk-coach .hx-row > *, body.silk-coach .cp-ccard > * { position: relative; z-index: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.silk-coach .co-item::before, body.silk-coach .co-item::after,
+    body.silk-coach .co-exc::before, body.silk-coach .co-exc::after,
+    body.silk-coach .co-invite::before, body.silk-coach .co-invite::after,
+    body.silk-coach .opt-sec::before, body.silk-coach .opt-sec::after,
+    body.silk-coach .week-editor::before, body.silk-coach .week-editor::after,
+    body.silk-coach .hx-row::before, body.silk-coach .hx-row::after,
+    body.silk-coach .cp-ccard::before, body.silk-coach .cp-ccard::after { animation: none; opacity: 0; }
+  }
+
   .topbar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between;
     max-width: 540px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px 6px; }
   .brand { display: flex; align-items: center; gap: 11px; }
@@ -458,7 +544,7 @@
   .sess-exs { font-size:12px; color:var(--txt-2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:9px 16px; border-radius:4px; cursor:pointer; }
   .reset-routine:active { background:var(--card-2); }
-  #coachHost { display:none; position:fixed; inset:0; z-index:150; background:var(--bg); overflow-y:auto; }
+  #coachHost { display:none; position:fixed; inset:0; z-index:150; background:transparent; overflow-y:auto; }
   #coachSheetHost { position:relative; z-index:300; }
   .co-wrap { max-width:1340px; margin:0 auto; padding:22px 20px 60px; }
   .co-grid { display:block; }
@@ -2108,6 +2194,7 @@ function renderApp(){
   document.getElementById("nav-comida").classList.toggle("active", view==="comida");
   document.getElementById("nav-progreso").classList.toggle("active", view==="progreso");
   showSilkBg();
+  document.body.classList.remove("silk-coach");
   const v = document.getElementById("view");
   v.innerHTML = view==="entreno" ? renderEntreno() : view==="habitos" ? renderHabitos() : view==="cardio" ? renderCardio() : view==="comida" ? renderComida() : renderProgreso();
   renderRestBar();
@@ -2499,6 +2586,7 @@ function hideSilkBg(){
   const c=document.getElementById("silkCanvas");
   if(c) c.classList.remove("on");
   document.body.classList.remove("silk-on");
+  document.body.classList.remove("silk-coach");
 }
 
 function showLogin(msg, mode, vals){
@@ -3173,7 +3261,8 @@ function renderCoach(){
   const host=document.getElementById("coachHost"); if(!host) return;
   if(!coachSel && coachApplyPicker){ coachApplyPicker=null; renderApplyPicker(); }
   host.style.display="block";
-  hideSilkBg();
+  showSilkBg();
+  document.body.classList.add("silk-coach");
   if(!coachSel && !coachTplEdit){
     const tabs='<div class="co-tabs">'+
       '<button class="co-tab'+(coachView==="clients"?" on":"")+'" data-coach="view-clients">Clientes ('+coachClients.length+')</button>'+
