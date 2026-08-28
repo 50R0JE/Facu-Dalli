@@ -31,40 +31,137 @@
     --xl-head: #217346; --xl-band: #185c37;
   }
   input::placeholder, textarea::placeholder { color: var(--txt-3); opacity:.7; }
-  html, body { background: #070b08; color: var(--txt); }
-  body { background-image:
-      radial-gradient(1100px 700px at 12% 0%, rgba(24,92,55,.55), transparent 60%),
-      radial-gradient(900px 600px at 88% 8%, rgba(20,70,45,.40), transparent 62%),
-      radial-gradient(1000px 800px at 50% 100%, rgba(15,50,32,.45), transparent 65%),
-      linear-gradient(160deg, #0a1210 0%, #070b08 55%, #060a07 100%);
-    background-attachment: fixed; }
+  html, body { background: linear-gradient(170deg, #f2f5ef 0%, #e8ede4 100%); background-attachment: fixed; color: var(--txt); }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
-  body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity:.5;
-    background-image:
-      radial-gradient(1.6px 1.6px at 12% 18%, rgba(255,255,255,.55), transparent),
-      radial-gradient(1.4px 1.4px at 27% 62%, rgba(255,255,255,.40), transparent),
-      radial-gradient(1.8px 1.8px at 41% 8%,  rgba(255,255,255,.50), transparent),
-      radial-gradient(1.3px 1.3px at 58% 44%, rgba(255,255,255,.38), transparent),
-      radial-gradient(1.7px 1.7px at 71% 76%, rgba(255,255,255,.48), transparent),
-      radial-gradient(1.4px 1.4px at 84% 26%, rgba(255,255,255,.42), transparent),
-      radial-gradient(1.5px 1.5px at 92% 58%, rgba(255,255,255,.45), transparent),
-      radial-gradient(1.3px 1.3px at 6%  84%, rgba(255,255,255,.36), transparent),
-      radial-gradient(1.6px 1.6px at 35% 92%, rgba(255,255,255,.44), transparent),
-      radial-gradient(1.4px 1.4px at 64% 14%, rgba(255,255,255,.40), transparent);
-    background-size: 100% 100%; }
+  body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(720px circle at 50% -6%, rgba(33,115,70,.06), transparent 55%); }
+
+  /* ===== Fondo de partículas (Entreno / Hábitos / Cardio / Comida / Progreso) =====
+     Mismo fondo que el login (FluidParticlesBackground): degradé oscuro de marca + partículas
+     finas a la deriva. Un solo canvas 2D compartido por las 5 pestañas — se muestra/oculta
+     según la vista activa, nunca se recrea. La legibilidad se resuelve aclarando puntualmente
+     el texto "suelto" (el que no vive dentro de una card opaca), scopeado bajo body.silk-on
+     para no afectar login/coach/otras vistas. */
+  #silkCanvas {
+    position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+    opacity: 0; transition: opacity .3s ease;
+    background:
+      radial-gradient(900px circle at 18% -8%, rgba(51,196,129,.16), transparent 55%),
+      radial-gradient(700px circle at 100% 100%, rgba(46,120,184,.10), transparent 50%),
+      linear-gradient(160deg, #101913 0%, #0b120e 55%, #070a08 100%);
+  }
+  #silkCanvas.on { opacity: 1; }
+
+  /* --- Legibilidad sobre el fondo oscuro de partículas, sin overlay blanco ---
+     Sólo texto/controles que quedan directamente sobre el fondo (sin card opaca detrás)
+     dentro de Entreno/Hábitos/Cardio/Comida/Progreso. No toca coach panel ni sheet modal. */
+  body.silk-on .day-name, body.silk-on .hb-title, body.silk-on .time-display,
+  body.silk-on .ring-num, body.silk-on .w-now, body.silk-on .diary-head .t,
+  body.silk-on .cal-empty-title, body.silk-on .macro-top b, body.silk-on .wordmark .w,
+  body.silk-on .client-name { color: #eafff2; }
+  body.silk-on .day-sub, body.silk-on .count, body.silk-on .empty, body.silk-on .ring-sub,
+  body.silk-on .ring-lbl, body.silk-on .diary-head .s, body.silk-on .cal-empty-sub,
+  body.silk-on .w-meta, body.silk-on .macro-top span, body.silk-on .foot,
+  body.silk-on .reset-routine, body.silk-on .client-sub { color: #a9d9bd; }
+  body.silk-on .clear, body.silk-on .cardio-tools-h, body.silk-on .ct-hint,
+  body.silk-on .load-def { color: #7fbf9c; }
+  body.silk-on .clear:active { color: #eafff2; }
+  body.silk-on .time-display.finished { color: var(--blue-2); }
+  body.silk-on .ring-num.over { color: var(--blue-2); }
+  body.silk-on .day-name:focus, body.silk-on .day-sub:focus { color: var(--txt); }
+  body.silk-on .reset-routine, body.silk-on .load-def { border-color: rgba(234,255,242,.28); }
+  body.silk-on .add-set, body.silk-on .cal-create { color: #7fe0a8; border-color: rgba(127,224,168,.45); }
+  body.silk-on .day-del { color: #7fbf9c; }
+
+  /* --- Estilo "Meteors" para las cajas de contenido (Entreno/Hábitos/Cardio/Comida/Progreso) ---
+     Cada caja pasa a fondo oscuro de marca con 2 estelas verdes cruzándola en diagonal (CSS puro,
+     sin canvas extra por caja: rinde bien aunque haya muchas cajas en pantalla). Al redefinir las
+     variables --card/--border/--txt* DENTRO de cada caja, todo lo que ya usaba esas variables
+     (inputs, texto, subtítulos) se adapta solo, sin tocar el marcado ni la lógica. Scopeado a
+     body.silk-on: no afecta login, panel del coach ni el modal/sheet de ejercicios. */
+  body.silk-on .card, body.silk-on .hb-item, body.silk-on .food-row, body.silk-on .diary-item,
+  body.silk-on .w-chart, body.silk-on .w-item, body.silk-on .water-card, body.silk-on .vol-card,
+  body.silk-on .fi-card, body.silk-on .mc-block, body.silk-on .cardio-rx, body.silk-on .plan-banner,
+  body.silk-on .join-box, body.silk-on .daynotes, body.silk-on .daily-card, body.silk-on .ci-card {
+    --card: #0d1b13; --card-2: #0a140e; --border: rgba(127,224,168,.22);
+    --txt: #eafff2; --txt-2: #a9d9bd; --txt-3: #7fbf9c; --glow: rgba(51,196,129,.22);
+    position: relative; overflow: hidden; isolation: isolate;
+    background: linear-gradient(160deg, #0e1a13 0%, #0a140e 60%, #070d09 100%);
+    box-shadow: 0 10px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  body.silk-on .card::before, body.silk-on .card::after,
+  body.silk-on .hb-item::before, body.silk-on .hb-item::after,
+  body.silk-on .food-row::before, body.silk-on .food-row::after,
+  body.silk-on .diary-item::before, body.silk-on .diary-item::after,
+  body.silk-on .w-chart::before, body.silk-on .w-chart::after,
+  body.silk-on .w-item::before, body.silk-on .w-item::after,
+  body.silk-on .water-card::before, body.silk-on .water-card::after,
+  body.silk-on .vol-card::before, body.silk-on .vol-card::after,
+  body.silk-on .fi-card::before, body.silk-on .fi-card::after,
+  body.silk-on .mc-block::before, body.silk-on .mc-block::after,
+  body.silk-on .cardio-rx::before, body.silk-on .cardio-rx::after,
+  body.silk-on .plan-banner::before, body.silk-on .plan-banner::after,
+  body.silk-on .join-box::before, body.silk-on .join-box::after,
+  body.silk-on .daynotes::before, body.silk-on .daynotes::after,
+  body.silk-on .daily-card::before, body.silk-on .daily-card::after,
+  body.silk-on .ci-card::before, body.silk-on .ci-card::after {
+    content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
+    background: linear-gradient(90deg, #64e9a0, transparent);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+    transform: rotate(215deg); transform-origin: left center;
+    opacity: 0; z-index: 0; pointer-events: none;
+    animation: cardMeteor 6s linear infinite;
+  }
+  body.silk-on .card::after, body.silk-on .hb-item::after, body.silk-on .food-row::after,
+  body.silk-on .diary-item::after, body.silk-on .w-chart::after, body.silk-on .w-item::after,
+  body.silk-on .water-card::after, body.silk-on .vol-card::after, body.silk-on .fi-card::after,
+  body.silk-on .mc-block::after, body.silk-on .cardio-rx::after, body.silk-on .plan-banner::after,
+  body.silk-on .join-box::after, body.silk-on .daynotes::after, body.silk-on .daily-card::after,
+  body.silk-on .ci-card::after {
+    left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s;
+  }
+  @keyframes cardMeteor {
+    0% { transform: rotate(215deg) translateX(0); opacity: 0; }
+    4% { opacity: 1; }
+    20% { opacity: 1; }
+    28% { opacity: 0; }
+    100% { transform: rotate(215deg) translateX(-220px); opacity: 0; }
+  }
+  body.silk-on .card > *, body.silk-on .hb-item > *, body.silk-on .food-row > *,
+  body.silk-on .diary-item > *, body.silk-on .w-chart > *, body.silk-on .w-item > *,
+  body.silk-on .water-card > *, body.silk-on .vol-card > *, body.silk-on .fi-card > *,
+  body.silk-on .mc-block > *, body.silk-on .cardio-rx > *, body.silk-on .plan-banner > *,
+  body.silk-on .join-box > *, body.silk-on .daynotes > *, body.silk-on .daily-card > *,
+  body.silk-on .ci-card > * { position: relative; z-index: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    body.silk-on .card::before, body.silk-on .card::after,
+    body.silk-on .hb-item::before, body.silk-on .hb-item::after,
+    body.silk-on .food-row::before, body.silk-on .food-row::after,
+    body.silk-on .diary-item::before, body.silk-on .diary-item::after,
+    body.silk-on .w-chart::before, body.silk-on .w-chart::after,
+    body.silk-on .w-item::before, body.silk-on .w-item::after,
+    body.silk-on .water-card::before, body.silk-on .water-card::after,
+    body.silk-on .vol-card::before, body.silk-on .vol-card::after,
+    body.silk-on .fi-card::before, body.silk-on .fi-card::after,
+    body.silk-on .mc-block::before, body.silk-on .mc-block::after,
+    body.silk-on .cardio-rx::before, body.silk-on .cardio-rx::after,
+    body.silk-on .plan-banner::before, body.silk-on .plan-banner::after,
+    body.silk-on .join-box::before, body.silk-on .join-box::after,
+    body.silk-on .daynotes::before, body.silk-on .daynotes::after,
+    body.silk-on .daily-card::before, body.silk-on .daily-card::after,
+    body.silk-on .ci-card::before, body.silk-on .ci-card::after { animation: none; opacity: 0; }
+  }
 
   .topbar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between;
     max-width: 540px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px 6px; }
   .brand { display: flex; align-items: center; gap: 11px; }
-  .brand-ic { width: 40px; height: 40px; border-radius: 11px; background: linear-gradient(135deg, #185c37, #33c481);
+  .brand-ic { width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(135deg, #185c37, #33c481);
     display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--glow), inset 0 1px 0 rgba(255,255,255,.3); }
   .brand-ic svg { width: 22px; height: 22px; color: #fff; }
   .wordmark { font-family: "Orbitron", system-ui, sans-serif; font-weight: 800; font-size: 23px; letter-spacing: .02em; line-height: 1; }
-  .wordmark .b { color: #3ddc8a;  }
-  .wordmark .w { color: #f2f7f3; }
+  .wordmark .b { color: var(--blue);  }
+  .wordmark .w { color: var(--txt); }
   .client-tag { text-align: right; line-height: 1.2; padding-left: 10px; }
-  .client-tag .client-name { color:#f2f7f3 !important; }
-  .client-tag .client-sub { color:rgba(220,235,226,.55) !important; }
   .client-name { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; font-weight: 600; color: var(--txt); letter-spacing: .01em; white-space: nowrap; }
   .client-sub { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 9.5px; font-weight: 500; color: var(--txt-3); text-transform: uppercase; letter-spacing: .16em; margin-top: 2px; }
   .top-btn { width: 38px; height: 38px; border-radius: 4px; background: var(--card); border: 1px solid var(--border);
@@ -77,9 +174,29 @@
   .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
   .tabs::-webkit-scrollbar { display: none; }
   .tab { padding: 8px 16px; border-radius: 4px; font-size: 14px; white-space: nowrap; flex-shrink: 0;
-    background: var(--card); border: 1px solid var(--border); color: var(--txt-2); cursor: pointer; transition: .15s; }
+    background: var(--card); border: 1px solid var(--border); color: var(--txt-2); cursor: pointer; transition: color .3s ease, border-color .3s ease;
+    position: relative; overflow: hidden; isolation: isolate; --gx: 50%; --gy: 50%; }
   .tab.active { background: var(--blue); color: #fff; font-weight: 600; border-color: var(--blue); box-shadow: 0 0 16px var(--glow); }
   .tab-add { color: var(--blue-2); font-weight: 700; border-style: dashed; }
+  /* --- Hover-glow + ripple (botones de la fila de días, ej. Torso/Piernas/…) ---
+     Adaptado de HoverButton + RippleButton en verde de marca. El glow sigue al mouse
+     (posición vía --gx/--gy seteadas por JS en mousemove) y el ripple es un span JS
+     por click, ambos por detrás del texto (z-index:-1, contenidos por isolation:isolate). */
+  .tab::before {
+    content: ""; position: absolute; left: var(--gx); top: var(--gy); width: 90px; height: 90px;
+    margin: -45px 0 0 -45px; border-radius: 50%; z-index: -1; pointer-events: none;
+    background: radial-gradient(circle, rgba(51,196,129,.55) 10%, transparent 72%);
+    opacity: 0; transform: scale(.4); transition: opacity .3s ease, transform .4s ease;
+  }
+  .tab:hover::before { opacity: 1; transform: scale(1.5); }
+  .tab:hover { color: #7fe0a8; }
+  .tab.active:hover { color: #eafff2; }
+  .tab .tab-ripple { position: absolute; border-radius: 50%; z-index: -1; pointer-events: none;
+    background: rgba(51,196,129,.45); transform: scale(0); animation: tabRippleAnim .5s ease-out forwards; }
+  .tab.active .tab-ripple { background: rgba(255,255,255,.35); }
+  @keyframes tabRippleAnim { to { transform: scale(1); opacity: 0; } }
+  @media (hover: none) { .tab::before { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .tab::before { transition: opacity .15s linear; } .tab-ripple { animation: none; opacity: 0; } }
 
   .day-head { margin: 16px 0 20px; }
   .day-top { display: flex; align-items: center; gap: 8px; }
@@ -89,8 +206,8 @@
   .day-del { background: none; border: none; color: var(--txt-3); cursor: pointer; flex-shrink: 0; padding: 6px; }
   .day-del svg { width: 18px; height: 18px; }
   .day-del:active { color: var(--red); }
-  .day-sub { width: 100%; background: transparent; border: none; color: rgba(215,235,222,.62); font-size: 14px; padding: 2px 4px; border-radius: 4px; margin-top: 2px; }
-  .day-sub:focus { outline: none; background: var(--card); color: var(--txt); }
+  .day-sub { width: 100%; background: transparent; border: none; color: var(--txt-2); font-size: 14px; padding: 2px 4px; border-radius: 4px; margin-top: 2px; }
+  .day-sub:focus { outline: none; background: var(--card); }
 
   .progress-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
   .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
@@ -130,11 +247,11 @@
   .add-ex { margin-top: 16px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;
     font-weight: 600; color: var(--txt); background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 14px; cursor: pointer; }
   .add-ex:active { border-color: #3a3a38; }
-  .foot { text-align: center; font-size: 12px; color: rgba(200,225,210,.42); margin-top: 24px; }
+  .foot { text-align: center; font-size: 12px; color: var(--txt-3); margin-top: 24px; }
 
   /* Hábitos */
   .hb-head { margin: 6px 0 20px; }
-  .hb-title { font-size: 25px; font-weight: 700; letter-spacing: -0.01em; color: #f2f7f3; }
+  .hb-title { font-size: 25px; font-weight: 700; letter-spacing: -0.01em; color: var(--txt); }
   .title-accent { width: 44px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, #217346, #33c481); box-shadow: 0 0 10px var(--glow); margin: 9px 0 2px; }
   .hb-list { display: flex; flex-direction: column; gap: 10px; }
   .hb-item { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; cursor: pointer; transition: .15s; }
@@ -201,7 +318,7 @@
   .food-name { font-size: 14px; }
   .food-kcal { font-size: 13px; color: var(--blue-2); font-variant-numeric: tabular-nums; display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
   .food-kcal span { font-size: 10px; color: var(--txt-3); }
-  .cal-hint { color: rgba(215,235,222,.5); font-size: 13px; text-align: center; padding: 14px; }
+  .cal-hint { color: var(--txt-3); font-size: 13px; text-align: center; padding: 14px; }
   .cal-create { margin: 10px 0 20px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;
     color: var(--blue-2); background: transparent; cursor: pointer; border: 1px dashed #3a3a38; border-radius: 4px; padding: 11px; }
   .cal-create:active { border-color: var(--blue); }
@@ -341,12 +458,7 @@
   .sess-exs { font-size:12px; color:var(--txt-2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:9px 16px; border-radius:4px; cursor:pointer; }
   .reset-routine:active { background:var(--card-2); }
-  #coachHost { display:none; position:fixed; inset:0; z-index:150; overflow-y:auto;
-    background:
-      radial-gradient(1100px 700px at 12% 0%, rgba(24,92,55,.45), transparent 60%),
-      radial-gradient(900px 600px at 88% 8%, rgba(20,70,45,.32), transparent 62%),
-      linear-gradient(160deg, #0a1210 0%, #070b08 60%, #060a07 100%);
-    background-attachment: fixed; }
+  #coachHost { display:none; position:fixed; inset:0; z-index:150; background:var(--bg); overflow-y:auto; }
   #coachSheetHost { position:relative; z-index:300; }
   .co-wrap { max-width:1340px; margin:0 auto; padding:22px 20px 60px; }
   .co-grid { display:block; }
@@ -392,22 +504,22 @@
   .cp-ex:hover { border-color:var(--blue); color:var(--blue); }
   .cp-custom { width:100%; margin-top:16px; background:none; border:1px dashed #3a3a38; border-radius:4px; color:var(--blue-2); font-size:13px; padding:12px; cursor:pointer; }
   .co-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-  .co-title { font-family:"Orbitron",monospace; font-size:20px; font-weight:800; color:#f2f7f3; }
-  .co-logout, .co-back { background:none; border:1px solid rgba(140,200,168,.22); color:rgba(225,240,231,.8); font-size:12px; padding:7px 12px; border-radius:4px; cursor:pointer; }
+  .co-title { font-family:"Orbitron",monospace; font-size:20px; font-weight:800; color:var(--txt); }
+  .co-logout, .co-back { background:none; border:1px solid var(--border); color:var(--txt-2); font-size:12px; padding:7px 12px; border-radius:4px; cursor:pointer; }
   .co-invite { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; text-align:center; font-size:12px; color:var(--txt-2); margin-bottom:14px; }
   .co-code { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:22px; font-weight:800; color:var(--blue); letter-spacing:3px; margin-top:6px; }
   .co-invite-sub { font-size:11px; color:var(--txt-3); margin-top:8px; }
-  .co-sec { font-size:13px; color:rgba(215,235,222,.62); font-weight:600; margin:22px 2px 10px; }
+  .co-sec { font-size:13px; color:var(--txt-2); font-weight:600; margin:22px 2px 10px; }
   .co-item { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:15px 14px; margin-bottom:8px; cursor:pointer; }
   .co-item:active { background:var(--card-2); }
   .co-name { font-size:15px; color:var(--txt); font-weight:600; }
   .co-arrow { color:var(--txt-3); font-size:20px; }
-  .co-client-name { font-size:22px; font-weight:800; color:#f2f7f3; margin-bottom:4px; }
+  .co-client-name { font-size:22px; font-weight:800; color:var(--txt); margin-bottom:4px; }
   .co-list { margin-top:10px; }
   .co-row { display:flex; justify-content:space-between; align-items:center; padding:11px 14px; background:var(--card); border:1px solid var(--border); border-radius:4px; margin-bottom:6px; font-size:14px; color:var(--txt); }
   .co-val { font-weight:700; font-variant-numeric:tabular-nums; }
   .co-prog { margin-top:12px; padding:12px 14px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; font-size:14px; font-weight:700; color:var(--blue-2); text-align:center; }
-  .co-sub { font-size:12px; color:rgba(215,235,222,.5); margin:16px 2px 8px; }
+  .co-sub { font-size:12px; color:var(--txt-3); margin:16px 2px 8px; }
   .co-slog { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:11px 14px; margin-bottom:6px; }
   .co-slog-date { font-size:13px; color:var(--txt-2); font-weight:600; margin-bottom:7px; }
   .co-sets { display:block; }
@@ -430,45 +542,87 @@
   .co-rt-ins:hover { opacity:1; border-color:var(--blue); color:var(--blue); }
   .co-rt-add { display:block; width:100%; margin:6px 0 0; background:none; border:1px dashed var(--border); color:var(--blue-2); font-size:14px; padding:12px; border-radius:4px; cursor:pointer; }
   .co-save-rt { display:block; width:100%; margin-top:14px; background:var(--blue); color:#fff; border:none; font-size:15px; font-weight:700; padding:14px; border-radius:4px; cursor:pointer; }
-  /* dentro de tarjetas claras, las etiquetas vuelven a oscuro */
-  .co-exc .co-note-lbl, .opt-sec .co-note-lbl, .opt-item .co-note-lbl,
-  .week-editor .co-note-lbl, .week-editor .ci-f label, .co-exc .ci-f label,
-  .co-panel .co-note-lbl, .co-panel .ci-f label { color: var(--txt-3) !important; }
-  .cp-ccard .cal-hint, .co-exc .cal-hint, .week-editor .cal-hint,
-  .opt-sec .pl-help, .co-exc .pl-help { color: var(--txt-3) !important; }
-  .co-add-day { display:block; margin-top:10px; background:none; border:1px dashed rgba(140,200,168,.28); color:var(--blue-2); padding:10px 14px; border-radius:4px; cursor:pointer; }
+  .co-add-day { display:block; margin-top:10px; background:none; border:1px dashed var(--border); color:var(--blue-2); padding:10px 14px; border-radius:4px; cursor:pointer; }
   .join-box { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-top:24px; }
   .join-t { font-size:13px; color:var(--txt-2); margin-bottom:10px; font-weight:600; }
-  #authHost { display:none; position:fixed; inset:0; z-index:200; align-items:center; justify-content:center; padding:24px;
+  /* ===== Iniciar sesión — pantalla premium (autocontenida, no afecta otras vistas) ===== */
+  #authHost {
+    display:none; position:fixed; inset:0; z-index:200; overflow:hidden;
+    align-items:center; justify-content:center; padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
     background:
-      radial-gradient(1100px 700px at 12% 0%, rgba(24,92,55,.55), transparent 60%),
-      radial-gradient(900px 600px at 88% 8%, rgba(20,70,45,.40), transparent 62%),
-      linear-gradient(160deg, #0a1210 0%, #070b08 60%, #060a07 100%); }
-  .auth-card { width:100%; max-width:364px; display:flex; flex-direction:column; gap:12px;
-    background:rgba(18,28,22,.72); border:1px solid rgba(120,190,150,.16); border-radius:16px;
-    padding:34px 30px; box-shadow:0 24px 60px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
-    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
-  .auth-ic { width:56px; height:56px; margin:0 auto 4px; border-radius:15px; background:linear-gradient(150deg,#2fa96a,#1c7a48);
-    display:flex; align-items:center; justify-content:center; box-shadow:0 10px 26px rgba(31,140,85,.35), inset 0 1px 0 rgba(255,255,255,.25); }
-  .auth-ic svg { width:28px; height:28px; color:#fff; }
-  .auth-field { position:relative; display:flex; align-items:center; }
-  .auth-field .fi { position:absolute; left:14px; width:17px; height:17px; color:rgba(215,235,222,.42); pointer-events:none; }
-  .auth-eye { position:absolute; right:12px; background:none; border:none; cursor:pointer; color:rgba(215,235,222,.5); padding:4px; display:flex; }
-  .auth-eye svg { width:18px; height:18px; }
-  .auth-logo { font-family:"Orbitron",monospace; font-size:31px; font-weight:800; text-align:center; letter-spacing:.5px; color:#f2f7f3; }
-  .auth-logo .b { color:#3ddc8a; }
-  .auth-sub { text-align:center; font-size:9.5px; color:rgba(200,225,210,.45); text-transform:uppercase; letter-spacing:.18em; margin-bottom:18px; }
-  .auth-in { width:100%; background:rgba(255,255,255,.045); border:1px solid rgba(140,200,168,.16); border-radius:10px;
-    padding:14px 14px 14px 42px; color:#eaf3ee; font-size:14.5px; transition:border-color .15s, background .15s; }
-  .auth-in:focus { outline:none; border-color:rgba(61,220,138,.45); background:rgba(255,255,255,.07); }
-  .auth-in::placeholder { color:rgba(200,225,210,.40); }
-  .auth-btn { background:linear-gradient(135deg,#2fb673,#1d7d4a); color:#fff; border:none; border-radius:10px; padding:15px; font-size:15px; font-weight:700;
-    cursor:pointer; margin-top:6px; box-shadow:0 10px 26px rgba(31,150,90,.30); transition:filter .15s, transform .08s; }
-  .auth-btn:hover { filter:brightness(1.08); }
-  .auth-btn:active { transform:translateY(1px); }
-  .auth-switch { text-align:center; font-size:13px; color:#3ddc8a; cursor:pointer; margin-top:10px; font-weight:600; }
-  .auth-switch:hover { text-decoration:underline; }
-  .auth-msg { font-size:12.5px; color:#ffb3ab; text-align:center; background:rgba(200,60,50,.12); border:1px solid rgba(200,90,80,.25); border-radius:8px; padding:9px 11px; line-height:1.45; }
+      radial-gradient(900px circle at 18% -8%, rgba(51,196,129,.16), transparent 55%),
+      radial-gradient(700px circle at 100% 100%, rgba(46,120,184,.10), transparent 50%),
+      linear-gradient(160deg, #101913 0%, #0b120e 55%, #070a08 100%);
+  }
+  #authHost canvas.auth-particles { position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  .auth-card {
+    position:relative; z-index:2; width:100%; max-width:368px; display:flex; flex-direction:column; gap:13px;
+    background:rgba(255,255,255,.045); backdrop-filter:blur(24px) saturate(140%); -webkit-backdrop-filter:blur(24px) saturate(140%);
+    border:1px solid rgba(255,255,255,.09); border-radius:20px; padding:36px 26px 28px;
+    box-shadow:0 30px 70px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.06) inset;
+    animation:authCardIn .55s cubic-bezier(.16,1,.3,1) both;
+  }
+  .auth-brand-ic {
+    width:52px; height:52px; margin:0 auto 2px; border-radius:14px; background:linear-gradient(135deg,#185c37,#33c481);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 1px rgba(255,255,255,.1) inset, 0 10px 28px rgba(33,115,70,.45);
+    animation:authPop .6s cubic-bezier(.16,1,.3,1) .05s both;
+  }
+  .auth-brand-ic svg { width:26px; height:26px; color:#fff; }
+  .auth-logo { font-family:"Orbitron",monospace; font-size:29px; font-weight:800; text-align:center; letter-spacing:.4px; color:#f2f5ef; animation:authFadeUp .45s ease .1s both; }
+  .auth-logo .b { color:#33c481; }
+  .auth-sub { text-align:center; font-size:10.5px; color:rgba(242,245,239,.45); text-transform:uppercase; letter-spacing:.18em; margin-bottom:6px; animation:authFadeUp .45s ease .15s both; }
+  .auth-field { position:relative; opacity:0; animation:authFadeUp .45s ease forwards; }
+  .auth-ic { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:18px; height:18px; display:flex; color:rgba(242,245,239,.35); pointer-events:none; transition:color .18s; }
+  .auth-ic svg { width:100%; height:100%; }
+  .auth-in {
+    width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:11px;
+    padding:14px 14px 14px 42px; color:#f2f5ef; font-size:15px; transition:border-color .18s, background .18s, box-shadow .18s;
+  }
+  .auth-in::placeholder { color:rgba(242,245,239,.32); }
+  .auth-in:hover { border-color:rgba(255,255,255,.2); }
+  .auth-in:focus { outline:none; border-color:#33c481; background:rgba(255,255,255,.075); box-shadow:0 0 0 4px rgba(51,196,129,.16); }
+  .auth-field:focus-within .auth-ic { color:#33c481; }
+  .auth-field.pass .auth-in { padding-right:42px; }
+  .auth-toggle-pass {
+    position:absolute; right:8px; top:50%; transform:translateY(-50%); width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    background:none; border:none; border-radius:7px; color:rgba(242,245,239,.42); cursor:pointer; transition:color .15s, background .15s;
+  }
+  .auth-toggle-pass svg { width:17px; height:17px; }
+  .auth-toggle-pass:hover { color:#f2f5ef; background:rgba(255,255,255,.06); }
+  .auth-toggle-pass:focus-visible { outline:2px solid #33c481; outline-offset:2px; }
+  .auth-btn {
+    position:relative; background:linear-gradient(135deg,#217346,#33c481); color:#fff; border:none; border-radius:11px;
+    padding:15px; font-size:15px; font-weight:700; letter-spacing:.01em; cursor:pointer; margin-top:4px;
+    box-shadow:0 10px 26px rgba(33,115,70,.38), inset 0 1px 0 rgba(255,255,255,.18);
+    transition:transform .15s, box-shadow .15s, filter .15s; opacity:0; animation:authFadeUp .45s ease forwards;
+  }
+  .auth-btn:hover { transform:translateY(-1px); box-shadow:0 14px 32px rgba(33,115,70,.48), inset 0 1px 0 rgba(255,255,255,.2); }
+  .auth-btn:active { transform:translateY(0); filter:brightness(.95); }
+  .auth-btn:focus-visible { outline:2px solid #33c481; outline-offset:3px; }
+  .auth-btn:disabled { opacity:.7; cursor:progress; transform:none; }
+  .auth-switch {
+    text-align:center; font-size:13px; font-weight:600; color:#33c481; cursor:pointer; margin-top:2px; padding:4px; border-radius:6px;
+    transition:color .15s; opacity:0; animation:authFadeUp .45s ease forwards;
+  }
+  .auth-switch:hover { color:#5fe0a5; text-decoration:underline; text-underline-offset:3px; }
+  .auth-switch:focus-visible { outline:2px solid #33c481; outline-offset:2px; }
+  .auth-msg {
+    font-size:13px; line-height:1.45; text-align:center; color:#ffb9ad; background:rgba(192,57,43,.14);
+    border:1px solid rgba(192,57,43,.32); border-radius:9px; padding:10px 12px; opacity:0; animation:authFadeUp .4s ease forwards, authShake .4s ease .05s;
+  }
+  .auth-msg.ok { color:#8be8b3; background:rgba(51,196,129,.14); border-color:rgba(51,196,129,.35); animation:authFadeUp .4s ease forwards; }
+  @keyframes authFadeUp { from{ opacity:0; transform:translateY(9px);} to{ opacity:1; transform:translateY(0);} }
+  @keyframes authCardIn { from{ opacity:0; transform:translateY(18px) scale(.98);} to{ opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes authPop { 0%{ opacity:0; transform:scale(.5) rotate(-8deg);} 60%{ opacity:1; transform:scale(1.08) rotate(2deg);} 100%{ transform:scale(1) rotate(0);} }
+  @keyframes authShake { 15%,85%{ transform:translateX(-1px);} 30%,70%{ transform:translateX(2px);} 45%,60%{ transform:translateX(-3px);} }
+  @media (prefers-reduced-motion: reduce) {
+    .auth-card, .auth-brand-ic, .auth-logo, .auth-sub, .auth-field, .auth-btn, .auth-switch, .auth-msg { animation:none !important; opacity:1 !important; transform:none !important; }
+  }
+  @media (max-width:380px) {
+    .auth-card { padding:28px 20px 22px; border-radius:16px; max-width:100%; }
+    .auth-logo { font-size:25px; }
+  }
   .logout-btn { display:block; width:100%; margin:24px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size:13px; padding:11px; border-radius:4px; cursor:pointer; }
   .ins-ex { display:block; width:100%; height:22px; margin:0 0 6px; padding:0; background:none; border:1px dashed #4e4f4b; border-radius:4px; color:var(--txt-3); font-size:13px; line-height:1; cursor:pointer; opacity:.45; transition:.15s; }
   .ins-ex:hover, .ins-ex:active { opacity:1; border-color:var(--blue); color:var(--blue); }
@@ -500,11 +654,11 @@
   .co-stat b { color:var(--blue-2); font-size:15px; font-weight:800; margin-right:3px; font-variant-numeric:tabular-nums; }
   .co-exc-sets { flex-shrink:0; font-size:11px; color:var(--txt-3); font-weight:700; white-space:nowrap; padding:0 4px; }
   .co-scroll { overflow-x:auto; }
-  .plan-edit .pl-sub { font-size:12px; color:#4fd694; text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:6px 0 10px; }
+  .plan-edit .pl-sub { font-size:12px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin:6px 0 10px; }
   .ml-head, .ml-row, .ml-tot { display:grid; grid-template-columns: 1.4fr .8fr .7fr .8fr .8fr .8fr 1.4fr 28px; gap:5px; align-items:center; }
-  .ml-head { font-size:9px; color:rgba(215,235,222,.5); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-bottom:5px; padding:0 2px; }
+  .ml-head { font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.04em; font-weight:700; margin-bottom:5px; padding:0 2px; }
   .ml-row { margin-bottom:5px; }
-  .ml-tot { font-size:12px; font-weight:800; color:#4fd694; padding:8px 2px; border-top:1px solid var(--border); margin-top:4px; }
+  .ml-tot { font-size:12px; font-weight:800; color:var(--green); padding:8px 2px; border-top:1px solid var(--border); margin-top:4px; }
   .ml-in { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:8px 6px; color:var(--txt); font-size:12px; min-width:0; }
   .ml-in.n { text-align:center; }
   .ml-del { background:none; border:none; color:var(--txt-3); cursor:pointer; font-size:12px; }
@@ -514,7 +668,7 @@
   .pl-add.sm { padding:5px 10px; font-size:11px; }
   .le-row, .sw-row { display:flex; gap:6px; align-items:center; margin-bottom:5px; }
   .sw-arrow { color:var(--txt-3); flex-shrink:0; }
-  .pl-help { font-size:11px; color:rgba(215,235,222,.55); font-style:italic; line-height:1.5; margin:0 0 12px; padding:8px 10px; background:var(--card-2); border-radius:4px; border-left:2px solid var(--blue); }
+  .pl-help { font-size:11px; color:var(--txt-3); font-style:italic; line-height:1.5; margin:0 0 12px; padding:8px 10px; background:var(--card-2); border-radius:4px; border-left:2px solid var(--blue); }
   .opt-sec { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:12px; margin-bottom:10px; }
   .opt-sec-head { display:flex; gap:6px; margin-bottom:10px; }
   .opt-sectitle { flex:1; font-weight:800; color:var(--txt); font-size:14px; }
@@ -582,7 +736,7 @@
   .hb-coach-tag { margin-left:auto; font-size:9px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; background:var(--card-2); padding:3px 6px; border-radius:3px; }
   .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:10px; }
   .ci-f { margin-bottom:10px; }
-  .ci-f label { display:block; font-size:10px; color:rgba(215,235,222,.55); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
+  .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
   .co-tabs { display:flex; gap:8px; margin:4px 0 14px; }
   .co-tab { flex:1; padding:10px 12px; background:var(--card-2); border:1px solid var(--border); border-radius:5px; color:var(--txt-2); font-size:13px; font-weight:700; cursor:pointer; }
   .co-tab.on { background:var(--blue); border-color:var(--blue); color:#fff; }
@@ -642,7 +796,7 @@
   .ck-qt { font-size:13px; color:var(--txt-2); font-weight:600; margin-bottom:5px; line-height:1.4; }
   .ck-qa { font-size:15px; color:var(--txt); line-height:1.55; padding:8px 11px; background:var(--card-2); border-radius:5px; border-left:2px solid var(--green); }
   .co-note-wrap { margin-top:10px; }
-  .co-note-lbl { display:block; font-size:10px; color:rgba(215,235,222,.55); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
+  .co-note-lbl { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
   .co-setline { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
   .co-setline:last-child { border-bottom:none; }
   .co-setno { font-size:11px; color:var(--txt-3); font-weight:700; text-transform:uppercase; letter-spacing:.06em; width:56px; flex-shrink:0; }
@@ -718,6 +872,7 @@
 </style>
 </head>
 <body>
+  <canvas id="silkCanvas" aria-hidden="true"></canvas>
   <div id="authHost"></div>
   <div id="coachHost"></div>
   <div id="coachSheetHost"></div>
@@ -1952,6 +2107,7 @@ function renderApp(){
   document.getElementById("nav-cardio").classList.toggle("active", view==="cardio");
   document.getElementById("nav-comida").classList.toggle("active", view==="comida");
   document.getElementById("nav-progreso").classList.toggle("active", view==="progreso");
+  showSilkBg();
   const v = document.getElementById("view");
   v.innerHTML = view==="entreno" ? renderEntreno() : view==="habitos" ? renderHabitos() : view==="cardio" ? renderCardio() : view==="comida" ? renderComida() : renderProgreso();
   renderRestBar();
@@ -2005,6 +2161,14 @@ document.body.addEventListener("input", async e => {
 
 document.body.addEventListener("keydown", async e => {
   if (e.key === "Enter" && e.target.dataset && e.target.dataset.action === "habit-name-input") { e.preventDefault(); addHabit(); }
+  if (e.key === "Enter" && e.target.classList && e.target.classList.contains("auth-in")) {
+    e.preventDefault();
+    const btn = document.querySelector('#authHost .auth-btn[data-auth^="do-"]');
+    if (btn && !btn.disabled) btn.click();
+  }
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("auth-switch")) {
+    e.preventDefault(); e.target.click();
+  }
 });
 
 document.body.addEventListener("change", async e => {
@@ -2016,7 +2180,30 @@ document.body.addEventListener("change", async e => {
   if (a === "photo-pick") { const file=t.files&&t.files[0]; if(file){ try{ await cloudUploadPhoto(file); }catch(err){ alert("No se pudo subir la foto: "+((err&&err.message)||err)); } } t.value=""; return; }
 });
 
+// Hover-glow + ripple de los tabs de día (Torso/Piernas/…): el glow sigue el mouse vía
+// --gx/--gy, el ripple es un span temporal por click. Delegado porque .tabs se recrea en cada render.
+document.body.addEventListener("mousemove", e => {
+  const t = e.target.closest(".tab"); if(!t) return;
+  const r = t.getBoundingClientRect();
+  t.style.setProperty("--gx", (e.clientX-r.left)+"px");
+  t.style.setProperty("--gy", (e.clientY-r.top)+"px");
+});
+function tabRipple(btn, clientX, clientY){
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2.2;
+  const x = (typeof clientX==="number" ? clientX : rect.left+rect.width/2) - rect.left - size/2;
+  const y = (typeof clientY==="number" ? clientY : rect.top+rect.height/2) - rect.top - size/2;
+  const span = document.createElement("span");
+  span.className = "tab-ripple";
+  span.style.width = span.style.height = size+"px";
+  span.style.left = x+"px"; span.style.top = y+"px";
+  btn.appendChild(span);
+  setTimeout(()=>{ span.remove(); }, 520);
+}
+
 document.body.addEventListener("click", async e => {
+  const tabBtn = e.target.closest(".tab");
+  if (tabBtn) tabRipple(tabBtn, e.clientX, e.clientY);
   const navBtn = e.target.closest("[data-view]");
   if (navBtn) { view = navBtn.dataset.view; selectedFood=null; editEntry=null; calEditing=false; creatingFood=false; exPicker=null; renderApp(); return; }
   const el = e.target.closest("[data-action]"); if(!el) return;
@@ -2139,7 +2326,7 @@ document.body.addEventListener("click", async e => {
   if (a === "delday") { if(state.days.length<=1){ alert("Tiene que quedar al menos un día."); return; } if(confirm("¿Eliminar este día?")){ state.days=state.days.filter(x=>x.id!==activeId); activeId=state.days[0].id; save(); renderApp(); } return; }
 
   // Entreno
-  if (a === "tab") { activeId = el.dataset.day; renderApp(); return; }
+  if (a === "tab") { activeId = el.dataset.day; setTimeout(renderApp, 130); return; } // deja ver el ripple antes del rerender
   const d = day();
   const ex = el.dataset.ex && d.exercises.find(x=>x.id===el.dataset.ex);
   if (a === "toggle") { const s=ex.sets.find(x=>x.id===el.dataset.set); s.done=!s.done; }
@@ -2162,26 +2349,199 @@ function applyBrand(){
 }
 try { if (window.supabase) sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){}
 
+// ---- Íconos (mismo lenguaje visual que el resto de la app: stroke 2, currentColor) ----
+const auIcoDumbbell = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg>';
+const auIcoMail = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>';
+const auIcoLock = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const auIcoUser = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>';
+const auIcoTicket = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4Z"/><path d="M13 5v14" stroke-dasharray="2 3"/></svg>';
+const auIcoEye = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const auIcoEyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61C3.86 8.36 1 12 1 12s4 8 11 8a10.94 10.94 0 0 0 5.11-1.24M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
+
+// ---- Fondo de partículas fluidas (FluidParticlesBackground, vanilla canvas — solo pantalla de login) ----
+function auCreateNoise(){
+  const permutation=[151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,190,6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,88,237,149,56,87,174,20,125,136,171,168,68,175,74,165,71,134,139,48,27,166,77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,102,143,54,65,25,63,161,1,216,80,73,209,76,132,187,208,89,18,169,200,196,135,130,116,188,159,86,164,100,109,198,173,186,3,64,52,217,226,250,124,123,5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,223,183,170,213,119,248,152,2,44,154,163,70,221,153,101,155,167,43,172,9,129,22,39,253,19,98,108,110,79,113,224,232,178,185,112,104,218,246,97,228,251,34,242,193,238,210,144,12,191,179,162,241,81,51,145,235,249,14,239,107,49,192,214,31,181,199,106,157,184,84,204,176,115,121,50,45,127,4,150,254,138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180];
+  const p=new Array(512);
+  for(let i=0;i<256;i++){ p[256+i]=p[i]=permutation[i]; }
+  const fade=t=>t*t*t*(t*(t*6-15)+10);
+  const lerp=(t,a,b)=>a+t*(b-a);
+  const grad=(hash,x,y,z)=>{ const h=hash&15; const u=h<8?x:y; const v=h<4?y:(h===12||h===14?x:z); return ((h&1)===0?u:-u)+((h&2)===0?v:-v); };
+  return { simplex3:(x,y,z)=>{
+    const X=Math.floor(x)&255, Y=Math.floor(y)&255, Z=Math.floor(z)&255;
+    x-=Math.floor(x); y-=Math.floor(y); z-=Math.floor(z);
+    const u=fade(x), v=fade(y), w=fade(z);
+    const A=p[X]+Y, AA=p[A]+Z, AB=p[A+1]+Z, B=p[X+1]+Y, BA=p[B]+Z, BB=p[B+1]+Z;
+    return lerp(w, lerp(v, lerp(u,grad(p[AA],x,y,z),grad(p[BA],x-1,y,z)), lerp(u,grad(p[AB],x,y-1,z),grad(p[BB],x-1,y-1,z))),
+                   lerp(v, lerp(u,grad(p[AA+1],x,y,z-1),grad(p[BA+1],x-1,y,z-1)), lerp(u,grad(p[AB+1],x,y-1,z-1),grad(p[BB+1],x-1,y-1,z-1))));
+  }};
+}
+let authParticlesHandle=null;
+function stopAuthParticles(){ if(authParticlesHandle){ try{ authParticlesHandle.stop(); }catch(e){} authParticlesHandle=null; } }
+function startAuthParticles(canvas){
+  stopAuthParticles();
+  if(!canvas) return;
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ctx = canvas.getContext("2d",{alpha:true}); if(!ctx) return;
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  function resize(){
+    const w=canvas.parentElement.clientWidth, h=canvas.parentElement.clientHeight;
+    canvas.width=Math.max(1,Math.round(w*dpr)); canvas.height=Math.max(1,Math.round(h*dpr));
+    canvas.style.width=w+"px"; canvas.style.height=h+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  const w0=window.innerWidth;
+  const count = w0<560 ? 90 : (w0<1000 ? 170 : 260); // menos partículas en mobile: rendimiento
+  const noise = auCreateNoise();
+  const particles = Array.from({length:count}, ()=>({
+    x:Math.random()*canvas.clientWidth, y:Math.random()*canvas.clientHeight,
+    size:Math.random()*1.6+0.6, life:Math.random()*100, maxLife:140+Math.random()*90
+  }));
+  let raf=null, stopped=false;
+  function frame(){
+    if(stopped) return;
+    const w=canvas.clientWidth, h=canvas.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    for(const p of particles){
+      p.life+=1;
+      if(p.life>p.maxLife){ p.life=0; p.x=Math.random()*w; p.y=Math.random()*h; }
+      const op=Math.sin((p.life/p.maxLife)*Math.PI)*0.55;
+      const n=noise.simplex3(p.x*0.0025, p.y*0.0025, Date.now()*0.00008);
+      const angle=n*Math.PI*4;
+      p.x+=Math.cos(angle)*0.55; p.y+=Math.sin(angle)*0.55;
+      if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
+      ctx.fillStyle="rgba(150,224,181,"+Math.max(0,op*0.6).toFixed(3)+")";
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+    }
+    raf=requestAnimationFrame(frame);
+  }
+  if(!reduceMotion) frame(); // respeta prefers-reduced-motion: sin loop, queda solo el fondo estático
+  function onResize(){ resize(); }
+  window.addEventListener("resize", onResize);
+  authParticlesHandle = { stop(){ stopped=true; if(raf) cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); } };
+}
+
+// ============ Fondo de partículas (Entreno/Hábitos/Cardio/Comida/Progreso) ============
+// Mismo componente que el login (FluidParticlesBackground): ruido Simplex + partículas
+// finas a la deriva sobre el degradé oscuro de marca. Reutiliza auCreateNoise().
+// Se muestra/oculta con showSilkBg()/hideSilkBg(); nunca se recrea.
+let silkCtx=null, silkCanvasEl=null, silkRafId=null, silkParticles=[], silkNoise=null;
+let silkVisible=false, silkInited=false;
+
+function silkReducedMotion(){ return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
+
+function silkMakeParticles(w, h){
+  const count = w<560 ? 90 : (w<1000 ? 170 : 260); // misma escala adaptativa que el login
+  return Array.from({length:count}, () => ({
+    x: Math.random()*w, y: Math.random()*h,
+    size: Math.random()*1.6+0.6, life: Math.random()*100, maxLife: 140+Math.random()*90
+  }));
+}
+
+function initSilk(){
+  if(silkInited) return; silkInited = true;
+  silkCanvasEl = document.getElementById("silkCanvas"); if(!silkCanvasEl) return;
+  try { silkCtx = silkCanvasEl.getContext("2d", {alpha:true}); } catch(e){}
+  if(!silkCtx) return; // sin canvas 2D disponible: el fondo simplemente no aparece, no rompe nada
+  silkNoise = auCreateNoise();
+  silkResize();
+  window.addEventListener("resize", silkResize);
+  document.addEventListener("visibilitychange", silkOnVisibilityChange);
+  silkLoop();
+}
+
+function silkResize(){
+  if(!silkCanvasEl || !silkCtx) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = window.innerWidth, h = window.innerHeight;
+  silkCanvasEl.width = Math.max(1, Math.round(w*dpr));
+  silkCanvasEl.height = Math.max(1, Math.round(h*dpr));
+  silkCanvasEl.style.width = w+"px"; silkCanvasEl.style.height = h+"px";
+  silkCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  silkParticles = silkMakeParticles(w, h);
+}
+
+function silkLoop(){
+  if(document.visibilityState!=="visible" || !silkVisible){ silkRafId=null; return; } // pausa real: no seguimos pidiendo frames
+  silkRafId = requestAnimationFrame(silkLoop);
+  if(!silkCtx || !silkCanvasEl || !silkNoise) return;
+  const w = silkCanvasEl.clientWidth || window.innerWidth;
+  const h = silkCanvasEl.clientHeight || window.innerHeight;
+  const speedFactor = silkReducedMotion() ? 0.12 : 1; // reduced motion: movimiento muy reducido, no estático
+  silkCtx.clearRect(0, 0, w, h);
+  for(const p of silkParticles){
+    p.life += 1;
+    if(p.life>p.maxLife){ p.life=0; p.x=Math.random()*w; p.y=Math.random()*h; }
+    const op = Math.sin((p.life/p.maxLife)*Math.PI)*0.55;
+    const n = silkNoise.simplex3(p.x*0.0025, p.y*0.0025, Date.now()*0.00008);
+    const angle = n*Math.PI*4;
+    p.x += Math.cos(angle)*0.55*speedFactor; p.y += Math.sin(angle)*0.55*speedFactor;
+    if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
+    silkCtx.fillStyle = "rgba(150,224,181,"+Math.max(0,op*0.6).toFixed(3)+")";
+    silkCtx.beginPath(); silkCtx.arc(p.x,p.y,p.size,0,Math.PI*2); silkCtx.fill();
+  }
+}
+
+function silkOnVisibilityChange(){
+  if(document.visibilityState==="visible" && silkVisible && silkRafId==null) silkLoop();
+}
+
+function showSilkBg(){
+  if(!silkInited) initSilk();
+  silkVisible = true;
+  const c=document.getElementById("silkCanvas");
+  if(c) c.classList.add("on");
+  document.body.classList.add("silk-on");
+  if(silkRafId==null) silkLoop();
+}
+function hideSilkBg(){
+  silkVisible = false;
+  const c=document.getElementById("silkCanvas");
+  if(c) c.classList.remove("on");
+  document.body.classList.remove("silk-on");
+}
+
 function showLogin(msg, mode, vals){
   mode = mode || "in"; vals = vals || {};
+  const isUp = mode==="up";
   const eq = v => String(v==null?"":v).replace(/"/g,"&quot;");
   const host=document.getElementById("authHost"); if(!host) return;
   host.style.display="flex";
+  hideSilkBg();
+  const isOk = !!msg && /^listo/i.test(String(msg).trim());
+  let stepIdx=-1;
+  const nextDelay=()=>{ stepIdx++; return (0.14+stepIdx*0.055).toFixed(3)+"s"; };
+  const field=(id, icon, extraClass, ph, type, autocomplete, value)=>
+    '<div class="auth-field'+(extraClass?(" "+extraClass):"")+'" style="animation-delay:'+nextDelay()+'">'+
+      '<span class="auth-ic" aria-hidden="true">'+icon+'</span>'+
+      '<input id="'+id+'" class="auth-in" type="'+type+'" placeholder="'+ph+'" autocomplete="'+autocomplete+'" aria-label="'+ph+'" value="'+eq(value)+'">'+
+      (id==="auPass" ? '<button type="button" class="auth-toggle-pass" data-toggle-pass aria-label="Mostrar contraseña">'+auIcoEye+'</button>' : '')+
+    '</div>';
   host.innerHTML =
-    '<div class="auth-card">'+
-      '<div class="auth-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div>'+
+    '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
+    '<div class="auth-card" role="region" aria-label="'+(isUp?"Crear cuenta":"Iniciar sesión")+'">'+
+      '<div class="auth-brand-ic" aria-hidden="true">'+auIcoDumbbell+'</div>'+
       '<div class="auth-logo"><span class="b">Fit</span>Sheet</div>'+
       '<div class="auth-sub">Tu planilla de entrenamiento</div>'+
-      (mode==="up"?'<div class="auth-field"><svg class="fi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input id="auName" class="auth-in" placeholder="Tu nombre y apellido" value="'+eq(vals.name)+'"></div>':'')+
-      '<div class="auth-field"><svg class="fi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg><input id="auEmail" class="auth-in" type="email" placeholder="Email (ej: nombre@gmail.com)" autocomplete="username" value="'+eq(vals.email)+'"></div>'+
-      '<div class="auth-field"><svg class="fi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input id="auPass" class="auth-in" type="password" placeholder="Contrase\u00f1a (m\u00ednimo 6)" autocomplete="current-password"><button class="auth-eye" data-auth="toggle-pass" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div>'+
-      (mode==="up"?'<div class="auth-field"><svg class="fi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3"/></svg><input id="auCode" class="auth-in" placeholder="C\u00f3digo de tu coach" value="'+eq(vals.code)+'"></div>':'')+
-      (msg?'<div class="auth-msg">'+msg+'</div>':'')+
-      '<button class="auth-btn" data-auth="'+(mode==="up"?"do-signup":"do-login")+'">'+(mode==="up"?"Crear cuenta":"Ingresar")+'</button>'+
-      '<div class="auth-switch" data-auth="'+(mode==="up"?"to-login":"to-signup")+'">'+(mode==="up"?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
+      (isUp?field("auName", auIcoUser, "", "Tu nombre y apellido", "text", "name", vals.name):"")+
+      field("auEmail", auIcoMail, "", "Email (ej: nombre@gmail.com)", "email", "username", vals.email)+
+      field("auPass", auIcoLock, "pass", "Contraseña (mínimo 6)", "password", isUp?"new-password":"current-password", "")+
+      (isUp?field("auCode", auIcoTicket, "", "Código de tu coach (opcional)", "text", "off", vals.code):"")+
+      (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+msg+'</div>':'')+
+      '<button class="auth-btn" data-auth="'+(isUp?"do-signup":"do-login")+'" style="animation-delay:'+nextDelay()+'">'+(isUp?"Crear cuenta":"Ingresar")+'</button>'+
+      '<div class="auth-switch" data-auth="'+(isUp?"to-login":"to-signup")+'" role="button" tabindex="0" style="animation-delay:'+nextDelay()+'">'+(isUp?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
     '</div>';
+  startAuthParticles(host.querySelector(".auth-particles"));
 }
-function hideLogin(){ const h=document.getElementById("authHost"); if(h){ h.style.display="none"; h.innerHTML=""; } }
+function hideLogin(){ const h=document.getElementById("authHost"); if(h){ h.style.display="none"; h.innerHTML=""; } stopAuthParticles(); }
+document.body.addEventListener("click", e=>{
+  const tg=e.target.closest("[data-toggle-pass]"); if(!tg) return;
+  const inp=document.getElementById("auPass"); if(!inp) return;
+  const showingText = inp.type==="text";
+  inp.type = showingText ? "password" : "text";
+  tg.setAttribute("aria-label", showingText ? "Mostrar contraseña" : "Ocultar contraseña");
+  tg.innerHTML = showingText ? auIcoEye : auIcoEyeOff;
+});
 
 async function afterLogin(){
   try { const r=await sb.auth.getUser(); cloudUser=r.data.user; } catch(e){}
@@ -2325,7 +2685,6 @@ document.body.addEventListener("click", async e=>{
   const b=e.target.closest("[data-auth]"); if(!b) return;
   const a=b.dataset.auth;
   if(a==="to-signup"){ showLogin("","up"); return; }
-  if(a==="toggle-pass"){ const p=document.getElementById("auPass"); if(p) p.type = (p.type==="password"?"text":"password"); return; }
   if(a==="to-login"){ showLogin("","in"); return; }
   if(a==="logout"){ try{ await sb.auth.signOut(); }catch(e){} location.reload(); return; }
   if(a==="join"){ const code=((document.getElementById("joinCode")||{}).value||"").trim(); if(!code){ alert("Poné el código de tu coach."); return; } try{ const r=await sb.rpc("join_coach",{code:code}); if(r.data===true){ const pr=await sb.from("profiles").select("*").eq("id",cloudUser.id).maybeSingle(); if(pr.data) cloudProfile=pr.data; await loadCloud(); alert("¡Listo! Te vinculaste con tu coach."); renderApp(); } else { alert("Código inválido. Revisalo con tu coach."); } }catch(err){ alert("No se pudo vincular: "+((err&&err.message)||err)); } return; }
@@ -2814,6 +3173,7 @@ function renderCoach(){
   const host=document.getElementById("coachHost"); if(!host) return;
   if(!coachSel && coachApplyPicker){ coachApplyPicker=null; renderApplyPicker(); }
   host.style.display="block";
+  hideSilkBg();
   if(!coachSel && !coachTplEdit){
     const tabs='<div class="co-tabs">'+
       '<button class="co-tab'+(coachView==="clients"?" on":"")+'" data-coach="view-clients">Clientes ('+coachClients.length+')</button>'+
