@@ -63,7 +63,8 @@
   /* Elevación compartida por toda la familia de cards (ver bloques body.silk-on/
      body.silk-coach más abajo, que redefinen --shadow-card para modo oscuro). */
   .card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .water-card, .vol-card,
-  .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daynotes, .daily-card, .ci-card {
+  .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daynotes, .daily-card, .ci-card,
+  .sess-item {
     box-shadow: var(--shadow-card);
   }
   html, body { background: linear-gradient(170deg, #f2f5ef 0%, #e8ede4 100%); background-attachment: fixed; color: var(--txt); }
@@ -117,7 +118,8 @@
   body.silk-on .card, body.silk-on .hb-item, body.silk-on .food-row, body.silk-on .diary-item,
   body.silk-on .w-chart, body.silk-on .w-item, body.silk-on .water-card, body.silk-on .vol-card,
   body.silk-on .fi-card, body.silk-on .mc-block, body.silk-on .cardio-rx, body.silk-on .plan-banner,
-  body.silk-on .join-box, body.silk-on .daynotes, body.silk-on .daily-card, body.silk-on .ci-card {
+  body.silk-on .join-box, body.silk-on .daynotes, body.silk-on .daily-card, body.silk-on .ci-card,
+  body.silk-on .sess-item {
     --card: #0d1b13; --card-2: #0a140e; --border: rgba(127,224,168,.22);
     --txt: #eafff2; --txt-2: #a9d9bd; --txt-3: #7fbf9c; --glow: rgba(51,196,129,.22);
     --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
@@ -145,7 +147,8 @@
   body.silk-on .join-box::before, body.silk-on .join-box::after,
   body.silk-on .daynotes::before, body.silk-on .daynotes::after,
   body.silk-on .daily-card::before, body.silk-on .daily-card::after,
-  body.silk-on .ci-card::before, body.silk-on .ci-card::after {
+  body.silk-on .ci-card::before, body.silk-on .ci-card::after,
+  body.silk-on .sess-item::before, body.silk-on .sess-item::after {
     content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
     background: linear-gradient(90deg, #64e9a0, transparent);
     box-shadow: 0 0 0 1px rgba(255,255,255,.06);
@@ -158,7 +161,7 @@
   body.silk-on .water-card::after, body.silk-on .vol-card::after, body.silk-on .fi-card::after,
   body.silk-on .mc-block::after, body.silk-on .cardio-rx::after, body.silk-on .plan-banner::after,
   body.silk-on .join-box::after, body.silk-on .daynotes::after, body.silk-on .daily-card::after,
-  body.silk-on .ci-card::after {
+  body.silk-on .ci-card::after, body.silk-on .sess-item::after {
     left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s;
   }
   @keyframes cardMeteor {
@@ -173,7 +176,7 @@
   body.silk-on .water-card > *, body.silk-on .vol-card > *, body.silk-on .fi-card > *,
   body.silk-on .mc-block > *, body.silk-on .cardio-rx > *, body.silk-on .plan-banner > *,
   body.silk-on .join-box > *, body.silk-on .daynotes > *, body.silk-on .daily-card > *,
-  body.silk-on .ci-card > * { position: relative; z-index: 1; }
+  body.silk-on .ci-card > *, body.silk-on .sess-item > * { position: relative; z-index: 1; }
   @media (prefers-reduced-motion: reduce) {
     body.silk-on .card::before, body.silk-on .card::after,
     body.silk-on .hb-item::before, body.silk-on .hb-item::after,
@@ -190,7 +193,8 @@
     body.silk-on .join-box::before, body.silk-on .join-box::after,
     body.silk-on .daynotes::before, body.silk-on .daynotes::after,
     body.silk-on .daily-card::before, body.silk-on .daily-card::after,
-    body.silk-on .ci-card::before, body.silk-on .ci-card::after { animation: none; opacity: 0; }
+    body.silk-on .ci-card::before, body.silk-on .ci-card::after,
+    body.silk-on .sess-item::before, body.silk-on .sess-item::after { animation: none; opacity: 0; }
   }
 
   /* ===== Estética del panel del coach — mismo lenguaje visual que el cliente =====
@@ -410,7 +414,7 @@
   .hb-item:active .hb-check { transform: scale(.97); }
   @media (prefers-reduced-motion: reduce) { .done:active, .hb-item:active .hb-check { transform: none; } }
   .hb-check svg { width: var(--icon-md); height: var(--icon-md); }
-  .hb-name { flex: 1; font-size: var(--text-emphasis); font-weight: 500; }
+  .hb-name { flex: 1; font-size: var(--text-emphasis); font-weight: 500; color: var(--txt); }
   .hb-name.done { color: var(--txt-2); text-decoration: line-through; text-decoration-color: var(--txt-3); }
   .hb-rm { background: none; border: none; color: var(--txt-3); font-size: var(--text-emphasis); cursor: pointer; flex-shrink: 0; padding: 4px; }
   .hb-rm svg { width:var(--icon-md); height:var(--icon-md); display:block; }
