@@ -209,6 +209,14 @@
       &::before, &::after { animation: none; opacity: 0; }
     }
   }
+  /* Bug de producción: .cp-modal y .cp-ccard son modales centrados con su propio
+     position:fixed (ver sus reglas más abajo), pero la familia de arriba les pone
+     position:relative como al resto — misma especificidad exacta que esta regla
+     (body.silk-coach + 1 clase), así que sin este empate a favor de la que viene
+     después en la hoja de estilos, "relative" le gana a "fixed" y el modal deja de
+     ser un overlay: se renderiza en el flujo normal del documento, superpuesto con
+     el contenido del panel debajo en vez de centrado en pantalla. */
+  body.silk-coach .cp-modal, body.silk-coach .cp-ccard { position: fixed; }
   /* pestañas/estados activos mantienen el verde de marca */
   body.silk-coach .co-tab.on, body.silk-coach .co-daytab.on {
     background: var(--blue); border-color: var(--blue); color: #fff; }
@@ -299,11 +307,11 @@
   .clear:active { color: var(--txt); }
 
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-16); margin-bottom: var(--space-12);
-    opacity: .6; transform: scale(.96);
+    opacity: .45; transform: scale(.90);
     transition: opacity var(--duration-frequent) var(--ease-drawer), transform var(--duration-frequent) var(--ease-drawer); }
   .ex-collapsed { display: flex; align-items: center; gap: var(--space-10); background: var(--card); border: 1px solid var(--border);
     border-radius: 4px; padding: var(--space-12) var(--space-14); margin-bottom: var(--space-12); cursor: pointer;
-    opacity: .6; transform: scale(.96);
+    opacity: .45; transform: scale(.90);
     transition: opacity var(--duration-frequent) var(--ease-drawer), transform var(--duration-frequent) var(--ease-drawer); }
   .ex-collapsed-badge { flex-shrink: 0; color: var(--green); display: flex; }
   .ex-collapsed-badge svg { width: var(--icon-md); height: var(--icon-md); }
@@ -2443,13 +2451,24 @@ function closeSheet(mutate, opts){
 // por innerHTML en cada render, así que no hay forma segura de animar la ENTRADA de
 // la fila compacta (se re-dispararía en cualquier toggle ajeno). Solo se anima la
 // salida, sobre el nodo que todavía existe.
+// Bug de producción (crítico): esto usaba sheetGen, el mismo contador que closeSheet.
+// sheetGen asume "como mucho un panel abierto/cerrándose a la vez" — válido para sheets,
+// pero acá pueden estar colapsando VARIOS ejercicios distintos al mismo tiempo (ej.:
+// el cliente completa el último set de dos ejercicios seguidos, a menos de 150ms de
+// diferencia). El segundo colapso incrementaba el contador compartido e invalidaba el
+// gen que el primero ya había capturado — su after() (que es renderApp) nunca corría,
+// y esa card quedaba con .ex-collapsing (opacity:0, pointer-events:none) para siempre,
+// hasta que algo totalmente ajeno disparara un render por otro motivo. Fix: un contador
+// propio por exId, independiente de sheetGen — un colapso de un ejercicio ya no puede
+// invalidar el de otro, ni verse invalidado por abrir/cerrar un sheet sin relación.
+let collapseGen = {};
 function collapseExerciseAnimated(exId, after){
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const card = document.querySelector('.card[data-ex-id="'+exId+'"]');
-  if(!card || reduced){ sheetGen++; after(); return; }
+  if(!card || reduced){ after(); return; }
   card.classList.add("ex-collapsing");
-  const gen = ++sheetGen;
-  setTimeout(()=>{ if(gen===sheetGen) after(); }, 150);
+  const gen = (collapseGen[exId] = (collapseGen[exId]||0) + 1);
+  setTimeout(()=>{ if(collapseGen[exId]===gen) after(); }, 150);
 }
 
 // Revelado por scroll para cualquier bloque marcado con [data-reveal] (ver CSS) — hoy
