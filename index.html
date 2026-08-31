@@ -244,6 +244,16 @@
 
   .topbar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between;
     max-width: 540px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px 6px; }
+  /* Bug de producción: .topbar es el header del CLIENTE (logo + nombre/"tu planilla") y no
+     tiene nada que ver con el panel del coach — pero #coachHost es position:fixed;inset:0
+     con background:transparent y su propio scroll interno (overflow-y:auto), independiente
+     del document. .topbar, en cambio, vive en el documento base y no scrollea con él: queda
+     fijo en pantalla mientras el contenido del coach se desliza por debajo, y como
+     #coachHost no pinta nada opaco en esa franja superior, el header del cliente se ve *a
+     través* — superpuesto con "‹ Volver" y los primeros campos. El coach ya tiene su propia
+     cabecera (.co-head, con Volver/Actualizar/Salir), así que el header del cliente no debe
+     mostrarse en absoluto mientras el panel del coach está activo. */
+  body.silk-coach .topbar { display: none; }
   .brand { display: flex; align-items: center; gap: 11px; }
   .brand-ic { width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(135deg, #185c37, #33c481);
     display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-lg), inset 0 1px 0 rgba(255,255,255,.3); }
@@ -1382,10 +1392,10 @@ const FOODS = FOODS_RAW.map(a=>({name:a[0],kcal:a[1],p:a[2],c:a[3],f:a[4],portio
 const EX_CATS = [["pecho","Pecho"],["espalda","Espalda"],["hombros","Hombros"],["biceps","Bíceps"],["triceps","Tríceps"],["cuadriceps","Cuádriceps"],["isquios","Isquios"],["gluteos","Glúteos"],["gemelos","Gemelos"],["abs","Abdominales"],["antebrazo","Antebrazo"],["cuello","Cuello"]];
 const EX_DB = {
   pecho:["Press de banca plano (barra)","Press de banca inclinado (barra)","Press de banca declinado","Press plano con mancuernas","Press inclinado con mancuernas","Press plano en Smith","Press inclinado en Smith","Aperturas con mancuernas","Aperturas inclinadas","Aperturas en máquina","Cruce de poleas","Vuelos en polea","Fondos en paralelas","Flexiones de brazos","Press de pecho en máquina","Peck deck","Cruce de poleas descendente"],
-  espalda:["Dominadas","Dominadas neutras","Jalón al pecho","Jalón neutro","Jalón en V","Jalón en estocada","Jalón con brazos rectos en polea","Remo con barra","Remo Pendlay","Remo unilateral con mancuerna","Remo en máquina","Remo en máquina unilateral","Remo en polea baja","Remo en barra T","Jalón con brazos rectos y mancuerna","Hiperextensiones lumbares","Jalón unilateral en estocada","Remo neutro abierto en polea baja","Jalón prono","Remo T","Remo en polea baja unilateral"],
+  espalda:["Dominadas","Dominadas neutras","Jalón al pecho","Jalón neutro","Jalón en V","Jalón en estocada","Jalón con brazos rectos en polea","Remo con barra","Remo Pendlay","Remo unilateral con mancuerna","Remo en máquina","Remo en máquina unilateral","Remo en polea baja","Remo en barra T","Jalón con brazos rectos y mancuerna","Hiperextensiones lumbares","Jalón unilateral en estocada","Remo neutro abierto en polea baja","Jalón prono","Remo T","Remo en polea baja unilateral","Remo alto en polea"],
   hombros:["Press militar con barra","Press Arnold","Press de hombros con mancuernas","Press de hombros en Smith","Vuelos laterales con mancuernas","Vuelos laterales en polea","Vuelos laterales en máquina","Vuelos posteriores","Posterior en máquina","Posterior en polea","Elevaciones frontales","Jalón a la cara","Encogimientos de hombros","Vuelos laterales sentado","Elevaciones laterales","Vuelo lateral en polea (énfasis estiramiento)"],
-  biceps:["Curl con barra","Curl con barra Z","Curl con mancuernas","Curl alternado","Curl martillo","Curl predicador","Curl en banco inclinado","Curl en polea","Curl en polea detrás del cuerpo","Curl concentrado","Curl araña","Curl bíceps en polea baja frontal","Curl Bayesian"],
-  triceps:["Press francés con barra","Press francés con mancuernas","Extensión en polea","Extensión con soga","Patada de tríceps","Press cerrado","Fondos entre bancos","Extensión sobre la cabeza","Katana en polea","Katana en Smith","Fondos en paralelas","Extensión de tríceps parado en polea"],
+  biceps:["Curl con barra","Curl con barra Z","Curl con mancuernas","Curl alternado","Curl martillo","Curl predicador","Curl en banco inclinado","Curl en polea","Curl en polea detrás del cuerpo","Curl concentrado","Curl araña","Curl bíceps en polea baja frontal","Curl Bayesian","Curl predicador en polea","Curl martillo en polea"],
+  triceps:["Press francés con barra","Press francés con mancuernas","Extensión en polea","Extensión con soga","Patada de tríceps","Press cerrado","Fondos entre bancos","Extensión sobre la cabeza","Katana en polea","Katana en Smith","Fondos en paralelas","Extensión de tríceps parado en polea","Extensión de tríceps unilateral en polea"],
   cuadriceps:["Sentadilla libre","Sentadilla frontal","Sentadilla en Smith","Sentadilla hack","Prensa 45","Prensa horizontal","Extensión de cuádriceps","Extensión de cuádriceps a una pierna","Zancadas","Sentadilla búlgara","Sentadilla con mancuerna al pecho","Subida al cajón","Sentadilla sissy","Cuadricera","Prensa 45°"],
   isquios:["Curl femoral acostado","Curl femoral sentado","Curl femoral de pie","Peso muerto rumano","Peso muerto rumano con mancuernas","Peso muerto piernas rígidas","Peso muerto convencional","Buenos días","Curl nórdico","Camilla de isquios"],
   gluteos:["Empuje de cadera","Empuje de cadera en máquina","Puente de glúteo","Patada de glúteo en polea","Patada de glúteo en máquina","Abductores","Abducción en polea","Aductores","Peso muerto sumo","Aductores en máquina"],
@@ -1443,6 +1453,68 @@ const DEFAULT = {
   ],
   habits: []
 };
+
+// ===== Plantilla de biblioteca del coach: PPL de 5 días (Pull/Push/Legs/Upper/Lower +
+// descanso activo) — NO es el default del cliente (ver DEFAULT arriba, que es la rutina
+// con la que arranca cualquier usuario nuevo). Esta vive solo en "Mis rutinas" y se importa
+// a mano, mismo patrón que tpl-seed con DEFAULT.days (ver data-coach="tpl-seed-ppl").
+// Series sin reps ni kg cargados a propósito: eso lo define el coach por cliente después.
+// Nombres de ejercicio mapeados a EX_DB (ver más arriba) — algunos exactos, varios
+// mapeados a la entrada existente más cercana en vez de duplicarla con otra redacción
+// (ej. "Sentadillas" -> "Sentadilla libre", "Crunches abdominales" -> "Encogimiento
+// abdominal", "Dragon flags" -> "Bandera", que además ya es el nombre al que este mismo
+// archivo migra "Dragon flag" en ES_MAP). Solo 4 son ejercicios nuevos, agregados a EX_DB:
+// "Curl predicador en polea", "Curl martillo en polea" (bíceps), "Extensión de tríceps
+// unilateral en polea" (tríceps), "Remo alto en polea" (espalda).
+const PPL_DAYS = [
+  { id:"ppl1", name:"Tirón (Pull)", subtitle:"Lunes · Espalda · Bíceps", exercises:[
+    mkEx("Remo en barra T",2,"espalda"),
+    mkEx("Remo en polea baja unilateral",2,"espalda"),
+    mkEx("Curl en banco inclinado",2,"biceps"),
+    mkEx("Jalón al pecho",2,"espalda"),
+    mkEx("Curl predicador en polea",2,"biceps"),
+    mkEx("Vuelos posteriores",2,"hombros"),
+    mkEx("Curl martillo en polea",2,"biceps"),
+    mkEx("Encogimiento abdominal",2,"abs")
+  ]},
+  { id:"ppl2", name:"Empuje (Push)", subtitle:"Martes · Hombros · Pecho · Tríceps", exercises:[
+    mkEx("Vuelos laterales sentado",3,"hombros"),
+    mkEx("Press inclinado en Smith",3,"pecho"),
+    mkEx("Fondos en paralelas",2,"pecho"),
+    mkEx("Peck deck",2,"pecho"),
+    mkEx("Vuelos laterales en polea",3,"hombros"),
+    mkEx("Press francés con barra",2,"triceps"),
+    mkEx("Katana en polea",2,"triceps")
+  ]},
+  { id:"ppl3", name:"Piernas (Legs)", subtitle:"Miércoles · Cuádriceps · Isquios · Glúteos", exercises:[
+    mkEx("Gemelos de pie",3,"gemelos"),
+    mkEx("Hiperextensiones lumbares",2,"espalda"),
+    mkEx("Curl femoral acostado",3,"isquios"),
+    mkEx("Sentadilla libre",2,"cuadriceps"),
+    mkEx("Extensión de cuádriceps",2,"cuadriceps"),
+    mkEx("Aductores en máquina",2,"gluteos"),
+    mkEx("Encogimiento abdominal",2,"abs")
+  ]},
+  { id:"ppl4", name:"Descanso Activo", subtitle:"Jueves · Cardio", note:"Descanso activo: 30 minutos de cardio intenso.", exercises:[] },
+  { id:"ppl5", name:"Torso (Upper)", subtitle:"Viernes · Hombros · Pecho · Espalda · Brazos", exercises:[
+    mkEx("Vuelos laterales en polea",3,"hombros"),
+    mkEx("Posterior en polea",2,"hombros"),
+    mkEx("Press inclinado con mancuernas",2,"pecho"),
+    mkEx("Jalón al pecho",2,"espalda"),
+    mkEx("Peck deck",2,"pecho"),
+    mkEx("Remo alto en polea",2,"espalda"),
+    mkEx("Curl con mancuernas",2,"biceps"),
+    mkEx("Extensión de tríceps unilateral en polea",3,"triceps")
+  ]},
+  { id:"ppl6", name:"Piernas (Lower)", subtitle:"Sábado · Cuádriceps · Isquios · Glúteos", exercises:[
+    mkEx("Gemelos de pie",3,"gemelos"),
+    mkEx("Peso muerto rumano",2,"isquios"),
+    mkEx("Prensa 45",3,"cuadriceps"),
+    mkEx("Extensión de cuádriceps",2,"cuadriceps"),
+    mkEx("Aductores en máquina",2,"gluteos"),
+    mkEx("Bandera",2,"abs")
+  ]}
+];
 
 function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
@@ -1707,17 +1779,29 @@ function renderEntreno(){
   const tabs = state.days.map(x =>
     `<button class="tab${x.id===activeId?' active':''}" data-action="tab" data-day="${x.id}">${esc(x.name)}</button>`
   ).join("") + (routineLocked() ? "" : `<button class="tab tab-add" data-action="addday" title="Agregar día">+</button>`);
-  const cards = d.exercises.map((ex, exIdx) => {
+  // Un solo ejercicio roto no debe tumbar toda la vista de Entreno: v.innerHTML= es una
+  // sola asignación, así que si CUALQUIER ejercicio revienta acá adentro, renderApp() se
+  // corta a la mitad, #view queda vacío y la nav no vuelve a responder (ver el bug de
+  // .kg/.reps sobre bestSetOf()===null, ya arreglado arriba, pero esto es la red de
+  // seguridad para lo que no prevemos). Cada ejercicio se renderiza en su propio try/catch:
+  // si uno falla, muestra una card de error puntual y el resto del día se ve normal.
+  const cards = d.exercises.map((ex, exIdx) => { try {
     const insertBtn = routineLocked()?'':`<button class="ins-ex" data-action="ex-insert" data-i="${exIdx}" title="Insertar ejercicio acá">+</button>`;
     const done = allSetsDone(ex);
     // Ejercicio completo y no reabierto a mano -> fila compacta, no la card entera.
     if(done && !expandedOverride.has(ex.id)){
       const best=bestSetOf(ex.sets);
       const isPR=exerciseIsLivePR(ex);
+      // bestSetOf() da null si ningún set tiene kg cargado (ej.: ejercicio de peso
+      // corporal donde el cliente solo anota reps) — antes esto reventaba renderEntreno()
+      // entero (best.kg sobre null) y dejaba la pestaña Entreno en blanco. Con reps
+      // mostramos el mejor número de reps en su lugar; sin ninguno de los dos, "Completado".
+      let bestReps=0; (ex.sets||[]).forEach(s=>{ const r=+s.reps||0; if(r>bestReps) bestReps=r; });
+      const bestStr = best ? (best.kg+' kg × '+best.reps) : (bestReps>0 ? bestReps+' reps' : 'Completado');
       return `${insertBtn}<div class="ex-collapsed${exIdx===0?' ex-focused':''}" data-action="ex-expand" data-ex="${ex.id}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
         <span class="ex-collapsed-name">${esc(ex.name)}</span>
-        <span class="ex-collapsed-best">${best.kg} kg × ${best.reps}</span>
+        <span class="ex-collapsed-best">${bestStr}</span>
       </div>`;
     }
     const sets = ex.sets.map((s,i) => `
@@ -1748,7 +1832,16 @@ function renderEntreno(){
       ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>`}
       ${ex.rest?`<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${parseRest(ex.rest)}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest)}</span></button>`:''}
     </div>`;
-  }).join("");
+  } catch(err) {
+    // Ojo acá: si lo que reventó fue justo leer una propiedad de ex (ex.name, ex.id),
+    // volver a leerla para armar el mensaje de error vuelve a tirar, esta vez sin nadie
+    // que lo atajé. Cada lectura de ex.* en este catch va en su propio try chico.
+    let safeName = "Ejercicio", safeId = "";
+    try { safeName = ex && ex.name ? String(ex.name) : safeName; } catch(e2) {}
+    try { safeId = ex && ex.id ? String(ex.id) : safeId; } catch(e2) {}
+    console.error("renderEntreno: error al renderizar el ejercicio", safeId, safeName, err);
+    return `<div class="card"><div class="card-head"><span class="ex-name" style="color:var(--red)">⚠ ${esc(safeName)} — no se pudo mostrar</span></div></div>`;
+  } }).join("");
   return `
     ${renderBlockBanner()}
     ${routineLocked()?'<div class="coach-banner">Rutina asignada por tu coach</div>':''}
@@ -3650,7 +3743,8 @@ function renderCoach(){
       }).join("") : (tplsError ? '<div class="cal-hint" style="color:var(--red)">No se pudieron cargar: <b>'+esc(tplsError)+'</b><br><br>Si dice que la tabla no existe, falta correr el SQL de rutinas en Supabase.</div>' : '<div class="cal-hint">Todavía no creaste ninguna rutina. Creá una y después aplicásela a los clientes que quieras.</div>');
       body='<div class="co-items">'+tl+'</div>'+
         '<button class="co-add-day" data-coach="tpl-new">+ Crear rutina nueva</button>'+
-        '<button class="co-copy-btn" style="margin-top:8px" data-coach="tpl-seed">'+downloadSvg+' Importar Meso 2 · Microciclo 8</button>';
+        '<button class="co-copy-btn" style="margin-top:8px" data-coach="tpl-seed">'+downloadSvg+' Importar Meso 2 · Microciclo 8</button>'+
+        '<button class="co-copy-btn" style="margin-top:8px" data-coach="tpl-seed-ppl">'+downloadSvg+' Importar PPL · 5 días</button>';
     } else {
       const q=(coachSearch||"").toLowerCase();
       const filtered=coachClients.filter(c=>(c.full_name||"").toLowerCase().includes(q));
@@ -3713,6 +3807,11 @@ document.body.addEventListener("click", async e => {
     const days=JSON.parse(JSON.stringify(DEFAULT.days||[]));
     days.forEach(d=>{ d.id=uid(); (d.exercises||[]).forEach(ex=>{ ex.id=uid(); (ex.sets||[]).forEach(st=>{ st.id=uid(); st.kg=""; st.reps=""; st.done=false; }); }); });
     coachTplEdit={id:null, name:"Meso 2 \u00b7 Microciclo 8", days:days}; coachEditDay=0; renderCoach(); return;
+  }
+  if(a==="tpl-seed-ppl"){
+    const days=JSON.parse(JSON.stringify(PPL_DAYS||[]));
+    days.forEach(d=>{ d.id=uid(); (d.exercises||[]).forEach(ex=>{ ex.id=uid(); (ex.sets||[]).forEach(st=>{ st.id=uid(); st.kg=""; st.reps=""; st.done=false; }); }); });
+    coachTplEdit={id:null, name:"PPL \u00b7 5 d\u00edas", days:days}; coachEditDay=0; renderCoach(); return;
   }
   if(a==="tpl-new"){ coachTplEdit={id:null, name:"", days:[]}; coachEditDay=0; renderCoach(); return; }
   if(a==="tpl-open"){ const t=coachTpls.find(x=>x.id===b.dataset.id); if(t){ coachTplEdit=JSON.parse(JSON.stringify(t)); coachEditDay=0; renderCoach(); } return; }
