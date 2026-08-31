@@ -23,11 +23,19 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
-    --bg: #eef1ec; --card: #ffffff; --card-2: #f4f7f2; --border: #d8e0d5;
-    --txt: #1e2b22; --txt-2: #566159; --txt-3: #8a948b;
-    --blue: #217346; --blue-2: #1a7a44; --red: #c0392b;
-    --green: #217346; --green-2: #33c481; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
-    --glow: rgba(33,115,70,.18);
+    /* Paleta "estilo WHOOP" (prueba, ver App-gym.html) — fondo casi negro puro en vez del
+       verde Excel claro por defecto. Cambiados: bg/card/card-2/border/txt (pedido explícito),
+       más blue-2/green-2/glow porque son la sombra/shade derivada de blue/green y se usan
+       junto a ellos en todos lados (hover, "over", glow de botones activos) — dejarlos en el
+       verde Excel viejo se hubiera visto como dos marcas distintas conviviendo. red/purple/
+       pink/cyan/txt-2/txt-3/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro,
+       categorías del plan de comidas), no la identidad de marca. Commit propio a propósito
+       para poder revertir solo esto. */
+    --bg: #060907; --card: #0e1512; --card-2: #141c17; --border: rgba(255,255,255,.09);
+    --txt: #f3f7f4; --txt-2: #566159; --txt-3: #8a948b;
+    --blue: #22e08a; --blue-2: #17b56d; --red: #c0392b;
+    --green: #22e08a; --green-2: #17b56d; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
+    --glow: rgba(34,224,138,.28);
     --xl-head: #217346; --xl-band: #185c37;
     --font-mono: "JetBrains Mono", monospace;
     --text-meta: 12px;      /* secundario: hints, timestamps, sub-labels, botones fantasma */
@@ -64,10 +72,10 @@
      body.silk-coach más abajo, que redefinen --shadow-card para modo oscuro). */
   .card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .water-card, .vol-card,
   .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daynotes, .daily-card, .ci-card,
-  .sess-item {
+  .sess-item, .hx-row {
     box-shadow: var(--shadow-card);
   }
-  html, body { background: linear-gradient(170deg, #f2f5ef 0%, #e8ede4 100%); background-attachment: fixed; color: var(--txt); }
+  html, body { background: var(--bg); background-attachment: fixed; color: var(--txt); }
   body { font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background: radial-gradient(720px circle at 50% -6%, rgba(33,115,70,.06), transparent 55%); }
@@ -114,17 +122,33 @@
      sin canvas extra por caja: rinde bien aunque haya muchas cajas en pantalla). Al redefinir las
      variables --card/--border/--txt* DENTRO de cada caja, todo lo que ya usaba esas variables
      (inputs, texto, subtítulos) se adapta solo, sin tocar el marcado ni la lógica. Scopeado a
-     body.silk-on: no afecta login, panel del coach ni el modal/sheet de ejercicios. */
-  body.silk-on .card, body.silk-on .hb-item, body.silk-on .food-row, body.silk-on .diary-item,
-  body.silk-on .w-chart, body.silk-on .w-item, body.silk-on .water-card, body.silk-on .vol-card,
-  body.silk-on .fi-card, body.silk-on .mc-block, body.silk-on .cardio-rx, body.silk-on .plan-banner,
-  body.silk-on .join-box, body.silk-on .daynotes, body.silk-on .daily-card, body.silk-on .ci-card,
-  body.silk-on .sess-item {
+     body.silk-on: no afecta login, panel del coach ni el modal/sheet de ejercicios.
+     Lista única vía :is() + nesting: antes esta misma lista de clases estaba repetida en
+     6 selectores separados (family, ::before/::after, el ::after ajustado, los hijos con
+     z-index, y reduced-motion) — la causa real de --green, .food-name, .hb-name y
+     .sess-item: se agregaba una card nueva a alguna de las 6 listas y no a las otras.
+     Agregar una card nueva a la familia ahora es tocar esta única lista, una sola vez. */
+  body.silk-on :is(.card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .water-card,
+    .vol-card, .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daynotes,
+    .daily-card, .ci-card, .sess-item, .hx-row) {
     --card: #0d1b13; --card-2: #0a140e; --border: rgba(127,224,168,.22);
     --txt: #eafff2; --txt-2: #a9d9bd; --txt-3: #7fbf9c; --glow: rgba(51,196,129,.22);
     --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
     position: relative; overflow: hidden; isolation: isolate;
     background: linear-gradient(160deg, #0e1a13 0%, #0a140e 60%, #070d09 100%);
+    &::before, &::after {
+      content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
+      background: linear-gradient(90deg, #64e9a0, transparent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+      transform: rotate(215deg); transform-origin: left center;
+      opacity: 0; z-index: 0; pointer-events: none;
+      animation: cardMeteor 6s linear infinite;
+    }
+    &::after { left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s; }
+    & > * { position: relative; z-index: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      &::before, &::after { animation: none; opacity: 0; }
+    }
   }
   /* .cal-search no es una "card" (sin fondo/borde propio, solo envuelve el input de
      búsqueda) — redefine únicamente las variables que su input ya usa, sin el resto
@@ -132,69 +156,12 @@
   body.silk-on .cal-search {
     --card-2: #0a140e; --border: rgba(127,224,168,.22); --txt: #eafff2; --txt-3: #7fbf9c;
   }
-  body.silk-on .card::before, body.silk-on .card::after,
-  body.silk-on .hb-item::before, body.silk-on .hb-item::after,
-  body.silk-on .food-row::before, body.silk-on .food-row::after,
-  body.silk-on .diary-item::before, body.silk-on .diary-item::after,
-  body.silk-on .w-chart::before, body.silk-on .w-chart::after,
-  body.silk-on .w-item::before, body.silk-on .w-item::after,
-  body.silk-on .water-card::before, body.silk-on .water-card::after,
-  body.silk-on .vol-card::before, body.silk-on .vol-card::after,
-  body.silk-on .fi-card::before, body.silk-on .fi-card::after,
-  body.silk-on .mc-block::before, body.silk-on .mc-block::after,
-  body.silk-on .cardio-rx::before, body.silk-on .cardio-rx::after,
-  body.silk-on .plan-banner::before, body.silk-on .plan-banner::after,
-  body.silk-on .join-box::before, body.silk-on .join-box::after,
-  body.silk-on .daynotes::before, body.silk-on .daynotes::after,
-  body.silk-on .daily-card::before, body.silk-on .daily-card::after,
-  body.silk-on .ci-card::before, body.silk-on .ci-card::after,
-  body.silk-on .sess-item::before, body.silk-on .sess-item::after {
-    content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
-    background: linear-gradient(90deg, #64e9a0, transparent);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06);
-    transform: rotate(215deg); transform-origin: left center;
-    opacity: 0; z-index: 0; pointer-events: none;
-    animation: cardMeteor 6s linear infinite;
-  }
-  body.silk-on .card::after, body.silk-on .hb-item::after, body.silk-on .food-row::after,
-  body.silk-on .diary-item::after, body.silk-on .w-chart::after, body.silk-on .w-item::after,
-  body.silk-on .water-card::after, body.silk-on .vol-card::after, body.silk-on .fi-card::after,
-  body.silk-on .mc-block::after, body.silk-on .cardio-rx::after, body.silk-on .plan-banner::after,
-  body.silk-on .join-box::after, body.silk-on .daynotes::after, body.silk-on .daily-card::after,
-  body.silk-on .ci-card::after, body.silk-on .sess-item::after {
-    left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s;
-  }
   @keyframes cardMeteor {
     0% { transform: rotate(215deg) translateX(0); opacity: 0; }
     4% { opacity: 1; }
     20% { opacity: 1; }
     28% { opacity: 0; }
     100% { transform: rotate(215deg) translateX(-220px); opacity: 0; }
-  }
-  body.silk-on .card > *, body.silk-on .hb-item > *, body.silk-on .food-row > *,
-  body.silk-on .diary-item > *, body.silk-on .w-chart > *, body.silk-on .w-item > *,
-  body.silk-on .water-card > *, body.silk-on .vol-card > *, body.silk-on .fi-card > *,
-  body.silk-on .mc-block > *, body.silk-on .cardio-rx > *, body.silk-on .plan-banner > *,
-  body.silk-on .join-box > *, body.silk-on .daynotes > *, body.silk-on .daily-card > *,
-  body.silk-on .ci-card > *, body.silk-on .sess-item > * { position: relative; z-index: 1; }
-  @media (prefers-reduced-motion: reduce) {
-    body.silk-on .card::before, body.silk-on .card::after,
-    body.silk-on .hb-item::before, body.silk-on .hb-item::after,
-    body.silk-on .food-row::before, body.silk-on .food-row::after,
-    body.silk-on .diary-item::before, body.silk-on .diary-item::after,
-    body.silk-on .w-chart::before, body.silk-on .w-chart::after,
-    body.silk-on .w-item::before, body.silk-on .w-item::after,
-    body.silk-on .water-card::before, body.silk-on .water-card::after,
-    body.silk-on .vol-card::before, body.silk-on .vol-card::after,
-    body.silk-on .fi-card::before, body.silk-on .fi-card::after,
-    body.silk-on .mc-block::before, body.silk-on .mc-block::after,
-    body.silk-on .cardio-rx::before, body.silk-on .cardio-rx::after,
-    body.silk-on .plan-banner::before, body.silk-on .plan-banner::after,
-    body.silk-on .join-box::before, body.silk-on .join-box::after,
-    body.silk-on .daynotes::before, body.silk-on .daynotes::after,
-    body.silk-on .daily-card::before, body.silk-on .daily-card::after,
-    body.silk-on .ci-card::before, body.silk-on .ci-card::after,
-    body.silk-on .sess-item::before, body.silk-on .sess-item::after { animation: none; opacity: 0; }
   }
 
   /* ===== Estética del panel del coach — mismo lenguaje visual que el cliente =====
@@ -212,21 +179,35 @@
   body.silk-coach .co-logout, body.silk-coach .co-back {
     color: #cdeedd; border-color: rgba(234,255,242,.28); background: rgba(255,255,255,.04); }
   body.silk-coach .co-logout:hover, body.silk-coach .co-back:hover { border-color: rgba(127,224,168,.55); color: #eafff2; }
-  body.silk-coach .co-add-day, body.silk-coach .co-copy-btn {
+  body.silk-coach .co-add-day, body.silk-coach .co-copy-btn, body.silk-coach .co-rt-add {
     color: #7fe0a8; border-color: rgba(127,224,168,.42); }
-  body.silk-coach .co-day-del { color: #ff9b8f; }
+  body.silk-coach .co-day-del { color: #ff9b8f; border-color: rgba(255,155,143,.4); }
 
-  /* --- Cajas del coach con el mismo tratamiento "Meteors" --- */
-  body.silk-coach .co-item, body.silk-coach .co-exc, body.silk-coach .co-invite,
-  body.silk-coach .opt-sec, body.silk-coach .opt-item, body.silk-coach .week-editor,
-  body.silk-coach .hx-row, body.silk-coach .cp-ccard, body.silk-coach .co-tab,
-  body.silk-coach .co-daytab, body.silk-coach .ap-day {
+  /* --- Cajas del coach con el mismo tratamiento "Meteors" ---
+     Misma consolidación vía :is() + nesting que el bloque del cliente arriba: una sola
+     lista de clases en vez de repetida en 6 selectores separados. */
+  body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-editor,
+    .hx-row, .cp-ccard, .co-tab, .co-daytab, .ap-day, .cp-modal, .co-row, .co-slog,
+    .ck-card, .sess-item) {
     --card: #0d1b13; --card-2: #0a140e; --border: rgba(127,224,168,.22);
     --txt: #eafff2; --txt-2: #a9d9bd; --txt-3: #7fbf9c; --glow: rgba(51,196,129,.22);
     position: relative; overflow: hidden; isolation: isolate;
     background: linear-gradient(160deg, #0e1a13 0%, #0a140e 60%, #070d09 100%);
     border-color: rgba(127,224,168,.22); color: #eafff2;
     box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
+    &::before, &::after {
+      content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
+      background: linear-gradient(90deg, #64e9a0, transparent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+      transform: rotate(215deg); transform-origin: left center;
+      opacity: 0; z-index: 0; pointer-events: none;
+      animation: cardMeteor 6s linear infinite;
+    }
+    &::after { left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s; }
+    & > * { position: relative; z-index: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      &::before, &::after { animation: none; opacity: 0; }
+    }
   }
   /* pestañas/estados activos mantienen el verde de marca */
   body.silk-coach .co-tab.on, body.silk-coach .co-daytab.on {
@@ -246,42 +227,12 @@
   body.silk-coach .bw.dl, body.silk-coach .bw.now { color: #fff; }
   body.silk-coach .co-exc-name, body.silk-coach .co-exc-btn {
     background: rgba(10,20,14,.6); border-color: rgba(127,224,168,.20); color: #eafff2; }
+  /* .pl-help ya tiene su color cubierto arriba (lista de "texto suelto"); solo le
+     faltaba el fondo, que no es parte de la familia "card" (sin meteors: es un
+     cuadro de ayuda chico, no una card de contenido). */
+  body.silk-coach .pl-help { background: rgba(10,20,14,.6); }
   /* fecha nativa legible sobre oscuro */
   body.silk-coach input[type="date"] { color-scheme: dark; }
-
-  /* estelas (mismo keyframe cardMeteor que usan las cajas del cliente) */
-  body.silk-coach .co-item::before, body.silk-coach .co-item::after,
-  body.silk-coach .co-exc::before, body.silk-coach .co-exc::after,
-  body.silk-coach .co-invite::before, body.silk-coach .co-invite::after,
-  body.silk-coach .opt-sec::before, body.silk-coach .opt-sec::after,
-  body.silk-coach .week-editor::before, body.silk-coach .week-editor::after,
-  body.silk-coach .hx-row::before, body.silk-coach .hx-row::after,
-  body.silk-coach .cp-ccard::before, body.silk-coach .cp-ccard::after {
-    content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
-    background: linear-gradient(90deg, #64e9a0, transparent);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.06);
-    transform: rotate(215deg); transform-origin: left center;
-    opacity: 0; z-index: 0; pointer-events: none;
-    animation: cardMeteor 6s linear infinite;
-  }
-  body.silk-coach .co-item::after, body.silk-coach .co-exc::after,
-  body.silk-coach .co-invite::after, body.silk-coach .opt-sec::after,
-  body.silk-coach .week-editor::after, body.silk-coach .hx-row::after,
-  body.silk-coach .cp-ccard::after { left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s; }
-
-  body.silk-coach .co-item > *, body.silk-coach .co-exc > *, body.silk-coach .co-invite > *,
-  body.silk-coach .opt-sec > *, body.silk-coach .opt-item > *, body.silk-coach .week-editor > *,
-  body.silk-coach .hx-row > *, body.silk-coach .cp-ccard > * { position: relative; z-index: 1; }
-
-  @media (prefers-reduced-motion: reduce) {
-    body.silk-coach .co-item::before, body.silk-coach .co-item::after,
-    body.silk-coach .co-exc::before, body.silk-coach .co-exc::after,
-    body.silk-coach .co-invite::before, body.silk-coach .co-invite::after,
-    body.silk-coach .opt-sec::before, body.silk-coach .opt-sec::after,
-    body.silk-coach .week-editor::before, body.silk-coach .week-editor::after,
-    body.silk-coach .hx-row::before, body.silk-coach .hx-row::after,
-    body.silk-coach .cp-ccard::before, body.silk-coach .cp-ccard::after { animation: none; opacity: 0; }
-  }
 
   .topbar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between;
     max-width: 540px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px 6px; }
@@ -430,6 +381,16 @@
   .cardio-modes { display: flex; gap: 8px; margin: 8px 0 8px; }
   .cmode { flex: 1; padding: 11px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); color: var(--txt-2); font-size: var(--text-body); font-weight: 600; cursor: pointer; text-align: center; }
   .cmode.active { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: var(--glow-md); }
+  /* Corredor/reloj de arena animado (SMIL): aparece debajo de los controles mientras el
+     cronómetro o el temporizador están corriendo — corredor para el cronómetro, reloj de
+     arena para el temporizador. Arranca/pausa unas pocas veces por sesión de cardio (no en
+     cada tick), por eso --duration-standard en vez de --duration-frequent; misma curva
+     --ease-drawer que el resto de las entradas de la app. */
+  .cardio-runner { display: flex; justify-content: center; margin: var(--space-16) 0 var(--space-4);
+    animation: runnerIn var(--duration-standard) var(--ease-drawer); }
+  .cardio-runner svg { width: 96px; height: 96px; filter: drop-shadow(0 0 14px var(--glow)); }
+  @keyframes runnerIn { from { opacity: 0; transform: translateY(6px) scale(.9); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .cardio-runner { display: none; } }
   .time-display { font-size: 64px; font-weight: 700; text-align: center; letter-spacing: -.02em; margin: 26px 0; color: var(--txt);  font-variant-numeric: tabular-nums; }
   .time-display.finished { color: var(--blue-2); animation: pulse 1s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
@@ -454,7 +415,7 @@
   .ring-wrap { position: relative; width: 180px; height: 180px; margin: 8px auto 6px; }
   .ring { width: 180px; height: 180px; transform: rotate(-90deg); }
   .ring-track { fill: none; stroke: var(--card-2); stroke-width: 10; }
-  .ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s; }
+  .ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer); }
   .ring-fill.over { stroke: var(--red); filter: none; }
   .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .ring-num { font-weight:700; font-size: 33px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -1065,6 +1026,29 @@
     .co-exc-prog { margin-top:0; }
     .co-exc-tbl { grid-column: 1 / -1; }
   }
+
+  /* ===== Revelado por scroll: cualquier bloque marcado con [data-reveal] arranca oculto y
+     corrido hacia abajo, y sube a su lugar con fade apenas entra en pantalla (ver
+     initScrollReveal()/revealedBlocks en el JS). Portado desde App-gym.html (variante WHOOP)
+     a pedido — aplicado en Entreno solo al encabezado del día y a las notas del coach, a
+     propósito NO a las cards de ejercicio: esas ya tienen su propio efecto de foco por scroll
+     (setupExerciseFocus/.ex-focused), que controla opacity/transform con sus propios valores
+     de reposo (opacity .6, scale .96). Si la card también fuera [data-reveal], el estado
+     "revelado" de esta regla (opacity:1, sin transform) pisaría el estado "no enfocado" de esa
+     otra la primera vez que la card entra en pantalla — y como el reveal es de una sola vez,
+     la card quedaría a pleno para siempre después de la primera vez que se vio, arruinando el
+     dimming. Mismo motivo por el que esta regla nunca fija "transform" en el estado revelado:
+     si lo hiciera, competiría por especificidad con cualquier otro estado que sí necesite
+     tocar transform en ese bloque (ver .card.ex-focused). Es una sola vez por bloque: como
+     renderApp() recrea el DOM entero en cada toggle de serie/kg/reps, sin esa memoria la
+     animación se repetiría en cada tap del check mientras entrenás. */
+  [data-reveal] { transition: opacity var(--duration-rare) var(--ease-drawer), transform var(--duration-rare) var(--ease-drawer); }
+  [data-reveal]:not(.reveal-in) { opacity: 0; transform: translateY(28px) scale(.97); }
+  [data-reveal].reveal-in { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] { transition: none; }
+    [data-reveal]:not(.reveal-in) { opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -1125,6 +1109,10 @@ const checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
 const swapSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l4 4-4 4"/><path d="M20 7H5"/><path d="M8 21l-4-4 4-4"/><path d="M4 17h15"/></svg>';
 const flameSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-1 .4-2 1-3-2 1-3 3-3 5.5a6 6 0 0 0 12 0C18 9 12 5 12 2z"/></svg>';
+// Ilustración animada (SMIL, se anima sola una vez insertada en el DOM) que se muestra
+// arriba del reloj mientras el cronómetro/temporizador está corriendo.
+const RUNNER_SVG = `<svg fill="none" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i2"><g transform="translate(285.135,314.899)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="285.135 314.899; 285.135 307.807; 285.135 314.899" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(5)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="5; 81; 5" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-285.135,-314.899)"><g id="i3"><g transform="translate(351.092,416.318)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="351.092 416.318; 354.752 426.482; 347.725 414.382; 332.596 380.892; 351.092 416.318" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-43)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-43; -89; -7.333; -43" keyTimes="0; 0.25; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-348.965,-394.332)"><g transform="matrix(1,0,0,1,0,0)" id="i4"><g id="i5" transform="matrix(1,0,0,1,451.092,520.708)"><path fill="#ecbcb7" d="M2.837,39.099C2.837,39.099,35.936,18.053,35.936,18.053C35.936,18.053,-2.837,-39.1,-2.837,-39.1C-2.837,-39.1,-35.936,-18.053,-35.936,-18.053C-35.936,-18.053,2.837,39.099,2.837,39.099Z" /></g><g id="i6" transform="matrix(1,0,0,1,463.58,566.527)"><path fill="#7c8bbb" d="M21.683,-41.089C21.683,-41.089,-22.716,-12.858,-22.716,-12.858C-22.716,-12.858,-17.341,-2.771,-30.456,7.645C-43.57,18.061,-46.634,30.397,-41.394,41.09C-41.394,41.09,46.634,-14.883,46.634,-14.883C46.634,-14.883,38.385,-26.258,21.683,-41.089Z" /></g><g id="i7" transform="matrix(1,0,0,1,450.216,588.471)"><path fill="#ffffff" fill-rule="evenodd" d="M-9.353,-34.802C-9.353,-34.802,-3.977,-24.714,-17.092,-14.299C-30.206,-3.883,-33.27,8.454,-28.031,19.146C-28.031,19.146,59.999,-36.827,59.999,-36.827C59.999,-36.827,51.749,-48.202,35.047,-63.033C35.047,-63.033,-9.353,-34.802,-9.353,-34.802ZM-30.135,-8.871C-30.135,-8.871,-14.156,-19.146,9.556,4.076C33.27,27.299,9.556,4.076,9.556,4.076C9.556,4.076,-27.028,27.339,-27.028,27.339C-27.028,27.339,-38.415,2.166,-30.135,-8.871Z" /></g><g id="i8" transform="matrix(1,0,0,1,468.199,582.774)"><path fill="#070924" d="M-42.015,31.13C-42.015,31.13,46.013,-24.842,46.013,-24.842C46.013,-24.842,42.015,-31.13,42.015,-31.13C42.015,-31.13,-46.013,24.843,-46.013,24.843C-46.013,24.843,-42.015,31.13,-42.015,31.13Z" /></g><g id="i9" transform="matrix(1,0,0,1,447.139,560.899)"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="0.672" stroke="#ffffff" d="M-5.452,0.897C-5.452,0.897,-2.695,-0.897,5.452,-0.242" /></g><g id="i10" transform="matrix(1,0,0,1,443.122,568.636)"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="0.672" stroke="#ffffff" d="M-5.413,1.484C-5.413,1.484,-0.134,-1.484,5.413,0.505" /></g></g></g></g></g></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i2"><g transform="translate(285.135,314.899)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="285.135 314.899; 285.135 307.807; 285.135 314.899" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(5)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="5; 81; 5" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-285.135,-314.899)"><g id="i10" transform="matrix(1,0,0,1,325.96,360.283)"><path fill="#dd577a" d="M64.652,83.296C64.652,83.296,64.195,83.667,64.195,83.667C48.606,96.308,25.212,93.289,11.94,76.924C11.94,76.924,-51.203,3.025,-51.203,3.025C-72.698,-18.098,-80.24,-37.118,-54.03,-53.725C-54.03,-53.725,-53.02,-55.497,-53.02,-55.497C-37.432,-68.139,-21.944,-96.309,10.428,-45.524C10.428,-45.524,63.306,23.537,63.306,23.537C76.578,39.902,80.241,70.655,64.652,83.296Z" /></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i2"><g transform="translate(285.135,314.899)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="285.135 314.899; 285.135 307.807; 285.135 314.899" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(5)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="5; 81; 5" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-285.135,-314.899)"><g id="i3"><g transform="translate(351.092,416.318)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="351.092 416.318; 354.752 426.482; 347.725 414.382; 332.596 380.892; 351.092 416.318" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-43)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-43; -89; -7.333; -43" keyTimes="0; 0.25; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-348.965,-394.332)"><g id="i10" transform="matrix(1,0,0,1,397.518,449.764)"><path fill="#dd577a" d="M76.438,54.848C76.438,54.848,23.472,87.926,23.472,87.926C23.472,87.926,-64.36,-17.716,-64.36,-17.716C-76.438,-32.243,-75.033,-53.554,-61.206,-65.537C-61.206,-65.537,-60.31,-66.314,-60.31,-66.314C-44.066,-80.391,-23.798,-87.926,-10.784,-69.938C-10.784,-69.938,76.438,54.848,76.438,54.848Z" /></g></g></g></g></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g transform="matrix(1,0,0,1,0,0)" id="i11"><g id="i10" transform="matrix(1,0,0,1,284.971,310.622)"><path d="M47.822,0C47.822,24.404,26.41,44.188,-0.001,44.188C-26.412,44.188,-47.822,24.404,-47.822,0C-47.822,-24.404,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z" fill="#f16c89"><animate repeatCount="indefinite" attributeName="d" dur="1s" begin="0s" calcMode="spline" values="M47.822,0C47.822,24.404,26.41,44.188,-0.001,44.188C-26.412,44.188,-47.822,24.404,-47.822,0C-47.822,-24.404,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z; M47.822,0C47.822,24.404,34.855,28.457,14.184,44.897C-9.308,63.58,-46.403,9.51,-46.403,-14.894C-46.403,-39.298,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z; M47.822,0C47.822,24.404,26.41,44.188,-0.001,44.188C-26.412,44.188,-47.822,24.404,-47.822,0C-47.822,-24.404,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /></path></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i12"><g transform="translate(-0.457,-17.459)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-0.457 -17.459; 9.564 3.818; -0.457 -17.459" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; -51; 0" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-278.043,-295.041)"><g id="i13"><g transform="translate(242.582,384.403)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="242.582 384.403; 253.259 380.205; 231.139 397.319; 223.88 403.91; 242.582 384.403" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-19)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-19; 1; -49; -80; -19" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-249.674,-388.658)"><g transform="matrix(1,0,0,1,0,0)" id="i14"><g id="i5" transform="matrix(1,0,0,1,189.236,540.123)"><path fill="#ecbcb7" d="M-32.201,22.358C-32.201,22.358,2.771,40.121,2.771,40.121C2.771,40.121,32.201,-22.359,32.201,-22.359C32.201,-22.359,-2.77,-40.121,-2.77,-40.121C-2.77,-40.121,-32.201,22.358,-32.201,22.358Z" /></g><g id="i6" transform="matrix(1,0,0,1,151.149,576.337)"><path fill="#7c8bbb" d="M51.424,-4.4C51.424,-4.4,4.513,-28.226,4.513,-28.226C4.513,-28.226,-1.429,-18.463,-17.073,-24.442C-32.717,-30.421,-44.893,-26.774,-51.424,-16.818C-51.424,-16.818,41.583,30.421,41.583,30.421C41.583,30.421,47.17,17.528,51.424,-4.4Z" /></g><g id="i7" transform="matrix(1,0,0,1,119.734,576.337)"><path fill="#ffffff" fill-rule="evenodd" d="M14.342,-24.442C-1.302,-30.422,-13.478,-26.774,-20.009,-16.818C-20.009,-16.818,72.997,30.422,72.997,30.422C72.997,30.422,78.585,17.527,82.839,-4.4C82.839,-4.4,35.928,-28.226,35.928,-28.226C35.928,-28.226,29.985,-18.463,14.342,-24.442ZM3.027,-32.901C3.027,-32.901,20.009,-24.385,12.105,7.851C4.2,40.086,12.105,7.851,12.105,7.851C12.105,7.851,-26.549,-11.782,-26.549,-11.782C-26.549,-11.782,-10.688,-34.403,3.027,-32.901Z" /></g><g id="i8" transform="matrix(1,0,0,1,144.541,586.46)"><path fill="#070924" d="M-48.19,-20.297C-48.19,-20.297,44.817,26.942,44.817,26.942C44.817,26.942,48.191,20.299,48.191,20.299C48.191,20.299,-44.816,-26.941,-44.816,-26.941C-44.816,-26.941,-48.19,-20.297,-48.19,-20.297Z" /></g><g id="i9" transform="matrix(1,0,0,1,152.355,557.361)"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="0.672" stroke="#ffffff" d="M-3.268,-4.402C-3.268,-4.402,-0.32,-2.943,3.267,4.402" /></g><g id="i10" transform="matrix(1,0,0,1,143.077,558.185)"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="0.672" stroke="#ffffff" d="M-3.179,-4.409C-3.179,-4.409,2.064,-1.377,3.179,4.409" /></g></g></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i12"><g transform="translate(-0.457,-17.459)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-0.457 -17.459; 9.564 3.818; -0.457 -17.459" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; -51; 0" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-278.043,-295.041)"><g id="i10" transform="matrix(1,0,0,1,265.676,359.265)"><path fill="#f16c89" d="M-40.877,89.523C-40.877,89.523,-41.428,89.319,-41.428,89.319C-60.248,82.344,-69.567,60.674,-62.245,40.917C-62.245,40.917,-30.817,-51.064,-30.817,-51.064C-23.59,-80.321,-11.065,-96.5,16.577,-82.405C16.577,-82.405,18.617,-82.438,18.617,-82.438C37.436,-75.463,69.567,-76.486,42.355,-22.759C42.355,-22.759,9.862,57.923,9.862,57.923C2.54,77.68,-22.058,96.499,-40.877,89.523Z" /></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i12"><g transform="translate(-0.457,-17.459)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-0.457 -17.459; 9.564 3.818; -0.457 -17.459" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; -51; 0" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-278.043,-295.041)"><g id="i13"><g transform="translate(242.582,384.403)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="242.582 384.403; 253.259 380.205; 231.139 397.319; 223.88 403.91; 242.582 384.403" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-19)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-19; 1; -49; -80; -19" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-249.674,-388.658)"><g id="i10" transform="matrix(1,0,0,1,222.913,458.816)"><path fill="#f16c89" d="M-8.178,92.782C-8.178,92.782,-63.623,64.053,-63.623,64.053C-63.623,64.053,-17.456,-65.343,-17.456,-65.343C-11.108,-83.136,7.947,-92.782,25.301,-86.988C25.301,-86.988,26.426,-86.613,26.426,-86.613C46.815,-79.805,63.623,-66.202,54.774,-45.84C54.774,-45.84,-8.178,92.782,-8.178,92.782Z" /></g></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g transform="matrix(1,0,0,1,0,0)" id="i11"><g id="i10" transform="matrix(1,0,0,1,284.971,310.622)"><path d="M47.822,0C47.822,24.404,26.41,44.188,-0.001,44.188C-26.412,44.188,-47.822,24.404,-47.822,0C-47.822,-24.404,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z" fill="#f16c89"><animate repeatCount="indefinite" attributeName="d" dur="1s" begin="0s" calcMode="spline" values="M47.822,0C47.822,24.404,26.41,44.188,-0.001,44.188C-26.412,44.188,-47.822,24.404,-47.822,0C-47.822,-24.404,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z; M47.822,0C47.822,24.404,34.855,28.457,14.184,44.897C-9.308,63.58,-46.403,9.51,-46.403,-14.894C-46.403,-39.298,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z; M47.822,0C47.822,24.404,26.41,44.188,-0.001,44.188C-26.412,44.188,-47.822,24.404,-47.822,0C-47.822,-24.404,-26.412,-44.188,-0.001,-44.188C26.41,-44.188,47.822,-24.404,47.822,0Z" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /></path></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i15"><g transform="translate(273.787,133.339)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="273.787 133.339; 307.787 137.339; 273.787 133.339" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-3)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-3; -64; -3" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-273.787,-133.339)"><g transform="matrix(0.97,0.242,-0.242,0.97,63.201,-53.726)" id="i16"><g id="i8" transform="matrix(1,0,0,1,157.067,186.025)"><path fill="#e0a396" d="M-8.583,14.984C-0.654,21.488,11.046,20.333,17.55,12.404C24.054,4.476,22.899,-7.225,14.97,-13.729C7.042,-20.233,-11.045,-21.488,-17.55,-13.559C-24.054,-5.63,-16.512,8.48,-8.583,14.984Z" /></g><g id="i9" transform="matrix(1,0,0,1,172.103,179.368)"><path fill="#e0a396" d="M-13.199,-11.224C-13.199,-11.224,-9.996,-19.061,-2.012,-13.478C5.973,-7.894,13.199,3.733,2.513,19.061C2.513,19.061,-13.199,-11.224,-13.199,-11.224Z" /></g><g id="i10" transform="matrix(1,0,0,1,217.744,214.92)"><path fill="#49797f" d="M-37.024,-36.083C-37.024,-36.083,36.916,-3.792,36.916,-3.792C47.43,0.92,51.552,13.698,45.773,23.666C40.416,32.904,28.604,36.083,19.334,30.779C19.334,30.779,-51.552,-6.829,-51.552,-6.829C-51.552,-6.829,-37.024,-36.083,-37.024,-36.083Z" /></g></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i10" transform="matrix(1,0,0,1,288.956,207.69)"><path fill="#6b9ca2" d="M0.864,-102.644C0.864,-102.644,-27.778,-94.974,-35.499,-70.223C-43.221,-45.473,-57.671,112.344,-57.671,112.344C-57.671,112.344,50.871,119.953,50.871,119.953C50.871,119.953,53.415,-11.909,53.415,-11.909C53.415,-11.909,48.503,-72.942,48.503,-72.942C48.503,-72.942,32.861,-102.932,0.864,-102.644Z" /></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g transform="matrix(1,0,0,1,0,0)" id="i17"><g id="i9" transform="matrix(1,0,0,1,276.946,94.319)"><path fill="#e0a396" d="M-24.317,-27.183C-24.317,-27.183,-6.116,32.301,-6.116,32.301C-6.116,32.301,24.318,13.053,24.318,13.053C24.318,13.053,5.332,-32.301,5.332,-32.301C5.332,-32.301,-24.317,-27.183,-24.317,-27.183Z" /></g><g id="i10" transform="matrix(1,0,0,1,268.419,88.407)"><path fill="#ce8c80" d="M10.852,-17.584C10.852,-17.584,8.106,5.883,-3.511,17.584C-3.511,17.584,-10.852,-5.355,-10.852,-5.355C-10.852,-5.355,10.852,-17.584,10.852,-17.584Z" /></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i18"><g transform="translate(253.929,85.112)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; -7; 0; -7; 0" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-253.929,-85.112)"><g id="i19" transform="matrix(1,0,0,1,221.034,31.317)"><path fill="#070924" d="M15.632,-0.554C15.632,-0.554,-16.695,-4.559,-16.695,-4.559C-17.236,-4.619,-17.872,-4.391,-17.969,-3.556C-18.065,-2.713,-17.582,-2.301,-17.09,-2.199C-17.09,-2.199,14.86,4.344,14.86,4.344C16.203,4.619,17.514,3.754,17.79,2.411C18.064,1.068,17.199,-0.244,15.856,-0.518C15.782,-0.534,15.705,-0.546,15.632,-0.554Z" /></g><g id="i20" transform="matrix(1,0,0,1,261.673,60.255)"><path fill="#e0a396" d="M-26.883,-24.82C-26.883,-24.82,-31.323,14.041,-31.323,14.041C-32.42,23.638,-25.529,32.306,-15.931,33.403C-2.141,34.979,13.941,27.631,19.469,14.898C19.469,14.898,29.539,-15.211,29.539,-15.211C32.421,-21.85,28.069,-29.386,20.878,-30.208C20.878,-30.208,-14.954,-34.302,-14.954,-34.302C-20.866,-34.978,-26.207,-30.733,-26.883,-24.82Z" /></g><g id="i21" transform="matrix(1,0,0,1,232.436,60.523)"><path fill="#e0a396" d="M0.979,-7.707C0.979,-7.707,-6.569,3.754,-6.569,3.754C-7.557,5.375,-5.878,7.328,-3.573,7.24C-3.573,7.24,7.558,7.707,7.558,7.707C7.558,7.707,0.979,-7.707,0.979,-7.707Z" /></g><g id="i22" transform="matrix(1,0,0,1,240.062,53.509)"><path fill="#000000" d="M-2.32,0.105C-2.262,1.386,-1.177,2.378,0.104,2.32C1.386,2.263,2.378,1.177,2.321,-0.104C2.263,-1.385,1.177,-2.378,-0.104,-2.32C-1.386,-2.262,-2.378,-1.177,-2.32,0.105Z" /></g><g id="i5" transform="matrix(1,0,0,1,244.006,42.878)"><path fill="#070924" d="M-5.787,-1.543C-6.541,0.922,-3.749,1.572,-0.466,2.413C2.817,3.253,5.601,3.629,6.1,1.501C6.541,-0.379,4.062,-1.614,0.779,-2.455C-2.504,-3.295,-5.149,-3.629,-5.787,-1.543Z" /></g><g id="i6" transform="matrix(1,0,0,1,285.337,47.504)"><path fill="#070924" d="M-3.6,15.949C-3.6,15.949,-3.045,20.507,-5.719,30.584C-5.719,30.584,4.228,31.098,4.228,31.098C4.228,31.098,6.15,25.396,10.856,20.739C15.561,16.083,25.937,15.052,14.205,-2.413C4.883,-16.289,12.315,-19.331,2.306,-25.215C-7.703,-31.098,-16.123,-18.981,-16.123,-18.981C-16.123,-18.981,-25.937,-15.637,-21.272,-8.932C-17.822,-3.974,-18.08,11.222,-18.08,11.222C-18.08,11.222,-3.6,15.949,-3.6,15.949Z" /></g><g id="i7" transform="matrix(1,0,0,1,271.634,24.972)"><path fill="#a0bfff" d="M29.83,23.343C29.83,23.343,-36.879,10.492,-36.879,10.492C-36.879,10.492,-29.737,-23.343,3.703,-15.983C36.879,-8.68,29.83,23.343,29.83,23.343Z" /></g><g id="i8" transform="matrix(1,0,0,1,279.596,59.875)"><path fill="#e0a396" d="M9.325,-1.523C10.169,3.797,6.679,8.791,1.53,9.632C-3.621,10.474,-8.48,6.843,-9.324,1.522C-10.169,-3.797,-6.678,-8.792,-1.529,-9.632C3.621,-10.474,8.48,-6.843,9.325,-1.523Z" /></g><g id="i9" transform="matrix(1,0,0,1,278.734,59.891)"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="0.369" stroke="#321c1a" d="M-1.733,3.47C-1.733,3.47,-3.796,-3.443,3.797,-3.47" /></g><g id="i10" transform="matrix(1,0,0,1,236.41,71.464)"><path stroke-linejoin="round" stroke-linecap="round" stroke-width="1" stroke="#000000" d="M4.294,-1.129C2.368,0.548,-0.404,1.128,-4.294,0.272" /></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i23"><g transform="translate(314.922,130.502)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="314.922 130.502; 281.922 134.502; 314.922 130.502" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-16)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-16; 58; -16" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-313.503,-133.339)"><g id="i10" transform="matrix(1,0,0,1,336.116,181.523)"><path fill="#49797f" d="M-36.455,-20.549C-36.455,-20.549,5.121,55.473,5.121,55.473C15.623,64.609,31.704,62.752,39.848,51.462C47.132,41.363,45.345,27.346,35.759,19.398C35.759,19.398,-6.279,-56.081,-6.279,-56.081C-16.565,-64.609,-31.899,-62.762,-39.867,-52.037C-47.131,-42.261,-43.573,-31.757,-36.455,-20.549Z" /></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" id="i0"><g id="i1"><g transform="translate(16.564,-103.984)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="16.564 -103.984; 16.564 -87.984; 16.564 -103.984; 16.564 -87.984; 16.564 -103.984" keyTimes="0; 0.25; 0.5; 0.75; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-295.064,-208.516)"><g id="i23"><g transform="translate(314.922,130.502)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="314.922 130.502; 281.922 134.502; 314.922 130.502" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="rotate(-16)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="-16; 58; -16" keyTimes="0; 0.5; 1" keySplines="0.333 0 0.667 1; 0.333 0 0.667 1" fill="freeze" /><g transform="scale(1,1) translate(-313.503,-133.339)"><g transform="matrix(1,0,0,1,0,0)" id="i24"><g id="i8" transform="matrix(1,0,0,1,267.573,258.097)"><path fill="#e0a396" d="M5.816,18.358C15.956,16.821,22.929,7.355,21.391,-2.785C19.854,-12.924,10.388,-19.897,0.249,-18.36C-9.891,-16.823,-22.929,-4.224,-21.392,5.915C-19.854,16.054,-4.323,19.896,5.816,18.358Z" /></g><g id="i9" transform="matrix(1,0,0,1,270.616,245.007)"><path fill="#e0a396" d="M-14.669,1.709C-14.669,1.709,-18.348,-5.916,-8.856,-8.111C0.638,-10.306,14.112,-7.893,18.348,10.306C18.348,10.306,-14.669,1.709,-14.669,1.709Z" /></g><g id="i10" transform="matrix(1,0,0,1,330.037,233.863)"><path fill="#49797f" d="M-51.544,3.802C-51.544,3.802,21.937,-29.519,21.937,-29.519C32.476,-34.177,44.728,-28.687,48.266,-17.721C51.544,-7.558,45.999,3.345,35.854,6.682C35.854,6.682,-39.533,34.177,-39.533,34.177C-39.533,34.177,-51.544,3.802,-51.544,3.802Z" /></g></g></g></g></g></g></g></g></g></g><g transform="matrix(1.41,0,0,1.41,500,520)" opacity="0" id="i0" /></svg>`;
+const HOURGLASS_SVG = `<svg fill="none" viewBox="0 0 720 720" xmlns="http://www.w3.org/2000/svg"><g id="i0"><g transform="translate(360,360)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; 0; 7; 193; 176; 180; 180" keyTimes="0; 0.083333; 0.416666; 0.583333; 0.733333; 0.8; 1" keySplines="0 0 1 1; 0.185 1 0.575 0; 0.341 0.192 0.703 1; 0.167 0 0.703 1; 0.167 0 0.703 1; 0 0 1 1" fill="freeze" /><g transform="scale(1.44,1.44) translate(0,0)"><g transform="matrix(1,0,0,1,-0.237,75.839)" id="i1"><g id="i1"><path fill="#ffffff" d="M-74.495,-9.31C-74.495,-9.31,74.495,-9.31,74.495,-9.31C74.495,-9.31,74.495,9.31,74.495,9.31C74.495,9.31,-74.495,9.31,-74.495,9.31C-74.495,9.31,-74.495,-9.31,-74.495,-9.31Z" /></g></g></g></g></g></g><g id="i0"><g transform="translate(360,360)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; 0; 7; 193; 176; 180; 180" keyTimes="0; 0.083333; 0.416666; 0.583333; 0.733333; 0.8; 1" keySplines="0 0 1 1; 0.185 1 0.575 0; 0.341 0.192 0.703 1; 0.167 0 0.703 1; 0.167 0 0.703 1; 0 0 1 1" fill="freeze" /><g transform="scale(1.44,1.44) translate(0,0)"><g id="i2"><path stroke-linejoin="round" stroke-width="12" stroke="#ffffff" d="M-50.5,-54.51C-50.5,-54.51,-50.5,-71,-50.5,-71C-50.5,-71,50.5,-71,50.5,-71C50.5,-71,50.5,-54.51,50.5,-54.51C50.5,-46.01,40.95,-27.84,21.86,0C21.86,0,22.43,0.83,22.43,0.83C40.95,27.93,50.31,45.73,50.5,54.26C50.5,54.26,50.5,54.51,50.5,54.51C50.5,54.51,50.5,71,50.5,71C50.5,71,-50.5,71,-50.5,71C-50.5,71,-50.5,54.51,-50.5,54.51C-50.5,46.52,-41.88,29.18,-24.64,2.5C-24.64,2.5,-23.02,0,-23.02,0C-23.02,0,-24.64,-2.5,-24.64,-2.5C-41.88,-29.18,-50.5,-46.52,-50.5,-54.51Z" /></g></g></g></g></g><g id="i0"><g transform="translate(360,360)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; 0; 7; 193; 176; 180; 180" keyTimes="0; 0.083333; 0.416666; 0.583333; 0.733333; 0.8; 1" keySplines="0 0 1 1; 0.185 1 0.575 0; 0.341 0.192 0.703 1; 0.167 0 0.703 1; 0.167 0 0.703 1; 0 0 1 1" fill="freeze" /><g transform="scale(1.44,1.44) translate(0,0)"><g transform="matrix(1,0,0,1,-1.53,32.5)" visibility="visible" id="i3"><animate repeatCount="indefinite" begin="0s" calcMode="discrete" dur="1s" values="visible; hidden; hidden" keyTimes="0; 0.883; 1" attributeName="visibility" /><g id="i4"><path d="" /></g><g id="i5"><path d="M-18.39,25.5C-18.39,25.5,20.723,25.5,20.723,25.5C27.313,25.5,30.389,18.594,30.5,13.35C30,6.5,25.96,3.81,16.39,-6.14C13.58,-9.06,7.69,-14.375,-0.28,-14.5C-8.25,-14.625,-14.475,-8.26,-16.795,-5.98C-16.795,-5.98,-30.28,7.86,-30.5,13.18C-30.5,13.18,-30.5,13.35,-30.5,13.35C-30.5,20.06,-25.08,25.5,-18.39,25.5Z" fill="#f57800"><animate repeatCount="indefinite" attributeName="d" dur="1s" begin="0s" calcMode="spline" values="M-18.39,25.5C-18.39,25.5,21.015,25.5,21.015,25.5C27.605,25.5,30.375,19.25,30.5,13.35C30.625,7.75,19.98,-11.87,10.41,-21.82C7.6,-24.74,-0.19,-25.5,-0.19,-25.5C-6.17,-25.5,-8.33,-24.27,-10.65,-21.99C-10.65,-21.99,-30.28,7.86,-30.5,13.18C-30.5,13.18,-30.5,13.35,-30.5,13.35C-30.5,20.06,-25.08,25.5,-18.39,25.5Z; M-18.39,25.5C-18.39,25.5,20.723,25.5,20.723,25.5C27.313,25.5,30.389,18.594,30.5,13.35C30,6.5,25.96,3.81,16.39,-6.14C13.58,-9.06,7.69,-14.375,-0.28,-14.5C-8.25,-14.625,-14.475,-8.26,-16.795,-5.98C-16.795,-5.98,-30.28,7.86,-30.5,13.18C-30.5,13.18,-30.5,13.35,-30.5,13.35C-30.5,20.06,-25.08,25.5,-18.39,25.5Z; M-18.39,25.5C-18.39,25.5,16.753,25.987,16.753,25.987C23.343,25.987,29.435,18.743,26.53,13.837C22.692,5.427,20.678,2.358,12.972,-9.051C6.149,-15.709,0.104,-25.574,-7.23,-22.451C-12.989,-19.999,-16.857,-13.408,-20.652,-6.377C-20.652,-6.377,-30.28,7.86,-30.5,13.18C-30.5,13.18,-30.5,13.35,-30.5,13.35C-30.5,20.06,-25.08,25.5,-18.39,25.5Z; M-15.709,24.889C-15.709,24.889,20.723,25.5,20.723,25.5C27.313,25.5,33.405,18.256,30.5,13.35C26.662,4.94,26.232,0.658,18.526,-10.751C11.703,-17.409,7.081,-23.695,-0.661,-21.798C-9.093,-19.732,-14.175,-14.019,-17.97,-6.988C-17.97,-6.988,-27.599,7.249,-27.819,12.569C-27.819,12.569,-27.819,12.739,-27.819,12.739C-27.819,19.449,-22.399,24.889,-15.709,24.889Z; M-26.717,26.233C-20.195,26.368,-4.125,27.171,2.736,24.462C9.133,21.763,17.968,19.305,21.011,11.794C23.739,3.101,24.792,-1.379,17.963,-13.07C13.095,-17.907,8.918,-24.112,-0.928,-23.139C-11.191,-22.08,-15.311,-16.207,-18.387,-11.491C-18.387,-11.491,-28.92,2.675,-29.14,7.995C-29.14,7.995,-26.494,1.895,-29.14,8.165C-31.786,14.435,-35.497,26.098,-26.717,26.233Z; M-23.11,18.54C-16.588,18.675,2.049,19.067,6.222,16.368C12.619,13.669,17.468,12.305,20.511,4.794C23.239,-3.899,24.792,-1.379,17.963,-13.07C13.095,-17.907,8.918,-24.112,-0.928,-23.139C-11.191,-22.08,-15.311,-16.207,-18.387,-11.491C-18.387,-11.491,-23.595,-5.75,-26.765,0.995C-26.765,0.995,-28.89,5.665,-28.89,5.665C-28.89,12.375,-31.89,18.405,-23.11,18.54Z; M-23.12,12.5C-12.67,16,3.52,8.875,8.857,7.25C14.194,5.625,24.785,0.275,24.72,-4.05C25.155,-7.625,23.405,-11.125,18.36,-16.14C15.55,-19.06,11.75,-24.5,-0.31,-24.5C-12.5,-24.5,-16.505,-18.51,-18.825,-16.23C-18.825,-16.23,-25.56,-8.64,-25.78,-3.32C-25.78,-3.32,-24.28,-7.15,-24.28,-7.15C-26.97,0,-33.57,9,-23.12,12.5Z; M-1.67,-24.25C-1.67,-24.25,-0.807,-24.375,-0.807,-24.375C-0.625,-24.25,-0.375,-23.125,-0.28,-23.525C-0.5,-23.375,0.437,-24.5,0.391,-24.39C0.281,-24.75,0.5,-24.625,-0.31,-24.5C-0.125,-24.5,0.031,-24.438,-0.294,-24.543C-0.294,-24.543,-0.75,-24.625,-1.03,-24.32C-1.03,-24.32,-1.405,-24.4,-1.405,-24.4C-1.5,-24.125,-1.5,-24.375,-1.67,-24.25Z; M-1.67,-24.25C-1.67,-24.25,-0.807,-24.375,-0.807,-24.375C-0.625,-24.25,-0.375,-23.125,-0.28,-23.525C-0.5,-23.375,0.437,-24.5,0.391,-24.39C0.281,-24.75,0.5,-24.625,-0.31,-24.5C-0.125,-24.5,0.031,-24.438,-0.294,-24.543C-0.294,-24.543,-0.75,-24.625,-1.03,-24.32C-1.03,-24.32,-1.405,-24.4,-1.405,-24.4C-1.5,-24.125,-1.5,-24.375,-1.67,-24.25Z" keyTimes="0; 0.083333; 0.416666; 0.5; 0.666667; 0.75; 0.85; 0.966667; 1" keySplines="0 0 1 1; 0 0 1 1; 0.167 0.167 0.833 1; 0.167 0 0.833 0.833; 0 0 1 1; 0.167 0.167 0.667 1; 1 0 0.971 1; 0 0 1 1" fill="freeze" /></path></g></g></g></g></g></g><g id="i0"><g transform="translate(360,360)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; 0; 7; 193; 176; 180; 180" keyTimes="0; 0.083333; 0.416666; 0.583333; 0.733333; 0.8; 1" keySplines="0 0 1 1; 0.185 1 0.575 0; 0.341 0.192 0.703 1; 0.167 0 0.703 1; 0.167 0 0.703 1; 0 0 1 1" fill="freeze" /><g transform="scale(1.44,1.44) translate(0,0)"><g transform="matrix(1,0,0,-1,-1.53,-33)" visibility="hidden" id="i6"><animate repeatCount="indefinite" begin="0s" calcMode="discrete" dur="1s" values="hidden; visible; visible" keyTimes="0; 0.883; 1" attributeName="visibility" /><g id="i4"><path d="" /></g><g id="i5"><path d="M-0.89,25.5C-0.89,25.5,3.223,25.5,3.223,25.5C9.813,25.5,6.639,25.594,6.75,20.35C6.25,13.5,7.03,16.125,5.815,7.985C5.217,3.977,7.615,9.125,-0.355,9C-8.325,8.875,-0.925,10.115,-3.245,12.395C-3.245,12.395,-4.78,10.61,-5,15.93C-5,15.93,-6,20.35,-6,20.35C-6,27.06,-7.58,25.5,-0.89,25.5Z" fill="#f57800"><animate repeatCount="indefinite" attributeName="d" dur="1s" begin="0s" calcMode="spline" values="M-0.89,25.5C-0.89,25.5,3.223,25.5,3.223,25.5C9.813,25.5,6.639,25.594,6.75,20.35C6.25,13.5,7.03,16.125,5.815,7.985C5.217,3.977,7.615,9.125,-0.355,9C-8.325,8.875,-0.925,10.115,-3.245,12.395C-3.245,12.395,-4.78,10.61,-5,15.93C-5,15.93,-6,20.35,-6,20.35C-6,27.06,-7.58,25.5,-0.89,25.5Z; M-0.89,25.5C-0.89,25.5,3.223,25.5,3.223,25.5C9.813,25.5,6.639,25.594,6.75,20.35C6.25,13.5,7.03,16.125,5.815,7.985C5.217,3.977,7.615,9.125,-0.355,9C-8.325,8.875,-0.925,10.115,-3.245,12.395C-3.245,12.395,-4.78,10.61,-5,15.93C-5,15.93,-6,20.35,-6,20.35C-6,27.06,-7.58,25.5,-0.89,25.5Z; M-18.39,25.5C-18.39,25.5,20.723,25.5,20.723,25.5C27.313,25.5,30.389,18.594,30.5,13.35C30,6.5,25.96,3.81,16.39,-6.14C13.58,-9.06,7.69,-14.375,-0.28,-14.5C-8.25,-14.625,-14.475,-8.26,-16.795,-5.98C-16.795,-5.98,-30.28,7.86,-30.5,13.18C-30.5,13.18,-30.5,13.35,-30.5,13.35C-30.5,20.06,-25.08,25.5,-18.39,25.5Z" keyTimes="0; 0.966667; 1" keySplines="0 0 1 1; 0.167 0.167 0.667 1" fill="freeze" /></path></g></g></g></g></g></g><g id="i0"><g transform="translate(360,360)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; 0; 7; 193; 176; 180; 180" keyTimes="0; 0.083333; 0.416666; 0.583333; 0.733333; 0.8; 1" keySplines="0 0 1 1; 0.185 1 0.575 0; 0.341 0.192 0.703 1; 0.167 0 0.703 1; 0.167 0 0.703 1; 0 0 1 1" fill="freeze" /><g transform="scale(1.44,1.44) translate(0,0)"><g transform="matrix(1,0,0,1,-0.237,-75.448)" id="i7"><g id="i7"><path fill="#ffffff" d="M-74.495,-9.31C-74.495,-9.31,74.495,-9.31,74.495,-9.31C74.495,-9.31,74.495,9.31,74.495,9.31C74.495,9.31,-74.495,9.31,-74.495,9.31C-74.495,9.31,-74.495,-9.31,-74.495,-9.31Z" /></g></g></g></g></g></g><g transform="matrix(1.44,0,0,1.44,360,347.04)" visibility="hidden" id="i8"><animate repeatCount="indefinite" begin="0s" calcMode="discrete" dur="1s" values="hidden; visible; visible" keyTimes="0; 0.583; 1" attributeName="visibility" /><g id="i9"><path d="M1.07,44.041C1.07,44.041,1,54.25,1,54.25" /></g><g id="i10"><path d="M1.25,1C1.25,1,1.25,0.5,1.25,0.5" stroke-linecap="round" stroke-width="14" stroke="#f57800" fill="#ffffff"><animate repeatCount="indefinite" attributeName="d" dur="1s" begin="0s" calcMode="spline" values="M1.25,1C1.25,1,1.25,0.5,1.25,0.5; M1.25,1C1.25,1,1.25,0.5,1.25,0.5; M1.236,3.52C1.236,3.52,1,56.5,1,56.5; M1.07,46.291C1.07,46.291,1,56.75,1,56.75" keyTimes="0; 0.666667; 0.95; 1" keySplines="0 0 1 1; 0 0 1 1; 0 0 1 1" fill="freeze" /></path></g></g><g id="i0"><g transform="translate(360,360)"><g transform="rotate(0)"><animateTransform repeatCount="indefinite" type="rotate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="0; 0; 7; 193; 176; 180; 180" keyTimes="0; 0.083333; 0.416666; 0.583333; 0.733333; 0.8; 1" keySplines="0 0 1 1; 0.185 1 0.575 0; 0.341 0.192 0.703 1; 0.167 0 0.703 1; 0.167 0 0.703 1; 0 0 1 1" fill="freeze" /><g transform="scale(1.44,1.44) translate(0,0)"><g visibility="hidden" id="i11"><animate repeatCount="indefinite" begin="0s" calcMode="discrete" dur="1s" values="hidden; visible; hidden; hidden" keyTimes="0; 0.45; 0.833; 1" attributeName="visibility" /><g transform="translate(3.698,50.595)"><animateTransform repeatCount="indefinite" type="translate" attributeName="transform" dur="1s" begin="0s" calcMode="spline" values="3.698 50.595; 3.698 50.595; 27.839 52.739; 11.589 25.489; 11.589 25.489" keyTimes="0; 0.533333; 0.666666; 0.916666; 1" keySplines="0 0 1 1; 0.167 0.167 0.667 1; 0.333 0 0.833 0.833; 0 0 1 1" fill="freeze" /><g transform="rotate(-155.955) scale(1.5,1.5) translate(23.672,43.28)"><g id="i12" transform="matrix(1,0,0,1,-23.672,-43.28)"><rect ry="20" rx="20" height="9.485" width="9.485" y="-4.742" x="-4.742" stroke-width="14" stroke="#ffffff" fill="#f57800" /></g></g></g></g></g></g></g></svg>`;
 const xSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
 const resetSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>';
 const pencilSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -1580,6 +1568,54 @@ let foodForm={name:"",kcal:"",p:"",c:"",f:""};
 const RC = 2*Math.PI*52;
 let liveCounting=false, lpf=9.8, prevDyn=0, lastStepTs=0, stepsSaveTs=0;
 
+// El anillo de calorías se recrea entero en cada renderApp() (todo el HTML de la vista se
+// reemplaza), así que la transición CSS del círculo nunca tiene un valor "anterior" del cual
+// partir — el navegador lo pinta directo en el valor final. Para que se vea gradual, lo
+// llevamos manualmente al offset/color previo (sin transición) y recién al frame siguiente
+// lo soltamos al valor real, dejando que la transición de .ring-fill (.4s, ver CSS) haga el
+// resto. El número de kcal se anima aparte con un count-up por rAF, misma duración que el
+// arco (.4s) para que se sientan como una sola animación en vez de dos cosas independientes.
+let calRingPrevOffset = null, calRingPrevOver = null, calRingPrevKcal = null, calRingNumRaf = null;
+function animateCalRing(){
+  const circle = document.getElementById("calRing");
+  if (!circle) return;
+  const target = circle.style.strokeDashoffset;
+  const isOver = circle.classList.contains("over");
+  if (calRingPrevOffset !== null) {
+    circle.style.transition = "none";
+    circle.style.strokeDashoffset = calRingPrevOffset;
+    circle.classList.toggle("over", calRingPrevOver);
+    void circle.getBoundingClientRect();
+    circle.style.transition = "";
+    requestAnimationFrame(()=>{
+      circle.style.strokeDashoffset = target;
+      circle.classList.toggle("over", isOver);
+    });
+  }
+  calRingPrevOffset = target;
+  calRingPrevOver = isOver;
+
+  const numEl = document.getElementById("calRingNum");
+  if (!numEl) return;
+  const targetKcal = parseInt(numEl.dataset.val, 10) || 0;
+  const fromKcal = calRingPrevKcal;
+  calRingPrevKcal = targetKcal;
+  if (fromKcal === null || fromKcal === targetKcal) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (calRingNumRaf) cancelAnimationFrame(calRingNumRaf);
+  const dur = 400, t0 = performance.now(); // igual a la transition-duration de .ring-fill
+  const ease = x => 1 - Math.pow(1 - x, 3); // easeOutCubic: misma "desaceleración rápida" que --ease-drawer,
+                                             // aproximada a mano porque un cubic-bezier() de CSS no se puede
+                                             // evaluar directo dentro de un loop de rAF sin un solver aparte.
+  const step = now => {
+    const p = Math.min(1, (now - t0) / dur);
+    numEl.textContent = Math.round(fromKcal + (targetKcal - fromKcal) * ease(p));
+    if (p < 1) calRingNumRaf = requestAnimationFrame(step);
+    else { numEl.textContent = targetKcal; calRingNumRaf = null; }
+  };
+  calRingNumRaf = requestAnimationFrame(step);
+}
+
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} try { cloudSyncCore(); } catch(e){} }
 const day = () => state.days.find(d => d.id === activeId) || state.days[0];
 function checkDaily(){ const t=today(); let ch=false;
@@ -1652,7 +1688,7 @@ function renderDayNotes(d){
   const exN=(d.exercises||[]).filter(x=>x.note);
   if(!d.note && !exN.length) return "";
   const items=exN.map(x=>'<div class="dn-item"><span class="dn-ex">'+esc(x.name)+'</span><span class="dn-tx">'+esc(x.note)+'</span></div>').join("");
-  return '<div class="daynotes"><div class="dn-head">Notas de tu coach \u00b7 '+esc(d.name)+'</div>'+
+  return '<div class="daynotes" data-reveal="notes-'+d.id+'"><div class="dn-head">Notas de tu coach \u00b7 '+esc(d.name)+'</div>'+
     (d.note?'<div class="dn-general">'+esc(d.note)+'</div>':'')+items+'</div>';
 }
 function renderEntreno(){
@@ -1709,7 +1745,7 @@ function renderEntreno(){
     ${renderBlockBanner()}
     ${routineLocked()?'<div class="coach-banner">Rutina asignada por tu coach</div>':''}
     <div class="tabs">${tabs}</div>
-    <div class="day-head">
+    <div class="day-head" data-reveal="dayhead-${d.id}">
       <div class="day-top">
         <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname" ${routineLocked()?'readonly':''}>
         ${routineLocked()?'':`<button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>`}
@@ -1788,13 +1824,15 @@ function renderCardioTools(modes){
   if (cardioMode === "stopwatch") {
     const elapsed = swRunning ? swAccum + (Date.now()-swStartTs) : swAccum;
     const laps = swLaps.length ? `<div class="laps">${swLaps.map((t,i)=>({t,i})).reverse().map(o=>`<div class="lap"><span>Vuelta ${o.i+1}</span><span>${fmt(o.t)}</span></div>`).join("")}</div>` : "";
+    const runner = swRunning ? `<div class="cardio-runner">${RUNNER_SVG}</div>` : "";
     return modes + `
       <div class="time-display" id="swTime">${fmt(elapsed)}</div>
       <div class="ctrl-row">
         <button class="ctrl ${swRunning?'ghost':'primary'}" data-action="sw-toggle">${swRunning?'Pausar':'Iniciar'}</button>
         ${swRunning?'<button class="ctrl ghost" data-action="sw-lap">Vuelta</button>':''}
         <button class="ctrl ghost" data-action="sw-reset">Reiniciar</button>
-      </div>${laps}`;
+      </div>
+      ${runner}${laps}`;
   } else {
     const rem = tmRunning ? Math.max(0, tmEndTs-Date.now()) : tmRemainingMs;
     const presetVals = [30,60,90,120,180,300];
@@ -1812,10 +1850,12 @@ function renderCardioTools(modes){
     if (tmRunning) ctrls = '<button class="ctrl ghost" data-action="tm-toggle">Pausar</button><button class="ctrl ghost" data-action="tm-reset">Reiniciar</button>';
     else if (tmFinished) ctrls = '<button class="ctrl primary" data-action="tm-reset">Reiniciar</button>';
     else ctrls = '<button class="ctrl primary" data-action="tm-toggle">Iniciar</button>';
+    const hourglass = tmRunning ? `<div class="cardio-runner">${HOURGLASS_SVG}</div>` : "";
     return modes + `
       <div class="time-display${tmFinished?' finished':''}" id="tmTime">${tmFinished?'00:00':fmt(rem,true)}</div>
       ${editor}
-      <div class="ctrl-row">${ctrls}</div>`;
+      <div class="ctrl-row">${ctrls}</div>
+      ${hourglass}`;
   }
 }
 
@@ -1950,10 +1990,10 @@ function renderComida(){
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
         <circle class="ring-track" cx="60" cy="60" r="52"></circle>
-        <circle class="ring-fill${over?' over':''}" cx="60" cy="60" r="52" style="stroke-dasharray:${RC};stroke-dashoffset:${RC*(1-pct)}"></circle>
+        <circle id="calRing" class="ring-fill${over?' over':''}" cx="60" cy="60" r="52" style="stroke-dasharray:${RC};stroke-dashoffset:${RC*(1-pct)}"></circle>
       </svg>
       <div class="ring-center">
-        <div class="ring-num${over?' over':''}">${tot.kcal}</div>
+        <div id="calRingNum" class="ring-num${over?' over':''}" data-val="${tot.kcal}">${tot.kcal}</div>
         <div class="ring-lbl">de ${t} kcal</div>
       </div>
     </div>
@@ -2412,6 +2452,34 @@ function collapseExerciseAnimated(exId, after){
   setTimeout(()=>{ if(gen===sheetGen) after(); }, 150);
 }
 
+// Revelado por scroll para cualquier bloque marcado con [data-reveal] (ver CSS) — hoy
+// el encabezado del día y las notas del coach en Entreno, a propósito no las cards de
+// ejercicio (esas ya tienen su propio efecto de foco, ver setupExerciseFocus más abajo).
+// revealedBlocks persiste entre renders (no se resetea en renderApp): así, cuando tocás
+// un check o agregás una serie y toda la vista se vuelve a dibujar, los bloques que ya se
+// mostraron una vez no vuelven a animar — solo los nuevos (un día que todavía no viste).
+const revealedBlocks = new Set();
+let scrollRevealObserver = null;
+function initScrollReveal(){
+  if (scrollRevealObserver) { scrollRevealObserver.disconnect(); scrollRevealObserver = null; }
+  const blocks = document.querySelectorAll("#view [data-reveal]");
+  if (!blocks.length) return;
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) { blocks.forEach(b=>b.classList.add("reveal-in")); return; }
+  scrollRevealObserver = new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("reveal-in");
+      revealedBlocks.add(entry.target.dataset.reveal);
+      scrollRevealObserver.unobserve(entry.target);
+    });
+  }, { threshold: .12, rootMargin: "0px 0px -8% 0px" });
+  blocks.forEach(b=>{
+    if (revealedBlocks.has(b.dataset.reveal)) b.classList.add("reveal-in");
+    else scrollRevealObserver.observe(b);
+  });
+}
+
 // Reconecta el IntersectionObserver que da el efecto de foco de scroll en Entreno.
 // Necesario en cada render porque renderApp() reconstruye toda la vista por innerHTML
 // (incluso en toggles de OTROS ejercicios) — los nodos que observaba el anterior ya
@@ -2443,6 +2511,8 @@ function renderApp(){
   document.body.classList.remove("silk-coach");
   const v = document.getElementById("view");
   v.innerHTML = view==="entreno" ? renderEntreno() : view==="habitos" ? renderHabitos() : view==="cardio" ? renderCardio() : view==="comida" ? renderComida() : renderProgreso();
+  if (view==="comida") animateCalRing();
+  initScrollReveal();
   setupExerciseFocus();
   renderRestBar();
   const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = exPicker ? renderExSheet() : ((view==="comida" && (selectedFood||editEntry)) ? renderSheet() : "");
@@ -3602,6 +3672,7 @@ function renderCoach(){
            '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
            '<div class="co-sec">Seguimiento diario</div>'+renderCoachDaily(d)+
            '<div class="co-sec">Check-in semanal</div>'+renderCoachCheckins(d)+
+           '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
            '<div class="co-bottom">'+
              '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
              '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
