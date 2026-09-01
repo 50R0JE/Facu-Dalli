@@ -28,15 +28,18 @@
        más blue-2/green-2/glow porque son la sombra/shade derivada de blue/green y se usan
        junto a ellos en todos lados (hover, "over", glow de botones activos) — dejarlos en el
        verde Excel viejo se hubiera visto como dos marcas distintas conviviendo. red/purple/
-       pink/cyan/txt-2/txt-3/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro,
-       categorías del plan de comidas), no la identidad de marca. Commit propio a propósito
-       para poder revertir solo esto. */
+       pink/cyan/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro, categorías
+       del plan de comidas), no la identidad de marca. Commit propio a propósito para poder
+       revertir solo esto.
+       txt-2/txt-3: SÍ tocados después, aparte (ver commit de fix de contraste) — con la
+       paleta WHOOP quedaron invertidos entre sí (txt-2 más oscuro que txt-3) y ambos por
+       debajo de WCAG AA sobre --bg/--card. Realineados al precedente de contraste que ya
+       usan las cards oscuras (~11:1 / ~8:1). */
     --bg: #060907; --card: #0e1512; --card-2: #141c17; --border: rgba(255,255,255,.09);
-    --txt: #f3f7f4; --txt-2: #566159; --txt-3: #8a948b;
+    --txt: #f3f7f4; --txt-2: #c8cbc9; --txt-3: #acafad;
     --blue: #22e08a; --blue-2: #17b56d; --red: #c0392b;
     --green: #22e08a; --green-2: #17b56d; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
     --glow: rgba(34,224,138,.28);
-    --ring-over: #d43f3f; --glow-over: rgba(212,63,63,.30);
     --xl-head: #217346; --xl-band: #185c37;
     --font-mono: "JetBrains Mono", monospace;
     --text-meta: 12px;      /* secundario: hints, timestamps, sub-labels, botones fantasma */
@@ -76,31 +79,16 @@
   .sess-item, .hx-row {
     box-shadow: var(--shadow-card);
   }
-  /* Elevación + iluminación de borde al pasar el cursor, para toda la familia de cajas
-     de arriba EXCEPTO .card y .daynotes: esas dos son exclusivas de Entreno y .card ya
-     tiene su propio efecto de foco por scroll (.ex-focused, ver más abajo) — agregarle
-     un hover encima lo pisaría. El resto (Hábitos/Cardio/Comida/Progreso/Ajustes) no
-     tenía ningún feedback de hover, solo :active para tap; esto lo suma sin tocar nada
-     de Entreno. Mismo :is()+nesting que el bloque "Meteors" más abajo, una sola lista. */
-  :is(.hb-item, .food-row, .diary-item, .w-chart, .w-item, .water-card, .vol-card,
-    .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daily-card, .ci-card,
-    .sess-item, .hx-row) {
-    transition: transform var(--duration-standard) var(--ease-drawer),
-                border-color var(--duration-standard) ease,
-                box-shadow var(--duration-standard) ease;
-    &:hover {
-      transform: translateY(-2px);
-      border-color: rgba(127,224,168,.5);
-      box-shadow: var(--shadow-card), 0 0 16px var(--glow);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      &:hover { transform: none; }
-    }
-  }
   html, body { background: var(--bg); background-attachment: fixed; color: var(--txt); }
   body { font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background: radial-gradient(720px circle at 50% -6%, rgba(33,115,70,.06), transparent 55%); }
+  /* Mismo barrido que .topbar/.navbar más abajo: este tinte decorativo vive en el
+     documento base y #coachHost pinta transparente encima, así que asoma detrás del
+     panel del coach igual que ellos — acá es solo un 6% de opacidad, imperceptible,
+     por eso nunca se reportó como bug visible, pero no tiene ninguna razón para estar
+     ahí durante el panel del coach tampoco. */
+  body.silk-coach::before { display: none; }
 
   /* ===== Fondo de partículas (Entreno / Hábitos / Cardio / Comida / Progreso) =====
      Mismo fondo que el login (FluidParticlesBackground): degradé oscuro de marca + partículas
@@ -453,17 +441,13 @@
 
   /* Comida / Calorías */
   .ring-wrap { position: relative; width: 180px; height: 180px; margin: 8px auto 6px; }
-  .ring { width: 180px; height: 180px; transform: rotate(-90deg); overflow: visible; }
+  .ring { width: 180px; height: 180px; transform: rotate(-90deg); }
   .ring-track { fill: none; stroke: var(--card-2); stroke-width: 10; }
-  .ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer), stroke .5s ease; }
-  .ring-fill.over { stroke: var(--ring-over); animation: ringOverPulse 2.6s ease-in-out infinite; }
-  @keyframes ringOverPulse {
-    0%, 100% { filter: drop-shadow(0 0 5px var(--glow-over)); }
-    50% { filter: drop-shadow(0 0 11px var(--glow-over)); }
-  }
+  .ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer); }
+  .ring-fill.over { stroke: var(--red); filter: none; }
   .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .ring-num { font-weight:700; font-size: 33px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; transition: color .5s ease; }
-  .ring-num.over { color: var(--ring-over); }
+  .ring-num { font-weight:700; font-size: 33px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .ring-num.over { color: var(--red); }
   .ring-lbl { font-size: var(--text-meta); color: var(--txt-2); margin-top: 3px; }
   .ring-sub { text-align: center; color: var(--txt-2); font-size: var(--text-body); margin-bottom: 18px; font-variant-numeric: tabular-nums; }
   .macros { display: flex; flex-direction: column; gap: 13px; margin-bottom: 12px; }
@@ -633,6 +617,26 @@
   .sess-date { font-size: var(--text-body); color:var(--txt); font-weight:600; }
   .sess-n { color:var(--txt-3); font-weight:400; font-size: var(--text-meta); }
   .sess-exs { font-size: var(--text-meta); color:var(--txt-2); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* Solo el .sess-item del coach es clickeable (abre el detalle de la sesión) — .sess-item
+     también lo usa el cliente en su propio Progreso, sin acción al tocarlo, así que el
+     cursor/estado de tap va scopeado al atributo en vez de a la clase compartida. */
+  .sess-item[data-coach="sess-open"] { cursor:pointer; }
+  .sess-item[data-coach="sess-open"]:active { background:var(--card-2); }
+  /* Detalle de sesión (coach): encabezado de cada ejercicio con nombre + badges, para
+     escanear los 8 ejercicios de una sesión sin leer cada serie. Dos preguntas distintas
+     a propósito, con colores/íconos que no se pisan entre sí: .up/.down/.same responde
+     "¿mejoró respecto a la vez anterior de ESTE ejercicio?" (ver coachPrevOccurrence);
+     .pr responde "¿es su mejor marca de todas?" (ver bestKgBefore) — mismo verde que ya
+     usa el cartel de PR del cliente (.pr-title), a propósito el único badge que lo usa. */
+  .sess-ex-head { display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+  .sess-ex-name { font-weight:700; color:var(--txt); font-size: var(--text-emphasis); flex:1; min-width:0; }
+  .sess-trend { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:800; padding:3px 8px; border-radius:3px; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .sess-trend.up { color:var(--cyan); background:rgba(23,138,128,.16); }
+  .sess-trend.down { color:var(--red); background:rgba(192,57,43,.14); }
+  .sess-trend.same { color:var(--txt-3); background:var(--card-2); }
+  .sess-trend.pr { color:var(--green); background:rgba(51,196,129,.16); }
+  .sess-trend.pr svg { width:12px; height:12px; }
+  .co-setprev { font-size:11px; color:var(--txt-3); font-variant-numeric:tabular-nums; white-space:nowrap; }
   .reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size: var(--text-meta); padding:9px 16px; border-radius:4px; cursor:pointer; }
   .reset-routine:active { background:var(--card-2); }
   #coachHost { display:none; position:fixed; inset:0; z-index:150; background:transparent; overflow-y:auto; }
@@ -988,7 +992,7 @@
   .ck-qa { font-size: var(--text-emphasis); color:var(--txt); line-height:1.55; padding:8px 11px; background:var(--card-2); border-radius:5px; border-left:2px solid var(--green); }
   .co-note-wrap { margin-top:10px; }
   .co-note-lbl { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
-  .co-setline { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); }
+  .co-setline { display:flex; align-items:center; flex-wrap:wrap; gap:4px 10px; padding:6px 0; border-bottom:1px solid var(--border); }
   .co-setline:last-child { border-bottom:none; }
   .co-setno { font-size:11px; color:var(--txt-3); font-weight:700; text-transform:uppercase; letter-spacing:.06em; width:56px; flex-shrink:0; }
   .co-setval { font-size: var(--text-body); font-weight:700; color:var(--txt); font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
@@ -1054,6 +1058,13 @@
   .navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); }
+  /* Mismo bug y mismo fix que .topbar (ver c3082f2): .navbar es la nav del CLIENTE, vive
+     en el documento base sin scrollear junto con #coachHost (capa fixed aparte, con su
+     propio scroll interno), y como #coachHost no pinta nada opaco en toda la franja
+     inferior a cada momento del scroll, la nav — que sí pinta un fondo semi-opaco con
+     blur — se ve flotando encima del contenido del coach. El coach ya tiene su propia
+     navegación (Volver/Actualizar/Salir), no necesita esta. */
+  body.silk-coach .navbar { display: none; }
   .nav-inner { display: flex; gap: 2px; width: 100%; max-width: 540px; }
   .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; border: none; background: none;
     color: var(--txt-3); font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 4px; transition: var(--transition-tap); }
@@ -3282,7 +3293,7 @@ document.body.addEventListener("click", async e=>{
 });
 
 // ============ Panel del Coach (Fase 2) ============
-let coachClients=[], coachSel=null, coachData=null, coachInvite=null, coachDayFilter=null, coachEditDay=0, coachDL="", coachPlanForm=null, coachInfoForm=null, coachBlockForm=null, coachSearch="", coachClientStats={}, coachCopyPicker=false, coachWeekSel=null;
+let coachClients=[], coachSel=null, coachData=null, coachInvite=null, coachDayFilter=null, coachEditDay=0, coachDL="", coachPlanForm=null, coachInfoForm=null, coachBlockForm=null, coachSearch="", coachClientStats={}, coachCopyPicker=false, coachWeekSel=null, coachSessionView=null;
 let coachView="clients", coachTpls=[], coachTplEdit=null, coachApplyPicker=null;
 function rtDays(){ return coachTplEdit ? coachTplEdit.days : (coachData?coachData.routine:null); }
 async function loadCoachClients(){
@@ -3330,14 +3341,37 @@ function coachLogFor(sessions, dayName, name){
   return out;
 }
 function coachExerciseLog(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ const sets=[]; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0}); }); }); if(sets.length) out.push({date:se.date, ts:se.ts, sets:sets}); }); return out; }
+// La "vez anterior" de un ejercicio puntual, relativa a UNA sesión puntual — no la sesión
+// anterior en general (si hizo Press banca lunes y jueves, al abrir el jueves esto tiene
+// que dar el lunes, sin importar qué otro ejercicio haya en el medio) y no el máximo
+// histórico (eso es bestKgBefore/detectPRs, para el cartel de PR — pregunta distinta:
+// "¿es su mejor marca de todas?" vs. esto, "¿qué hizo la vez pasada?"). Reusa
+// coachExerciseLog (ya ordena por fecha) y se queda con la última entrada anterior a beforeTs.
+function coachPrevOccurrence(sessions, exName, beforeTs){
+  const log = coachExerciseLog(sessions, exName);
+  let prev = null;
+  for (const entry of log) { if (entry.ts < beforeTs) prev = entry; else break; }
+  return prev;
+}
 async function openClient(id){
-  coachSel=id; coachData={loading:true}; coachDayFilter=null; coachEditDay=0; renderCoach();
+  coachSel=id; coachData={loading:true}; coachDayFilter=null; coachEditDay=0; coachSessionView=null; renderCoach();
   try{
     const ws=await sb.from("body_weights").select("*").eq("client_id",id).order("measured_on");
-    const ss=await sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at");
+    // rpe/pump/joint_pain: ya se guardan (ver cloudSessionFeedback) pero nunca se pedían acá,
+    // así que el detalle de sesión del coach no tenía forma de mostrar el feedback del cliente.
+    const ss=await sb.from("sessions").select("id, performed_on, day_name, created_at, rpe, pump, joint_pain, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at");
     const rt=await sb.from("routines").select("days").eq("client_id",id).maybeSingle();
     const weights=(ws.data||[]).map(w=>({date:w.measured_on, kg:Number(w.kg)}));
-    const sessions=(ss.data||[]).map(se=>{ const byEx={}; (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); }); return {date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))}; });
+    const sessions=(ss.data||[]).map(se=>{ const byEx={};
+      // session_entries no viene garantizado en orden de serie — Supabase no promete
+      // ningún orden para una relación anidada sin ORDER BY explícito. set_order es
+      // por-ejercicio-por-sesión (se graba como el índice dentro de los sets de ESE
+      // ejercicio, ver cloudInsertSession), así que ordenar todo el array de entries
+      // por set_order antes de agrupar deja cada ejercicio con sus series en el orden
+      // real en que se hicieron. Sin esto, el coach puede estar viendo Serie 3 antes
+      // que Serie 1 sin ninguna señal de que está desordenado.
+      (se.session_entries||[]).slice().sort((a,b)=>(a.set_order||0)-(b.set_order||0)).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); });
+      return {id:se.id, date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]})), rpe:se.rpe||null, pump:se.pump||null, joint:(typeof se.joint_pain==="boolean"?se.joint_pain:null)}; });
     const routine=(rt.data&&Array.isArray(rt.data.days))?JSON.parse(JSON.stringify(rt.data.days)):[];
     migrateNames(routine);
     const dl=await sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false});
@@ -3352,6 +3386,53 @@ async function openClient(id){
     coachPlanForm=null; coachInfoForm=null; coachBlockForm=null;
   }catch(e){ coachData={error:true}; console.error("openClient",e); }
   renderCoach();
+}
+// Detalle completo de UNA sesión: cada ejercicio con sus series reales, comparadas contra
+// la vez anterior de ESE ejercicio (no la sesión anterior en general — ver
+// coachPrevOccurrence), con una marca de subió/se mantuvo/bajó, y aparte un badge de PR si
+// el mejor set de la sesión superó el máximo histórico hasta ese momento (bestKgBefore).
+// Son dos preguntas distintas a propósito: "¿mejoró respecto a la última vez?" y "¿es su
+// mejor marca de todas?" — colores e íconos totalmente distintos entre sí para que no se
+// confundan (var(--cyan) + flecha para la tendencia, var(--green) + trofeo solo para PR
+// real, mismo verde que ya usa el cartel de PR del lado del cliente).
+// El badge va en el ENCABEZADO de cada ejercicio, no enterrado en el detalle de series,
+// para que Facundo pueda escanear los 8 ejercicios de una sesión sin tener que leer cada
+// serie una por una — el detalle completo sigue debajo para quien quiera confirmarlo.
+function renderCoachSessionDetail(d, se){
+  const fkg = k => { const n = Math.round((+k||0)*10)/10; return n; };
+  const priorSessions = (d.sessions||[]).filter(s=>s.ts < se.ts);
+  const exBlocks = (se.exercises||[]).map(ex => {
+    const prevEntry = coachPrevOccurrence(d.sessions, ex.name, se.ts);
+    const curBest = bestSetOf(ex.sets);
+    const prevBest = prevEntry ? bestSetOf(prevEntry.sets) : null;
+    let trend = '';
+    if (curBest && prevBest) {
+      const diff = fkg(curBest.kg - prevBest.kg);
+      if (diff > 0) trend = '<span class="sess-trend up">▲ +'+diff+' kg</span>';
+      else if (diff < 0) trend = '<span class="sess-trend down">▼ '+diff+' kg</span>';
+      else trend = '<span class="sess-trend same">─ Igual</span>';
+    }
+    const histBest = curBest ? bestKgBefore(ex.name, priorSessions) : null;
+    const isPR = curBest && histBest!==null && curBest.kg > histBest;
+    const prBadge = isPR ? '<span class="sess-trend pr">'+trophySvg+' PR</span>' : '';
+    const noHist = prevEntry ? '' : '<div class="cal-hint" style="padding:0 0 8px;text-align:left">Sin historial previo de este ejercicio.</div>';
+    const setRows = (ex.sets||[]).map((s,i) => {
+      const prevSet = prevEntry && prevEntry.sets[i];
+      return '<div class="co-setline"><span class="co-setno">Serie '+(i+1)+'</span><span class="co-setval">'+fkg(s.kg)+' kg × '+(+s.reps||0)+'</span>'+
+        (prevSet ? '<span class="co-setprev">antes '+fkg(prevSet.kg)+' kg × '+(+prevSet.reps||0)+'</span>' : '')+
+        '</div>';
+    }).join("");
+    return '<div class="co-exc"><div class="sess-ex-head"><span class="sess-ex-name">'+esc(ex.name)+'</span>'+trend+prBadge+'</div>'+noHist+setRows+'</div>';
+  }).join("");
+  const fb = (se.rpe || se.pump || typeof se.joint === "boolean") ? (
+    '<div class="ck-card">'+
+      '<div class="ck-head">Feedback del cliente</div>'+
+      (se.rpe ? '<div class="ck-q"><div class="ck-qt">Fatiga percibida (RPE)</div><div class="ck-qa">'+se.rpe+' / 5</div></div>' : '')+
+      (se.pump ? '<div class="ck-q"><div class="ck-qt">Pump de la sesión</div><div class="ck-qa">'+se.pump+' / 5</div></div>' : '')+
+      (typeof se.joint === "boolean" ? '<div class="ck-q" style="margin-bottom:0"><div class="ck-qt">Dolor articular</div><div class="ck-qa">'+(se.joint?"Sí":"No")+'</div></div>' : '')+
+    '</div>'
+  ) : '';
+  return '<div class="co-sec">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div>'+fb+(exBlocks||'<div class="cal-hint">Esta sesión no tiene ejercicios registrados.</div>');
 }
 function coachDatalist(){
   if(coachDL) return coachDL;
@@ -3799,10 +3880,11 @@ function renderCoach(){
     const d=coachData; let body="";
     if(!d||d.loading){ body='<div class="cal-hint">Cargando…</div>'; }
     else if(d.error){ body='<div class="cal-hint">No se pudo cargar. Reintentá.</div>'; }
+    else if(coachSessionView){ body=renderCoachSessionDetail(d, coachSessionView); }
     else {
       const wchart=d.weights.length ? renderWChart(d.weights,false,"med") : '<div class="cal-hint">Sin registros de peso.</div>';
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
-      const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
+      const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item" data-coach="sess-open" data-id="'+se.id+'"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div><span class="co-arrow">›</span></div>'; }).join("");
       const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
       body='<div class="co-bottom"><div class="co-panel"><div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+'</div>'+
              '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div></div>'+
@@ -3818,14 +3900,19 @@ function renderCoach(){
            '</div>'+
            '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wchart+wlist;
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">'+resetSvg+' Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
+    const headBtns = coachSessionView
+      ? '<button class="co-back" data-coach="sess-close">‹ Volver a la ficha</button><div><button class="co-logout" data-auth="logout">Salir</button></div>'
+      : '<button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">'+resetSvg+' Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head">'+headBtns+'</div><div class="co-client-name">'+esc((coachData&&coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
 }
 document.body.addEventListener("click", async e => {
   const b=e.target.closest("[data-coach]"); if(!b) return;
   const a=b.dataset.coach;
   if(a==="open"){ openClient(b.dataset.id); return; }
-  if(a==="back"){ coachSel=null; coachData=null; renderCoach(); return; }
+  if(a==="back"){ coachSel=null; coachData=null; coachSessionView=null; renderCoach(); return; }
+  if(a==="sess-open"){ const se=(coachData&&coachData.sessions||[]).find(x=>x.id===b.dataset.id); if(se){ coachSessionView=se; renderCoach(); } return; }
+  if(a==="sess-close"){ coachSessionView=null; renderCoach(); return; }
   if(a==="refresh"){ if(coachSel) openClient(coachSel); return; }
   if(a==="view-clients"){ coachView="clients"; renderCoach(); return; }
   if(a==="view-tpls"){ coachView="tpls"; await loadTpls(); renderCoach(); return; }
@@ -4039,198 +4126,6 @@ async function cloudBoot(){
 if (migrateNames(state.days)) save();
 cloudBoot();
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
-</script>
-
-<!--
-  ===========================================================================
-  ADD-ON: sección de Configuración para FitSheet (index.html)
-  ===========================================================================
-  Qué hace: agrega un 6to botón "Ajustes" a la barra de navegación inferior,
-  con su propia vista (cuenta, cerrar sesión, vincular coach, borrar datos
-  locales). No toca ni una línea del index.html existente: se engancha por
-  fuera, reutilizando las funciones y variables globales que ya existen
-  (view, renderApp, cloudUser, cloudProfile, sb, esc, showLogin, KEY) y los
-  listeners delegados que ya manejan data-view / data-auth="logout" /
-  data-auth="join".
-
-  Fix aplicado sobre el original: `.cfg-card { opacity:1; transform:none; }`
-  al final del <style> — sin esto las cajas heredaban el atenuado propio de
-  `.card` (opacity:.45/scale:.90), pensado para el foco de scroll de Entreno,
-  y quedaban lavadas para siempre porque ese observer nunca corre en esta
-  vista. Confirmado en vivo con Playwright antes de pegarlo acá.
-
-  NOTA: el botón "Cerrar sesión" y el cuadro de "Vincular coach" que ya
-  existen al final de la pestaña Progreso siguen ahí (no los borré porque
-  eso implicaría editar renderProgreso()). Vas a tener acceso a esas mismas
-  acciones desde dos lugares hasta que decidas sacarlos de Progreso.
-  ===========================================================================
--->
-<style id="cfg-addon-styles">
-  .cfg-card { display:flex; flex-direction:column; gap:12px; }
-  .cfg-row { display:flex; align-items:center; gap:12px; }
-  .cfg-avatar {
-    width:42px; height:42px; border-radius:50%; flex-shrink:0;
-    background:var(--card-2); border:1px solid var(--border);
-    display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:16px; color:var(--blue-2);
-  }
-  .cfg-who { flex:1; min-width:0; }
-  .cfg-name { font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .cfg-email { font-size:var(--text-meta); color:var(--txt-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .cfg-badge {
-    flex-shrink:0; font-size:var(--text-meta); font-weight:700; color:var(--blue-2);
-    background:var(--card-2); border:1px solid var(--border); border-radius:3px;
-    padding:4px 9px;
-  }
-  .cfg-empty { color:var(--txt-2); font-size:var(--text-body); text-align:center; padding:6px 0; }
-  .cfg-row-simple { display:flex; align-items:center; justify-content:space-between; font-size:var(--text-body); color:var(--txt); }
-  .cfg-ok { color:var(--blue-2); font-weight:700; font-size:var(--text-meta); }
-  .cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
-  .cfg-about { text-align:center; color:var(--txt-3); font-size:var(--text-meta); margin-top:4px; padding-bottom:8px; }
-  .cfg-danger { border-color:rgba(192,57,43,.35) !important; color:#e08a80 !important; }
-  /* Fix: .card trae opacity:.45/scale:.90 por defecto (pensado para el foco de
-     scroll de Entreno, ver .ex-focused) y acá nunca se activa. Misma especificidad
-     que .card pero definida después → gana en la cascada sin !important. */
-  .cfg-card { opacity: 1; transform: none;
-    transition: transform var(--duration-standard) var(--ease-drawer),
-                border-color var(--duration-standard) ease,
-                box-shadow var(--duration-standard) ease;
-  }
-  /* Elevación + iluminación de borde al pasar el cursor — mismo verde de marca
-     que ya usan el borde y el glow de las cajas (--glow, --border en modo silk-on),
-     así queda del mismo lenguaje visual en vez de un efecto ajeno a la estética. */
-  .cfg-card:hover { transform: translateY(-2px); border-color: rgba(127,224,168,.5);
-    box-shadow: var(--shadow-card), 0 0 16px var(--glow); }
-  @media (prefers-reduced-motion: reduce) {
-    .cfg-card:hover { transform: none; }
-  }
-</style>
-
-<script id="cfg-addon-script">
-(function(){
-  if (window.__cfgAddonInstalled) return;
-  window.__cfgAddonInstalled = true;
-
-  // ---- 1. Botón "Ajustes" en la barra inferior ----
-  function injectNavButton(){
-    var navInner = document.querySelector(".navbar .nav-inner");
-    if (!navInner || document.getElementById("nav-config")) return;
-    var btn = document.createElement("button");
-    btn.className = "nav-item";
-    btn.id = "nav-config";
-    btn.setAttribute("data-view", "config");
-    btn.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<circle cx="12" cy="12" r="3"/>' +
-      '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' +
-      '</svg><span>Ajustes</span>';
-    navInner.appendChild(btn);
-  }
-  injectNavButton();
-
-  // ---- 2. Vista de Configuración ----
-  function cfgRoleLabel(p){ return (p && p.role === "coach") ? "Coach" : "Cliente"; }
-
-  function renderConfig(){
-    var logged = typeof cloudUser !== "undefined" && !!cloudUser;
-    var profile = (typeof cloudProfile !== "undefined") ? cloudProfile : null;
-    var name = (profile && profile.full_name) || (logged && cloudUser.email) || "";
-    var email = logged ? cloudUser.email : "";
-    var initial = (name || "?").trim().charAt(0).toUpperCase();
-
-    var account = logged
-      ? '<div class="card cfg-card">' +
-          '<div class="cfg-row">' +
-            '<div class="cfg-avatar">' + esc(initial) + '</div>' +
-            '<div class="cfg-who">' +
-              '<div class="cfg-name">' + esc(name || "Sin nombre") + '</div>' +
-              '<div class="cfg-email">' + esc(email) + '</div>' +
-            '</div>' +
-            (profile ? '<div class="cfg-badge">' + esc(cfgRoleLabel(profile)) + '</div>' : '') +
-          '</div>' +
-          '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' +
-        '</div>'
-      : '<div class="card cfg-card">' +
-          '<div class="cfg-empty">No iniciaste sesión.</div>' +
-          '<button class="form-save" data-action="cfg-login">Iniciar sesión</button>' +
-        '</div>';
-
-    var needsLink = logged && profile && profile.role !== "coach" && !profile.coach_id;
-    var linked = logged && profile && profile.role !== "coach" && !!profile.coach_id;
-
-    var coachSection = !logged ? "" :
-      linked
-        ? '<div class="card cfg-card"><div class="cfg-row-simple"><span>Tu coach</span><span class="cfg-ok">Vinculado ✅</span></div></div>'
-        : needsLink
-          ? '<div class="join-box" style="margin-top:0">' +
-              '<div class="join-t">Vinculate a tu coach</div>' +
-              '<input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px">' +
-              '<button class="form-save" data-auth="join" style="margin-top:0">Vincular</button>' +
-            '</div>'
-          : "";
-
-    var dataSection = '<div class="card cfg-card">' +
-        '<div class="cfg-sub">Datos en este dispositivo</div>' +
-        '<button class="logout-btn cfg-danger" data-action="cfg-clear-local">Borrar datos guardados localmente</button>' +
-      '</div>';
-
-    var about = '<div class="cfg-about">FitSheet</div>';
-
-    return '<div class="hb-head"><div class="hb-title">Configuración</div><div class="title-accent"></div></div>' +
-      account + coachSection + dataSection + about;
-  }
-
-  // ---- 3. Enganche con renderApp (sin tocar el original) ----
-  function installRenderHook(){
-    if (typeof renderApp !== "function" || window.__cfgRenderHooked) return false;
-    window.__cfgRenderHooked = true;
-    var originalRenderApp = renderApp;
-    renderApp = function(){
-      if (typeof view !== "undefined" && view === "config") {
-        ["entreno","habitos","cardio","comida","progreso"].forEach(function(k){
-          var b = document.getElementById("nav-" + k);
-          if (b) b.classList.remove("active");
-        });
-        var cfgBtn = document.getElementById("nav-config");
-        if (cfgBtn) cfgBtn.classList.add("active");
-        var v = document.getElementById("view");
-        if (v) v.innerHTML = renderConfig();
-        var sh = document.getElementById("sheetHost");
-        if (sh) sh.innerHTML = "";
-        return;
-      }
-      originalRenderApp();
-      // originalRenderApp() solo togglea los 5 botones que ya conocía al escribirse
-      // (no sabe que nav-config existe), así que si veníamos de Ajustes y navegamos
-      // a otra pestaña, su clase "active" nunca se sacaba y quedaba pegada en verde
-      // para siempre. La sacamos acá explícitamente cada vez que NO estamos en config.
-      var cfgBtnOff = document.getElementById("nav-config");
-      if (cfgBtnOff) cfgBtnOff.classList.remove("active");
-    };
-    return true;
-  }
-  if (!installRenderHook()) {
-    // Si este bloque se pegara antes de que exista renderApp, reintenta al cargar.
-    window.addEventListener("load", installRenderHook);
-  }
-
-  // ---- 4. Acciones propias de esta sección ----
-  document.body.addEventListener("click", function(e){
-    var loginBtn = e.target.closest('[data-action="cfg-login"]');
-    if (loginBtn) {
-      if (typeof showLogin === "function") showLogin("", "in");
-      return;
-    }
-    var clearBtn = e.target.closest('[data-action="cfg-clear-local"]');
-    if (clearBtn) {
-      if (confirm("¿Seguro? Se va a borrar todo lo guardado en este dispositivo (rutinas, pesos, hábitos). Esta acción no se puede deshacer.")) {
-        try { if (typeof KEY !== "undefined") localStorage.removeItem(KEY); } catch (err) {}
-        location.reload();
-      }
-      return;
-    }
-  });
-})();
 </script>
 </body>
 </html>
