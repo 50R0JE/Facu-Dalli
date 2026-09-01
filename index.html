@@ -28,11 +28,15 @@
        más blue-2/green-2/glow porque son la sombra/shade derivada de blue/green y se usan
        junto a ellos en todos lados (hover, "over", glow de botones activos) — dejarlos en el
        verde Excel viejo se hubiera visto como dos marcas distintas conviviendo. red/purple/
-       pink/cyan/txt-2/txt-3/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro,
-       categorías del plan de comidas), no la identidad de marca. Commit propio a propósito
-       para poder revertir solo esto. */
+       pink/cyan/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro, categorías
+       del plan de comidas), no la identidad de marca. Commit propio a propósito para poder
+       revertir solo esto.
+       txt-2/txt-3: SÍ tocados después, aparte (ver commit de fix de contraste) — con la
+       paleta WHOOP quedaron invertidos entre sí (txt-2 más oscuro que txt-3) y ambos por
+       debajo de WCAG AA sobre --bg/--card. Realineados al precedente de contraste que ya
+       usan las cards oscuras (~11:1 / ~8:1). */
     --bg: #060907; --card: #0e1512; --card-2: #141c17; --border: rgba(255,255,255,.09);
-    --txt: #f3f7f4; --txt-2: #566159; --txt-3: #8a948b;
+    --txt: #f3f7f4; --txt-2: #c8cbc9; --txt-3: #acafad;
     --blue: #22e08a; --blue-2: #17b56d; --red: #c0392b;
     --green: #22e08a; --green-2: #17b56d; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
     --glow: rgba(34,224,138,.28);
