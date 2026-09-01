@@ -36,6 +36,7 @@
     --blue: #22e08a; --blue-2: #17b56d; --red: #c0392b;
     --green: #22e08a; --green-2: #17b56d; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
     --glow: rgba(34,224,138,.28);
+    --ring-over: #d43f3f; --glow-over: rgba(212,63,63,.30);
     --xl-head: #217346; --xl-band: #185c37;
     --font-mono: "JetBrains Mono", monospace;
     --text-meta: 12px;      /* secundario: hints, timestamps, sub-labels, botones fantasma */
@@ -74,6 +75,27 @@
   .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daynotes, .daily-card, .ci-card,
   .sess-item, .hx-row {
     box-shadow: var(--shadow-card);
+  }
+  /* Elevación + iluminación de borde al pasar el cursor, para toda la familia de cajas
+     de arriba EXCEPTO .card y .daynotes: esas dos son exclusivas de Entreno y .card ya
+     tiene su propio efecto de foco por scroll (.ex-focused, ver más abajo) — agregarle
+     un hover encima lo pisaría. El resto (Hábitos/Cardio/Comida/Progreso/Ajustes) no
+     tenía ningún feedback de hover, solo :active para tap; esto lo suma sin tocar nada
+     de Entreno. Mismo :is()+nesting que el bloque "Meteors" más abajo, una sola lista. */
+  :is(.hb-item, .food-row, .diary-item, .w-chart, .w-item, .water-card, .vol-card,
+    .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daily-card, .ci-card,
+    .sess-item, .hx-row) {
+    transition: transform var(--duration-standard) var(--ease-drawer),
+                border-color var(--duration-standard) ease,
+                box-shadow var(--duration-standard) ease;
+    &:hover {
+      transform: translateY(-2px);
+      border-color: rgba(127,224,168,.5);
+      box-shadow: var(--shadow-card), 0 0 16px var(--glow);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      &:hover { transform: none; }
+    }
   }
   html, body { background: var(--bg); background-attachment: fixed; color: var(--txt); }
   body { font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
@@ -431,13 +453,17 @@
 
   /* Comida / Calorías */
   .ring-wrap { position: relative; width: 180px; height: 180px; margin: 8px auto 6px; }
-  .ring { width: 180px; height: 180px; transform: rotate(-90deg); }
+  .ring { width: 180px; height: 180px; transform: rotate(-90deg); overflow: visible; }
   .ring-track { fill: none; stroke: var(--card-2); stroke-width: 10; }
-  .ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer); }
-  .ring-fill.over { stroke: var(--red); filter: none; }
+  .ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer), stroke .5s ease; }
+  .ring-fill.over { stroke: var(--ring-over); animation: ringOverPulse 2.6s ease-in-out infinite; }
+  @keyframes ringOverPulse {
+    0%, 100% { filter: drop-shadow(0 0 5px var(--glow-over)); }
+    50% { filter: drop-shadow(0 0 11px var(--glow-over)); }
+  }
   .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .ring-num { font-weight:700; font-size: 33px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-  .ring-num.over { color: var(--red); }
+  .ring-num { font-weight:700; font-size: 33px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; transition: color .5s ease; }
+  .ring-num.over { color: var(--ring-over); }
   .ring-lbl { font-size: var(--text-meta); color: var(--txt-2); margin-top: 3px; }
   .ring-sub { text-align: center; color: var(--txt-2); font-size: var(--text-body); margin-bottom: 18px; font-variant-numeric: tabular-nums; }
   .macros { display: flex; flex-direction: column; gap: 13px; margin-bottom: 12px; }
@@ -4013,6 +4039,198 @@ async function cloudBoot(){
 if (migrateNames(state.days)) save();
 cloudBoot();
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+</script>
+
+<!--
+  ===========================================================================
+  ADD-ON: sección de Configuración para FitSheet (index.html)
+  ===========================================================================
+  Qué hace: agrega un 6to botón "Ajustes" a la barra de navegación inferior,
+  con su propia vista (cuenta, cerrar sesión, vincular coach, borrar datos
+  locales). No toca ni una línea del index.html existente: se engancha por
+  fuera, reutilizando las funciones y variables globales que ya existen
+  (view, renderApp, cloudUser, cloudProfile, sb, esc, showLogin, KEY) y los
+  listeners delegados que ya manejan data-view / data-auth="logout" /
+  data-auth="join".
+
+  Fix aplicado sobre el original: `.cfg-card { opacity:1; transform:none; }`
+  al final del <style> — sin esto las cajas heredaban el atenuado propio de
+  `.card` (opacity:.45/scale:.90), pensado para el foco de scroll de Entreno,
+  y quedaban lavadas para siempre porque ese observer nunca corre en esta
+  vista. Confirmado en vivo con Playwright antes de pegarlo acá.
+
+  NOTA: el botón "Cerrar sesión" y el cuadro de "Vincular coach" que ya
+  existen al final de la pestaña Progreso siguen ahí (no los borré porque
+  eso implicaría editar renderProgreso()). Vas a tener acceso a esas mismas
+  acciones desde dos lugares hasta que decidas sacarlos de Progreso.
+  ===========================================================================
+-->
+<style id="cfg-addon-styles">
+  .cfg-card { display:flex; flex-direction:column; gap:12px; }
+  .cfg-row { display:flex; align-items:center; gap:12px; }
+  .cfg-avatar {
+    width:42px; height:42px; border-radius:50%; flex-shrink:0;
+    background:var(--card-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:16px; color:var(--blue-2);
+  }
+  .cfg-who { flex:1; min-width:0; }
+  .cfg-name { font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cfg-email { font-size:var(--text-meta); color:var(--txt-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cfg-badge {
+    flex-shrink:0; font-size:var(--text-meta); font-weight:700; color:var(--blue-2);
+    background:var(--card-2); border:1px solid var(--border); border-radius:3px;
+    padding:4px 9px;
+  }
+  .cfg-empty { color:var(--txt-2); font-size:var(--text-body); text-align:center; padding:6px 0; }
+  .cfg-row-simple { display:flex; align-items:center; justify-content:space-between; font-size:var(--text-body); color:var(--txt); }
+  .cfg-ok { color:var(--blue-2); font-weight:700; font-size:var(--text-meta); }
+  .cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
+  .cfg-about { text-align:center; color:var(--txt-3); font-size:var(--text-meta); margin-top:4px; padding-bottom:8px; }
+  .cfg-danger { border-color:rgba(192,57,43,.35) !important; color:#e08a80 !important; }
+  /* Fix: .card trae opacity:.45/scale:.90 por defecto (pensado para el foco de
+     scroll de Entreno, ver .ex-focused) y acá nunca se activa. Misma especificidad
+     que .card pero definida después → gana en la cascada sin !important. */
+  .cfg-card { opacity: 1; transform: none;
+    transition: transform var(--duration-standard) var(--ease-drawer),
+                border-color var(--duration-standard) ease,
+                box-shadow var(--duration-standard) ease;
+  }
+  /* Elevación + iluminación de borde al pasar el cursor — mismo verde de marca
+     que ya usan el borde y el glow de las cajas (--glow, --border en modo silk-on),
+     así queda del mismo lenguaje visual en vez de un efecto ajeno a la estética. */
+  .cfg-card:hover { transform: translateY(-2px); border-color: rgba(127,224,168,.5);
+    box-shadow: var(--shadow-card), 0 0 16px var(--glow); }
+  @media (prefers-reduced-motion: reduce) {
+    .cfg-card:hover { transform: none; }
+  }
+</style>
+
+<script id="cfg-addon-script">
+(function(){
+  if (window.__cfgAddonInstalled) return;
+  window.__cfgAddonInstalled = true;
+
+  // ---- 1. Botón "Ajustes" en la barra inferior ----
+  function injectNavButton(){
+    var navInner = document.querySelector(".navbar .nav-inner");
+    if (!navInner || document.getElementById("nav-config")) return;
+    var btn = document.createElement("button");
+    btn.className = "nav-item";
+    btn.id = "nav-config";
+    btn.setAttribute("data-view", "config");
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="12" cy="12" r="3"/>' +
+      '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' +
+      '</svg><span>Ajustes</span>';
+    navInner.appendChild(btn);
+  }
+  injectNavButton();
+
+  // ---- 2. Vista de Configuración ----
+  function cfgRoleLabel(p){ return (p && p.role === "coach") ? "Coach" : "Cliente"; }
+
+  function renderConfig(){
+    var logged = typeof cloudUser !== "undefined" && !!cloudUser;
+    var profile = (typeof cloudProfile !== "undefined") ? cloudProfile : null;
+    var name = (profile && profile.full_name) || (logged && cloudUser.email) || "";
+    var email = logged ? cloudUser.email : "";
+    var initial = (name || "?").trim().charAt(0).toUpperCase();
+
+    var account = logged
+      ? '<div class="card cfg-card">' +
+          '<div class="cfg-row">' +
+            '<div class="cfg-avatar">' + esc(initial) + '</div>' +
+            '<div class="cfg-who">' +
+              '<div class="cfg-name">' + esc(name || "Sin nombre") + '</div>' +
+              '<div class="cfg-email">' + esc(email) + '</div>' +
+            '</div>' +
+            (profile ? '<div class="cfg-badge">' + esc(cfgRoleLabel(profile)) + '</div>' : '') +
+          '</div>' +
+          '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' +
+        '</div>'
+      : '<div class="card cfg-card">' +
+          '<div class="cfg-empty">No iniciaste sesión.</div>' +
+          '<button class="form-save" data-action="cfg-login">Iniciar sesión</button>' +
+        '</div>';
+
+    var needsLink = logged && profile && profile.role !== "coach" && !profile.coach_id;
+    var linked = logged && profile && profile.role !== "coach" && !!profile.coach_id;
+
+    var coachSection = !logged ? "" :
+      linked
+        ? '<div class="card cfg-card"><div class="cfg-row-simple"><span>Tu coach</span><span class="cfg-ok">Vinculado ✅</span></div></div>'
+        : needsLink
+          ? '<div class="join-box" style="margin-top:0">' +
+              '<div class="join-t">Vinculate a tu coach</div>' +
+              '<input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px">' +
+              '<button class="form-save" data-auth="join" style="margin-top:0">Vincular</button>' +
+            '</div>'
+          : "";
+
+    var dataSection = '<div class="card cfg-card">' +
+        '<div class="cfg-sub">Datos en este dispositivo</div>' +
+        '<button class="logout-btn cfg-danger" data-action="cfg-clear-local">Borrar datos guardados localmente</button>' +
+      '</div>';
+
+    var about = '<div class="cfg-about">FitSheet</div>';
+
+    return '<div class="hb-head"><div class="hb-title">Configuración</div><div class="title-accent"></div></div>' +
+      account + coachSection + dataSection + about;
+  }
+
+  // ---- 3. Enganche con renderApp (sin tocar el original) ----
+  function installRenderHook(){
+    if (typeof renderApp !== "function" || window.__cfgRenderHooked) return false;
+    window.__cfgRenderHooked = true;
+    var originalRenderApp = renderApp;
+    renderApp = function(){
+      if (typeof view !== "undefined" && view === "config") {
+        ["entreno","habitos","cardio","comida","progreso"].forEach(function(k){
+          var b = document.getElementById("nav-" + k);
+          if (b) b.classList.remove("active");
+        });
+        var cfgBtn = document.getElementById("nav-config");
+        if (cfgBtn) cfgBtn.classList.add("active");
+        var v = document.getElementById("view");
+        if (v) v.innerHTML = renderConfig();
+        var sh = document.getElementById("sheetHost");
+        if (sh) sh.innerHTML = "";
+        return;
+      }
+      originalRenderApp();
+      // originalRenderApp() solo togglea los 5 botones que ya conocía al escribirse
+      // (no sabe que nav-config existe), así que si veníamos de Ajustes y navegamos
+      // a otra pestaña, su clase "active" nunca se sacaba y quedaba pegada en verde
+      // para siempre. La sacamos acá explícitamente cada vez que NO estamos en config.
+      var cfgBtnOff = document.getElementById("nav-config");
+      if (cfgBtnOff) cfgBtnOff.classList.remove("active");
+    };
+    return true;
+  }
+  if (!installRenderHook()) {
+    // Si este bloque se pegara antes de que exista renderApp, reintenta al cargar.
+    window.addEventListener("load", installRenderHook);
+  }
+
+  // ---- 4. Acciones propias de esta sección ----
+  document.body.addEventListener("click", function(e){
+    var loginBtn = e.target.closest('[data-action="cfg-login"]');
+    if (loginBtn) {
+      if (typeof showLogin === "function") showLogin("", "in");
+      return;
+    }
+    var clearBtn = e.target.closest('[data-action="cfg-clear-local"]');
+    if (clearBtn) {
+      if (confirm("¿Seguro? Se va a borrar todo lo guardado en este dispositivo (rutinas, pesos, hábitos). Esta acción no se puede deshacer.")) {
+        try { if (typeof KEY !== "undefined") localStorage.removeItem(KEY); } catch (err) {}
+        location.reload();
+      }
+      return;
+    }
+  });
+})();
 </script>
 </body>
 </html>
