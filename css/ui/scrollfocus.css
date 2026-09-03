@@ -1,0 +1,9 @@
+/* css/ui/scrollfocus.css */
+[data-reveal]:not(.reveal-in) { opacity: 0; transform: translateY(28px) scale(.97); }
+
+[data-reveal].reveal-in { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    [data-reveal] { transition: none; }
+    [data-reveal]:not(.reveal-in) { opacity: 1; transform: none; }
+  }

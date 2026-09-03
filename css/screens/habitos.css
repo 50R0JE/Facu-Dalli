@@ -1,0 +1,38 @@
+/* css/screens/habitos.css */
+.hb-list { display: flex; flex-direction: column; gap: 10px; }
+
+.hb-item { display: flex; align-items: center; gap: var(--space-14); background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-14) var(--space-16); cursor: pointer; transition: var(--transition-tap); }
+
+.hb-item:active { background: var(--card-2); }
+
+.hb-check { width: 26px; height: 26px; border-radius: 4px; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; transition: var(--transition-tap), transform .14s cubic-bezier(.23,1,.32,1); }
+
+.hb-item:active .hb-check { transform: scale(.97); }
+
+.hb-check svg { width: var(--icon-md); height: var(--icon-md); }
+
+.hb-name { flex: 1; font-size: var(--text-emphasis); font-weight: 500; color: var(--txt); }
+
+.hb-rm { background: none; border: none; color: var(--txt-3); font-size: var(--text-emphasis); cursor: pointer; flex-shrink: 0; padding: 4px; }
+
+.hb-rm svg { width:var(--icon-md); height:var(--icon-md); display:block; }
+
+.hb-rm:active { color: var(--red); }
+
+.hb-add { display: flex; gap: 8px; margin-top: 16px; }
+
+.hb-add input { flex: 1; background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: 13px 14px; color: var(--txt); font-size: var(--text-emphasis); }
+
+.hb-add input:focus { outline: none; border-color: var(--blue); box-shadow: var(--focus-ring); }
+
+.hb-add-btn { width: 48px; border: none; border-radius: 4px; background: var(--blue); color: #fff; font-size: 24px; cursor: pointer; box-shadow: var(--glow-lg); }
+
+.hb-add-btn:active { filter: brightness(1.12); }
+
+.ring-sub { text-align: center; color: var(--txt-2); font-size: var(--text-body); margin-bottom: 18px; font-variant-numeric: tabular-nums; }
+
+.step-quick { display: flex; gap: 8px; margin-bottom: 12px; }
+
+.step-set { display: flex; gap: 8px; margin-bottom: 14px; }
+
+.hb-coach-tag { margin-left:auto; font-size:9px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; background:var(--card-2); padding:3px 6px; border-radius:3px; }

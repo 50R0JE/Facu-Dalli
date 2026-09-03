@@ -1,0 +1,62 @@
+/* css/screens/config.css */
+.cfg-card { display:flex; flex-direction:column; gap:12px; }
+
+.cfg-row { display:flex; align-items:center; gap:12px; }
+
+.cfg-avatar {
+    width:42px; height:42px; border-radius:50%; flex-shrink:0;
+    background:var(--card-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:16px; color:var(--blue-2);
+  }
+
+.cfg-who { flex:1; min-width:0; }
+
+.cfg-name { font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.cfg-email { font-size:var(--text-meta); color:var(--txt-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.cfg-badge {
+    flex-shrink:0; font-size:var(--text-meta); font-weight:700; color:var(--blue-2);
+    background:var(--card-2); border:1px solid var(--border); border-radius:3px;
+    padding:4px 9px;
+  }
+
+.cfg-empty { color:var(--txt-2); font-size:var(--text-body); text-align:center; padding:6px 0; }
+
+.cfg-row-simple { display:flex; align-items:center; justify-content:space-between; font-size:var(--text-body); color:var(--txt); }
+
+/* .cfg-ok ahora es un <button> (antes era un <span> puramente informativo) para poder
+     desvincularse del coach con un solo click — reseteo el chrome nativo de botón para
+     que en reposo se vea IDÉNTICO al texto de antes, y solo con :hover insinúo que es
+     una acción (se tiñe de rojo apagado, mismo tono que ya usa .cfg-danger más abajo
+     para "Borrar datos"), sin agregar ningún elemento visual nuevo a la pantalla. */
+.cfg-ok { background:none; border:none; padding:0; font:inherit; cursor:pointer;
+    color:var(--blue-2); font-weight:700; font-size:var(--text-meta); transition:color .15s ease; }
+
+.cfg-ok:hover { color:#e08a80; }
+
+.cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
+
+.cfg-about { text-align:center; color:var(--txt-3); font-size:var(--text-meta); margin-top:4px; padding-bottom:8px; }
+
+.cfg-danger { border-color:rgba(192,57,43,.35) !important; color:#e08a80 !important; }
+
+/* Fix: .card trae opacity:.45/scale:.90 por defecto (pensado para el foco de
+     scroll de Entreno, ver .ex-focused) y acá nunca se activa. Misma especificidad
+     que .card pero definida después → gana en la cascada sin !important. */
+.cfg-card { opacity: 1; transform: none;
+    transition: transform var(--duration-standard) var(--ease-drawer),
+                border-color var(--duration-standard) ease,
+                box-shadow var(--duration-standard) ease;
+  }
+
+/* Elevación + iluminación de borde al pasar el cursor — mismo verde de marca
+     que ya usan el borde y el glow de las cajas (--glow, --border en modo silk-on),
+     así queda del mismo lenguaje visual en vez de un efecto ajeno a la estética. */
+.cfg-card:hover { transform: translateY(-2px); border-color: rgba(127,224,168,.5);
+    box-shadow: var(--shadow-card), 0 0 16px var(--glow); }
+
+@media (prefers-reduced-motion: reduce) {
+    .cfg-card:hover { transform: none; }
+  }

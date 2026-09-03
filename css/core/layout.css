@@ -1,0 +1,53 @@
+/* css/core/layout.css */
+.topbar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between;
+    max-width: 540px; margin: 0 auto; padding: calc(16px + env(safe-area-inset-top)) 16px 6px; }
+
+/* Reemplazo sutil de la navbar en modo coach: no es navegación (la del coach va por
+     .co-head y sus tabs internos), solo un indicador discreto de contexto — mismo
+     lugar donde estaba la nav, mismo verde de marca, bien chico. pointer-events:none
+     para no interceptar taps sobre el contenido que scrollea debajo. */
+#coachModeBadge {
+    display: none; position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: translateX(-50%); z-index: 200; align-items: center; gap: 7px;
+    padding: 7px 14px 7px 11px; border-radius: 20px; pointer-events: none;
+    background: rgba(10,20,14,.85); border: 1px solid rgba(127,224,168,.32);
+    color: #a9d9bd; font-size: var(--text-meta); font-weight: 700; letter-spacing: .02em;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  }
+
+#coachModeBadge .cmb-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #33c481; flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(51,196,129,.7); animation: cmbPulse 2.4s ease-in-out infinite;
+  }
+
+@media (prefers-reduced-motion: reduce) {
+    #coachModeBadge .cmb-dot { animation: none; opacity: 1; }
+  }
+
+.brand { display: flex; align-items: center; gap: 11px; }
+
+.brand-ic { width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(135deg, #185c37, #33c481);
+    display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-lg), inset 0 1px 0 rgba(255,255,255,.3); }
+
+.brand-ic svg { width: 22px; height: 22px; color: #fff; }
+
+.wordmark { font-family: "Orbitron", system-ui, sans-serif; font-weight: 800; font-size: 23px; letter-spacing: .02em; line-height: 1; }
+
+.client-tag { text-align: right; line-height: 1.2; padding-left: 10px; }
+
+.client-name { font-size: var(--text-body); font-weight: 600; color: var(--txt); letter-spacing: .01em; white-space: nowrap; }
+
+.client-sub { font-size: 9.5px; font-weight: 500; color: var(--txt-3); text-transform: uppercase; letter-spacing: .16em; margin-top: 2px; }
+
+#coachHost { display:none; position:fixed; inset:0; z-index:150; background:transparent; overflow-y:auto; }
+
+.navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--border); }
+
+.nav-inner { display: flex; gap: 2px; width: 100%; max-width: 540px; }
+
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; border: none; background: none;
+    color: var(--txt-3); font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 4px; transition: var(--transition-tap); }
+
+.nav-item svg { width: 22px; height: 22px; }

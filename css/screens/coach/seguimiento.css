@@ -1,0 +1,16 @@
+/* css/screens/coach/seguimiento.css */
+.co-scroll { overflow-x:auto; }
+
+.ph-date { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,.7); color:#fff; font-size:10px; text-align:center; padding:3px; }
+
+.ck-card { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; margin-bottom:10px; }
+
+.ck-head { font-size: var(--text-meta); color:var(--blue-2); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:12px; display:flex; justify-content:space-between; }
+
+.ck-adh { color:var(--txt-2); text-transform:none; letter-spacing:0; }
+
+.ck-q { margin-bottom:16px; }
+
+.ck-qt { font-size: var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:5px; line-height:1.4; }
+
+.ck-qa { font-size: var(--text-emphasis); color:var(--txt); line-height:1.55; padding:8px 11px; background:var(--card-2); border-radius:5px; border-left:2px solid var(--green); }
