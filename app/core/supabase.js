@@ -25,7 +25,35 @@ export function applyBrand(){
   else { t.style.display="none"; document.title="FitSheet"; }
 }
 
-try { if (window.supabase) State.sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){}
+// Crear el cliente de Supabase apenas el script del CDN esté listo. No alcanza con
+// probar una sola vez al cargar el módulo: si el <script> del CDN todavía no terminó
+// de ejecutarse en ese instante, State.sb quedaba en null para siempre y cualquier
+// login explotaba con "Cannot read properties of null (reading 'auth')" aunque la
+// librería cargara bien un momento después. Por eso reintentamos un rato.
+let _sbReady = null;
+export function ensureSb(){
+  if (State.sb) return Promise.resolve(State.sb);
+  if (_sbReady) return _sbReady;
+  const tryInit = () => {
+    if (!State.sb && window.supabase) { try { State.sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){} }
+    return !!State.sb;
+  };
+  _sbReady = tryInit() ? Promise.resolve(State.sb) : new Promise(resolve=>{
+    let tries=0;
+    const iv=setInterval(()=>{
+      tries++;
+      if (tryInit() || tries>=160){ clearInterval(iv); resolve(State.sb); } // ~8s a 50ms
+    },50);
+  });
+  return _sbReady;
+}
+// Ojo: no llamar a ensureSb() acá arriba. core/state.js -> core/storage.js ->
+// core/supabase.js -> core/state.js forman un ciclo de imports; si esta función
+// corre durante esa evaluación circular, "State" todavía está en su temporal dead
+// zone y explota con "Cannot access 'State' before initialization" (el try/catch
+// de antes lo tapaba silenciosamente, dejando State.sb en null para siempre).
+// cloudBoot() ya llama a ensureSb() apenas termina de cargar todo el árbol de
+// módulos, momento en el que "State" ya está inicializado sin problema.
 
 export async function afterLogin(){
   try { const r=await State.sb.auth.getUser(); State.cloudUser=r.data.user; } catch(e){}
@@ -173,6 +201,7 @@ export async function cloudInsertSession(se){
 export async function cloudDeleteSession(cid){ if(!State.sb||!State.cloudUser||!cid) return; try{ await State.sb.from("sessions").delete().eq("id",cid); }catch(e){} }
 
 export async function cloudBoot(){
+  await ensureSb();
   if(!State.sb){ renderApp(); return; }
   try{
     const sess=await State.sb.auth.getSession();

@@ -39,7 +39,13 @@
 
 .client-sub { font-size: 9.5px; font-weight: 500; color: var(--txt-3); text-transform: uppercase; letter-spacing: .16em; margin-top: 2px; }
 
-#coachHost { display:none; position:fixed; inset:0; z-index:150; background:transparent; overflow-y:auto; }
+/* overflow-y:auto en un position:fixed es scroll "aparte" del scroll nativo de página
+     que usa el resto de la app (#view) — en iOS/WebViews eso pierde la inercia nativa
+     si no se lo pedís explícitamente, y sin overscroll-behavior el rebote en los bordes
+     se filtra hacia el body de atrás. De ahí la sensación de scroll "roto" en el panel
+     de coach. */
+#coachHost { display:none; position:fixed; inset:0; z-index:150; background:transparent; overflow-y:auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 
 .navbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: center;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: rgba(6,9,17,.82);

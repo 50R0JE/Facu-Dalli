@@ -93,7 +93,7 @@
 
 .fb-bg { position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:400; }
 
-.fb-card { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,92vw); max-height:88vh; overflow-y:auto; background:var(--card); border:1px solid var(--blue); border-radius:6px; padding:22px; z-index:401; }
+.fb-card { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,92vw); max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; background:var(--card); border:1px solid var(--blue); border-radius:6px; padding:22px; z-index:401; }
 
 .fb-title { font-size:19px; font-weight:800; color:#fff; margin-bottom:4px; }
 

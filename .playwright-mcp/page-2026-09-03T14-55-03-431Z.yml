@@ -1,0 +1,10 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]: FitSheet
+  - navigation [ref=f1e9]:
+    - generic [ref=f1e10]:
+      - button "Entreno" [ref=f1e11] [cursor=pointer]
+      - button "Hábitos" [ref=f1e15] [cursor=pointer]
+      - button "Cardio" [ref=f1e20] [cursor=pointer]
+      - button "Comida" [ref=f1e25] [cursor=pointer]
+      - button "Progreso" [ref=f1e30] [cursor=pointer]
+      - button "Ajustes" [ref=f1e35] [cursor=pointer]

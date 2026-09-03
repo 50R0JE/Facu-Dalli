@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - region "Iniciar sesión" [ref=e3]:
+    - generic [ref=e7]: FitSheet
+    - generic [ref=e8]: Tu planilla de entrenamiento
+    - 'textbox "Email (ej: nombre@gmail.com)" [ref=e10]'
+    - generic [ref=e11]:
+      - textbox "Contraseña (mínimo 6)" [ref=e12]
+      - button "Mostrar contraseña" [ref=e13] [cursor=pointer]
+    - button "Ingresar" [ref=e17] [cursor=pointer]
+    - button "Crear una cuenta nueva" [ref=e18] [cursor=pointer]
+  - generic [ref=e19]: FitSheet
+  - navigation [ref=e26]:
+    - generic [ref=e27]:
+      - button "Entreno" [ref=e28] [cursor=pointer]
+      - button "Hábitos" [ref=e32] [cursor=pointer]
+      - button "Cardio" [ref=e37] [cursor=pointer]
+      - button "Comida" [ref=e42] [cursor=pointer]
+      - button "Progreso" [ref=e47] [cursor=pointer]
+      - button "Ajustes" [ref=e52] [cursor=pointer]
