@@ -135,7 +135,7 @@
   body.silk-on .time-display.finished { color: var(--blue-2); }
   body.silk-on .ring-num.over { color: var(--blue-2); }
   body.silk-on .day-name:focus, body.silk-on .day-sub:focus { color: var(--txt); }
-  body.silk-on .reset-routine, body.silk-on .load-def { border-color: rgba(234,255,242,.28); }
+  body.silk-on .reset-routine, body.silk-on .load-def, body.silk-on .clear { border-color: rgba(234,255,242,.28); }
   body.silk-on .add-set, body.silk-on .cal-create { color: #7fe0a8; border-color: rgba(127,224,168,.45); }
   body.silk-on .day-del { color: #7fbf9c; }
 
@@ -193,7 +193,10 @@
 
   /* --- Texto suelto del coach (sin card opaca detrás) --- */
   body.silk-coach .co-title, body.silk-coach .co-client-name,
-  body.silk-coach .hb-title { color: #eafff2; }
+  body.silk-coach .hb-title, body.silk-coach .co-brand .wordmark .w,
+  body.silk-coach .co-onboard-lead { color: #eafff2; }
+  body.silk-coach .co-brand-tag { color: #a9d9bd; }
+  body.silk-coach .co-brand-dash { color: #7fbf9c; }
   body.silk-coach .co-sec, body.silk-coach .ci-f label, body.silk-coach .co-note-lbl,
   body.silk-coach .co-sub, body.silk-coach .cal-hint, body.silk-coach .ml-head,
   body.silk-coach .pl-help, body.silk-coach .foot { color: #a9d9bd; }
@@ -276,6 +279,33 @@
      cabecera (.co-head, con Volver/Actualizar/Salir), así que el header del cliente no debe
      mostrarse en absoluto mientras el panel del coach está activo. */
   body.silk-coach .topbar { display: none; }
+  /* Mismo motivo que el bug de arriba: .navbar es la nav inferior del CLIENTE (Entreno/
+     Hábitos/.../Ajustes) y no tiene nada que ver con el coach — la navegación del coach
+     va por su propia cabecera (.co-head: ‹ Volver / Actualizar / Salir) y sus tabs
+     internos (.co-tab/.co-daytab). Sin esto, al ser #coachHost transparente y con scroll
+     propio, la nav de abajo se seguía viendo/tocando por debajo del panel del coach. */
+  body.silk-coach .navbar { display: none; }
+  /* Reemplazo sutil de la navbar en modo coach: no es navegación (la del coach va por
+     .co-head y sus tabs internos), solo un indicador discreto de contexto — mismo
+     lugar donde estaba la nav, mismo verde de marca, bien chico. pointer-events:none
+     para no interceptar taps sobre el contenido que scrollea debajo. */
+  #coachModeBadge {
+    display: none; position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: translateX(-50%); z-index: 200; align-items: center; gap: 7px;
+    padding: 7px 14px 7px 11px; border-radius: 20px; pointer-events: none;
+    background: rgba(10,20,14,.85); border: 1px solid rgba(127,224,168,.32);
+    color: #a9d9bd; font-size: var(--text-meta); font-weight: 700; letter-spacing: .02em;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  }
+  body.silk-coach #coachModeBadge { display: flex; }
+  #coachModeBadge .cmb-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #33c481; flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(51,196,129,.7); animation: cmbPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes cmbPulse { 0%, 100% { opacity: .55; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) {
+    #coachModeBadge .cmb-dot { animation: none; opacity: 1; }
+  }
   .brand { display: flex; align-items: center; gap: 11px; }
   .brand-ic { width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(135deg, #185c37, #33c481);
     display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-lg), inset 0 1px 0 rgba(255,255,255,.3); }
@@ -335,8 +365,15 @@
   .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
   .bar > div { height: 100%; background: linear-gradient(90deg, #217346, #33c481); box-shadow: var(--glow-sm); transition: width .25s; }
   .count { font-size: var(--text-body); color: var(--txt-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .clear { font-size: var(--text-meta); color: var(--txt-3); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; flex-shrink: 0; }
-  .clear:active { color: var(--txt); }
+  /* Antes era un link subrayado suelto sobre el fondo de partículas — se perdía visualmente
+     ahí (mismo problema que ya resolvimos para .co-invite: elemento chico sin caja propia
+     sobre un fondo con textura). Ahora tiene chrome de botón chico (fondo/borde/padding),
+     mismo lenguaje que ya usan los botones ghost chicos de la app (.load-def, .co-copy-btn). */
+  .clear { font-size: var(--text-meta); font-weight: 600; color: var(--txt-3); background: transparent;
+    border: 1px solid var(--border); border-radius: 4px; padding: 6px 11px; cursor: pointer;
+    text-decoration: none; flex-shrink: 0; transition: var(--transition-tap); }
+  .clear:hover { border-color: var(--blue-2); color: var(--blue-2); }
+  .clear:active { color: var(--txt); background: var(--card-2); }
 
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-16); margin-bottom: var(--space-12);
     opacity: .45; transform: scale(.90);
@@ -691,15 +728,54 @@
   .cp-ex { text-align:left; padding:12px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; color:var(--txt); font-size: var(--text-body); cursor:pointer; }
   .cp-ex:hover { border-color:var(--blue); color:var(--blue); }
   .cp-custom { width:100%; margin-top:16px; background:none; border:1px dashed var(--border); border-radius:4px; color:var(--blue-2); font-size: var(--text-meta); padding:12px; cursor:pointer; }
-  .co-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .co-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
   .co-title { font-family:"Orbitron",monospace; font-size:20px; font-weight:800; color:var(--txt); }
+  /* Título del panel: mismo isotipo+wordmark que el header del cliente (.brand/.brand-ic/
+     .wordmark, ver topbar) en vez de un título de texto aparte — así "FitSheet" es siempre
+     el mismo logo en toda la app. El sufijo "Panel de coach" va en la tipografía normal
+     (no Orbitron, que es la fuente pesada/técnica reservada al wordmark) y en un tono más
+     apagado, para que se lea como una aclaración de contexto y no compita con la marca. */
+  .co-brand { display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+  .co-brand-dash { color:var(--txt-3); font-size:20px; font-weight:300; }
+  .co-brand-tag { font-size:var(--text-emphasis); font-weight:600; color:var(--txt-2); }
   .co-logout, .co-back { display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); color:var(--txt-2); font-size: var(--text-meta); padding:7px 12px; border-radius:4px; cursor:pointer; }
   .co-back svg { width:var(--icon-sm); height:var(--icon-sm); flex-shrink:0; }
   .co-invite { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; text-align:center; font-size: var(--text-meta); color:var(--txt-2); margin-bottom:14px; }
   .co-code { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:22px; font-weight:800; color:var(--blue); letter-spacing:3px; margin-top:6px; }
   .co-invite-sub { font-size:11px; color:var(--txt-3); margin-top:8px; }
+  /* .co-copy-btn.co-invite-copy (dos clases) a propósito: .co-copy-btn se define más
+     abajo en la hoja con display:inline-flex y misma especificidad que un .co-invite-copy
+     solo — perdería el empate por orden. Con las dos clases juntas gana seguro. */
+  .co-copy-btn.co-invite-copy { display:flex; width:fit-content; margin:10px auto 0; }
+  .co-invite-copy.copied { border-color:var(--green); color:var(--green); background:rgba(51,196,129,.1); }
+  /* Distintivo sutil para que esta caja resalte de las demás cards del panel (es la única
+     acción que el coach necesita repetir todo el tiempo: invitar clientes nuevos). Mismo
+     verde de marca que ya usa toda la app, nada nuevo — solo un borde más marcado y un
+     glow fino (--glow-sm, pensado justo para "acentos finos", ver su comentario en :root).
+     Va scopeado a body.silk-coach .co-invite (no solo .co-invite) para empatar en
+     especificidad con la regla de la familia "Meteors" de arriba y ganarle por orden en
+     la cascada — mismo criterio que ya usa el código para .cp-modal/.cp-ccard. */
+  body.silk-coach .co-invite {
+    border-color: rgba(127,224,168,.4);
+    box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03), var(--glow-sm);
+  }
   .co-sec { font-size: var(--text-meta); color:var(--txt-2); font-weight:600; margin:22px 2px 10px; }
   .co-item { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:15px 14px; margin-bottom:8px; cursor:pointer; }
+  /* Estado vacío de "Clientes" cuando el coach todavía no vinculó a nadie: antes era una
+     sola línea de .cal-hint y dejaba el resto de la pantalla en negro sin nada — parecía
+     rota, no "aire" premium. Ahora es un mini-onboarding de 3 pasos que usa la clase
+     .co-item TAL CUAL (no una reimplementación): mismo fondo/borde/radio/padding, y de
+     yapa hereda gratis el fondo "Meteors" con estelas que ya tienen las cards reales de
+     cliente, vía la familia :is(...) de arriba. Solo se le saca el cursor de click (estos
+     pasos no son filas navegables) y se le pone una numeración circular en vez de la
+     flecha/nombre de un cliente real. */
+  .co-onboard-lead { font-size:var(--text-body); color:var(--txt); font-weight:700; text-align:center; margin-bottom:14px; }
+  .co-onboard-step { cursor:default; justify-content:flex-start; gap:12px; }
+  .co-onboard-n { flex-shrink:0; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(51,196,129,.14); border:1px solid rgba(127,224,168,.35); color:var(--blue-2);
+    font-weight:800; font-size:var(--text-meta); font-family:var(--font-mono); }
+  .co-onboard-txt { font-size:var(--text-body); color:var(--txt-2); line-height:1.4; }
+  .co-onboard-txt b { color:var(--txt); font-weight:700; }
   .co-item:active { background:var(--card-2); }
   .co-name { font-size: var(--text-emphasis); color:var(--txt); font-weight:600; }
   .co-arrow { color:var(--txt-3); font-size:20px; }
@@ -930,6 +1006,14 @@
   .co-tabs { display:flex; gap:8px; margin:4px 0 14px; }
   .co-tab { flex:1; padding:10px 12px; background:var(--card-2); border:1px solid var(--border); border-radius:5px; color:var(--txt-2); font-size: var(--text-meta); font-weight:700; cursor:pointer; }
   .co-tab.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+  /* Color semántico del conteo, desacoplado de si la tab está seleccionada: gris/neutro
+     cuando no hay datos (0), verde de marca cuando sí hay — así el número comunica algo
+     por sí solo aunque no estés parado en esa tab. En estado .on el fondo ya es verde
+     sólido, así que el número pasa a blanco (igual que el resto de la etiqueta) en vez
+     de competir con ese fondo — la selección se sigue leyendo por el fill, no por el número. */
+  .co-tab-count { color:var(--txt-3); font-weight:700; }
+  .co-tab-count.has { color:var(--blue-2); }
+  .co-tab.on .co-tab-count { color:#fff; }
   .co-search { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:5px; padding:10px 13px; color:var(--txt); font-size: var(--text-body); margin-bottom:10px; }
   .co-item-meta { font-size:11px; color:var(--txt-3); margin-top:3px; }
   .tpl-item .co-name { font-weight:700; }
@@ -1099,6 +1183,7 @@
   <canvas id="silkCanvas" aria-hidden="true"></canvas>
   <div id="authHost"></div>
   <div id="coachHost"></div>
+  <div id="coachModeBadge" aria-hidden="true"><span class="cmb-dot"></span>Modo Coach</div>
   <div id="coachSheetHost"></div>
   <div id="fbHost"></div>
   <div class="topbar">
@@ -1108,7 +1193,7 @@
     </div>
     <div class="client-tag" id="brandTag" style="display:none">
       <div class="client-name" id="brandName"></div>
-      <div class="client-sub">Tu planilla</div>
+      <div class="client-sub">Tu coach</div>
     </div>
   </div>
 
@@ -1172,9 +1257,9 @@ const chevronDownSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 // ---- Base de datos de alimentos (por 100 g): [nombre, kcal, prot, carbo, grasa, porción g] ----
 const FOODS_RAW = [
 // ---- LÁCTEOS Y HUEVOS ----
-["Leche entera La Serenísima",61,3.2,4.8,3.3,200],["Leche descremada",35,3.4,5,0.1,200],["Leche parcialmente descremada",48,3.3,4.9,1.5,200],
-["Leche chocolatada Cindor",76,3.1,11,2.2,200],["Leche en polvo entera",496,25,38,26,25],["Leche en polvo descremada",362,36,52,1,25],
-["Yogur entero natural",61,3.5,4.7,3.3,190],["Yogur descremado natural",45,4,6,0.2,190],["Yogur bebible entero",65,2.8,10,1.8,220],
+["Leche entera La Serenísima",61,3.2,4.8,3.3,200,"ml"],["Leche descremada",35,3.4,5,0.1,200,"ml"],["Leche parcialmente descremada",48,3.3,4.9,1.5,200,"ml"],
+["Leche chocolatada Cindor",76,3.1,11,2.2,200,"ml"],["Leche en polvo entera",496,25,38,26,25],["Leche en polvo descremada",362,36,52,1,25],
+["Yogur entero natural",61,3.5,4.7,3.3,190],["Yogur descremado natural",45,4,6,0.2,190],["Yogur bebible entero",65,2.8,10,1.8,220,"ml"],
 ["Yogur Ser 0%",42,4.5,5.5,0.1,190],["Yogur griego natural",97,9,4,5,170],["Yogur con cereales",110,3.5,18,2.5,150],
 ["Actimel",67,2.9,10.5,1.5,100],["Danonino",95,6,11,3,52],["Postre Ser Vainilla",78,3.2,13,1.5,120],
 ["Postre La Serenísima Danito",115,3,17,4,100],["Flan casero",130,4.5,20,3.5,120],["Queso cremoso",290,20,2,23,30],
@@ -1290,20 +1375,20 @@ const FOODS_RAW = [
 ["Postre Jauja (1 pote)",250,4,30,12,120],["Gelatina (preparada)",62,1.5,14,0,150],["Flan Royal (preparado)",115,3,20,2.5,120],
 ["Mousse de chocolate (porción)",280,5,25,18,100],["Tiramisú (porción)",340,5,32,20,120],
 // ---- BEBIDAS SIN ALCOHOL ----
-["Agua mineral",0,0,0,0,500],["Agua saborizada Levité",18,0,4.5,0,500],["Coca-Cola",42,0,10.6,0,350],
-["Coca-Cola Zero",0.3,0,0,0,350],["Pepsi",41,0,10.5,0,350],["Sprite",37,0,9.3,0,350],
-["Fanta",42,0,10.5,0,350],["Paso de los Toros (pomelo)",38,0,9.5,0,350],["Gatorade",24,0,6,0,500],
-["Powerade",24,0,6,0,500],["Speed energizante",48,0,12,0,250],["Red Bull",45,0,11,0,250],
-["Jugo Cepita",45,0.3,11,0,200],["Jugo Baggio",40,0.2,10,0,200],["Jugo exprimido natural (naranja)",45,0.7,10.4,0.2,200],
-["Café solo (sin azúcar)",2,0.1,0,0,50],["Café con leche",55,3,5,2.5,200],["Té (sin azúcar)",1,0,0.3,0,200],
-["Mate cocido (sin azúcar)",1,0,0.2,0,200],["Yerba mate (infusión, mate cebado)",5,0.5,1,0,200],["Licuado de banana con leche",95,3,17,2,250],
-["Smoothie de frutas",90,1,21,0.3,250],["Leche chocolatada (ver Lácteos)",76,3.1,11,2.2,200],["Isotónica casera (agua+sal+limón)",10,0,2.5,0,500],
+["Agua mineral",0,0,0,0,500,"ml"],["Agua saborizada Levité",18,0,4.5,0,500,"ml"],["Coca-Cola",42,0,10.6,0,350,"ml"],
+["Coca-Cola Zero",0.3,0,0,0,350,"ml"],["Pepsi",41,0,10.5,0,350,"ml"],["Sprite",37,0,9.3,0,350,"ml"],
+["Fanta",42,0,10.5,0,350,"ml"],["Paso de los Toros (pomelo)",38,0,9.5,0,350,"ml"],["Gatorade",24,0,6,0,500,"ml"],
+["Powerade",24,0,6,0,500,"ml"],["Speed energizante",48,0,12,0,250,"ml"],["Red Bull",45,0,11,0,250,"ml"],
+["Jugo Cepita",45,0.3,11,0,200,"ml"],["Jugo Baggio",40,0.2,10,0,200,"ml"],["Jugo exprimido natural (naranja)",45,0.7,10.4,0.2,200,"ml"],
+["Café solo (sin azúcar)",2,0.1,0,0,50,"ml"],["Café con leche",55,3,5,2.5,200,"ml"],["Té (sin azúcar)",1,0,0.3,0,200,"ml"],
+["Mate cocido (sin azúcar)",1,0,0.2,0,200,"ml"],["Yerba mate (infusión, mate cebado)",5,0.5,1,0,200,"ml"],["Licuado de banana con leche",95,3,17,2,250,"ml"],
+["Smoothie de frutas",90,1,21,0.3,250,"ml"],["Leche chocolatada (ver Lácteos)",76,3.1,11,2.2,200,"ml"],["Isotónica casera (agua+sal+limón)",10,0,2.5,0,500,"ml"],
 // ---- BEBIDAS ALCOHÓLICAS ----
-["Cerveza Quilmes",43,0.5,3.6,0,350],["Cerveza IPA artesanal",56,0.6,4.6,0,350],["Cerveza sin alcohol",25,0.4,5.8,0,350],
-["Vino tinto (copa)",85,0.1,2.6,0,150],["Vino blanco (copa)",82,0.1,2.6,0,150],["Espumante / champagne (copa)",90,0.2,3,0,150],
-["Fernet (medida)",118,0,10,0,50],["Whisky (medida)",106,0,0,0,45],["Vodka (medida)",97,0,0,0,45],
-["Gin (medida)",97,0,0,0,45],["Aperol Spritz (vaso)",120,0.2,12,0,200],["Campari (medida)",120,0,15,0,50],
-["Sidra (copa)",95,0,7,0,200],
+["Cerveza Quilmes",43,0.5,3.6,0,350,"ml"],["Cerveza IPA artesanal",56,0.6,4.6,0,350,"ml"],["Cerveza sin alcohol",25,0.4,5.8,0,350,"ml"],
+["Vino tinto (copa)",85,0.1,2.6,0,150,"ml"],["Vino blanco (copa)",82,0.1,2.6,0,150,"ml"],["Espumante / champagne (copa)",90,0.2,3,0,150,"ml"],
+["Fernet (medida)",118,0,10,0,50,"ml"],["Whisky (medida)",106,0,0,0,45,"ml"],["Vodka (medida)",97,0,0,0,45,"ml"],
+["Gin (medida)",97,0,0,0,45,"ml"],["Aperol Spritz (vaso)",120,0.2,12,0,200,"ml"],["Campari (medida)",120,0,15,0,50,"ml"],
+["Sidra (copa)",95,0,7,0,200,"ml"],
 // ---- SUPLEMENTOS Y BARRAS PROTEICAS ----
 ["Proteína whey (1 scoop ~30g)",120,24,3,1.5,30],["Proteína whey ENA (1 scoop)",117,23,3,1.5,30],["Proteína whey Xtrenght (1 scoop)",115,24,2.5,1,30],
 ["Proteína vegana (1 scoop ~30g)",110,20,5,1.5,30],["Caseína (1 scoop ~30g)",110,24,2,1,30],["Ganador de peso / Mass (1 scoop ~50g)",190,10,32,3,50],
@@ -1311,13 +1396,13 @@ const FOODS_RAW = [
 ["Pre-entreno (1 dosis)",5,0,1,0,10],["Barra proteica ENA (1 unidad)",200,20,18,7,60],["Barra proteica Xtrenght (1 unidad)",190,20,16,6.5,60],
 ["Barra proteica Gold Nutrition (1 u.)",180,15,20,5,50],["Barra proteica Quest",190,20,21,7,60],["Barra de cereal fit (1 unidad)",95,1.5,18,2,25],
 ["Alfajor proteico (1 unidad)",210,15,20,8,50],["Gelatina proteica (1 pote)",90,15,5,1,150],["Pancakes proteicos (mix, preparados 3 u.)",280,25,25,8,150],
-["Clara líquida pasteurizada (100 ml)",48,10,0.7,0.1,100],["Isotónico en polvo (1 dosis)",90,0,22,0,300],["Multivitamínico (1 comprimido)",2,0,0.4,0,1],
+["Clara líquida pasteurizada (100 ml)",48,10,0.7,0.1,100,"ml"],["Isotónico en polvo (1 dosis)",90,0,22,0,300],["Multivitamínico (1 comprimido)",2,0,0.4,0,1],
 ["Omega 3 (1 cápsula)",9,0,0,1,1],["Colágeno hidrolizado (1 dosis ~10g)",36,9,0,0,10],["Melatonina (1 comprimido)",1,0,0.2,0,1],
 // ---- DIETÉTICA Y FARMACIA ----
 ["Edulcorante líquido (10 gotas)",0,0,0,0,1],["Edulcorante en polvo (1 sobre)",4,0,1,0,1],["Stevia (1 sobre)",0,0,0.3,0,1],
 ["Azúcar mascabo",380,0,100,0,10],["Azúcar blanca",387,0,100,0,10],["Harina de almendras",579,21,22,50,30],
-["Harina de avena",389,17,66,7,40],["Leche de almendras",17,0.6,0.6,1.5,200],["Leche de coco (bebida, no crema)",25,0.2,3,2,200],
-["Leche de avena",45,1,7,1.5,200],["Yogur de soja",55,3.5,4,2.5,190],["Tofu",76,8,1.9,4.8,100],
+["Harina de avena",389,17,66,7,40],["Leche de almendras",17,0.6,0.6,1.5,200,"ml"],["Leche de coco (bebida, no crema)",25,0.2,3,2,200,"ml"],
+["Leche de avena",45,1,7,1.5,200,"ml"],["Yogur de soja",55,3.5,4,2.5,190],["Tofu",76,8,1.9,4.8,100],
 ["Seitán",370,75,14,2,100],["Hamburguesa de vegetales / lentejas (1 u.)",180,10,18,7,90],["Pan sin TACC (1 rebanada)",250,4,52,2,25],
 ["Fideos sin TACC (cocidos)",150,3,32,1,150],["Granola casera",450,10,60,17,40],["Cereales de desayuno (copos de maíz)",378,7,84,1,30],
 ["Cereales integrales con fibra",360,8,75,3,30],["Salvado de trigo",216,16,64,4.3,15],["Germen de trigo",360,25,45,10,15],
@@ -1377,7 +1462,7 @@ const FOODS_RAW = [
 ["Vacuno, tapa de cuadril, fresco, crudo (Argenfoods)",211,20,0,15,150],["Vacuno, vacío, a la parrilla (Argenfoods)",258,25.6,0,17.3,150],["Vacuno, vacío flaco, fresco, crudo (Argenfoods)",171,23.8,0,8.4,150],
 ["Salchichas tipo Viena (Argenfoods)",211,11.3,3.9,13.6,150],
 // ---- LÁCTEOS Y QUESOS — fuente oficial: Argenfoods (UNLu) ----
-["Leche de vaca, entera, fluida, pasteurizada (Argenfoods)",57,3.1,4.6,2.9,100],["Leche de vaca parcialm. descremada, adic. con vit A y D (Argenfoods)",44,3.2,4.6,1.4,100],["Leche en polvo descremada (Argenfoods)",370,35.5,52.2,1,100],
+["Leche de vaca, entera, fluida, pasteurizada (Argenfoods)",57,3.1,4.6,2.9,100,"ml"],["Leche de vaca parcialm. descremada, adic. con vit A y D (Argenfoods)",44,3.2,4.6,1.4,100,"ml"],["Leche en polvo descremada (Argenfoods)",370,35.5,52.2,1,100],
 ["Leche en polvo entera (Argenfoods)",489,25.8,40.9,24.8,100],["Manteca, fresca (Argenfoods)",758,0.5,0,84,100],["Queso crema, entero, untable (Argenfoods)",246,6.6,3.9,22.6,100],
 ["Queso descremado, untable (Argenfoods)",82,13.7,6.1,0.3,100],["Queso semidescremado, untable (Argenfoods)",104,11.5,5.5,4,100],["Queso Camembert (Argenfoods)",287,20.1,0,23,100],
 ["Queso cremoso (Argenfoods)",302,19.7,4.2,22.9,100],["Queso cuartirolo (Argenfoods)",291,20.8,3.9,21.4,100],["Queso mozzarella (Argenfoods)",282,23.6,3.3,19.3,100],
@@ -1385,8 +1470,8 @@ const FOODS_RAW = [
 ["Queso Fontina (Argenfoods)",340,24.3,0,33.6,100],["Queso Gruyere (Argenfoods)",379,28.6,0,29.4,100],["Queso Holanda (Argenfoods)",345,25.1,0,27.2,100],
 ["Queso Pategrás (Argenfoods)",410,24.8,0,34.5,100],["Queso Roquefort (Argenfoods)",426,19.2,0,38.8,100],["Queso Parmesano (Argenfoods)",350,32.7,0,24.4,100],
 ["Queso Provolone (Argenfoods)",391,32.1,0,29.2,100],["Queso Reggianito (Argenfoods)",365,33.4,3.4,24.2,100],["Queso Sardo (Argenfoods)",402,30,0,29.1,100],
-["Ricota de leche entera (Argenfoods)",168,11.6,4,11.8,100],["Yogur descremado (Argenfoods)",59,4.3,5.9,0.2,100],["Yogur descremado bebible (Argenfoods)",30,3.3,4.1,0.1,100],
-["Yogur entero bebible (Argenfoods)",82,2.8,12.7,2.2,100],["Yogur entero natural (Argenfoods)",66,4.6,5.3,3,100],["Yogur entero saborizado (Argenfoods)",88,4.4,12.4,2.4,100],
+["Ricota de leche entera (Argenfoods)",168,11.6,4,11.8,100],["Yogur descremado (Argenfoods)",59,4.3,5.9,0.2,100],["Yogur descremado bebible (Argenfoods)",30,3.3,4.1,0.1,100,"ml"],
+["Yogur entero bebible (Argenfoods)",82,2.8,12.7,2.2,100,"ml"],["Yogur entero natural (Argenfoods)",66,4.6,5.3,3,100],["Yogur entero saborizado (Argenfoods)",88,4.4,12.4,2.4,100],
 // ---- HUEVOS — fuente oficial: Argenfoods (UNLu) ----
 ["Huevo de codorniz, entero, crudo (Argenfoods)",174,13.6,0.1,13.3,50],["Huevo de gallina, clara, cocida (Argenfoods)",54,12.8,0,0.3,50],["Huevo de gallina, clara, cruda (Argenfoods)",48,11.6,0,0.2,50],
 ["Huevo de gallina, entero, crudo (Argenfoods)",156,12,0.4,11.8,50],["Huevo de gallina, frito (Argenfoods)",196,16.3,0,14.5,50],["Huevo de gallina, poché (Argenfoods)",152,13.4,0,10.9,50],
@@ -1413,7 +1498,7 @@ const FOODS_RAW = [
 ["Dulce de leche repostero (Argenfoods)",317,7.3,55,7.5,20],["Mermelada de ciruela (Argenfoods)",306,3.7,73.1,0.2,20],["Mermelada de durazno (Argenfoods)",304,3.5,76.4,0.1,20],
 ["Mermelada de frutilla (Argenfoods)",309,3.8,73.2,0.6,20],["Batata, dulce (cascos) (Argenfoods)",263,0.9,65,0.1,20]
 ];
-const FOODS = FOODS_RAW.map(a=>({name:a[0],kcal:a[1],p:a[2],c:a[3],f:a[4],portion:a[5]}));
+const FOODS = FOODS_RAW.map(a=>({name:a[0],kcal:a[1],p:a[2],c:a[3],f:a[4],portion:a[5],unit:a[6]||"g"}));
 
 const EX_CATS = [["pecho","Pecho"],["espalda","Espalda"],["hombros","Hombros"],["biceps","Bíceps"],["triceps","Tríceps"],["cuadriceps","Cuádriceps"],["isquios","Isquios"],["gluteos","Glúteos"],["gemelos","Gemelos"],["abs","Abdominales"],["antebrazo","Antebrazo"],["cuello","Cuello"]];
 const EX_DB = {
@@ -1670,7 +1755,7 @@ let expandedOverride = new Set();
 let exerciseObserver = null;
 let loadEx = null;
 let calForm={sex:"m",age:"",height:"",weight:"",activity:"mod",goal:"mantener"};
-let foodForm={name:"",kcal:"",p:"",c:"",f:""};
+let foodForm={name:"",kcal:"",p:"",c:"",f:"",unit:"g"};
 const RC = 2*Math.PI*52;
 let liveCounting=false, lpf=9.8, prevDyn=0, lastStepTs=0, stepsSaveTs=0;
 
@@ -1995,10 +2080,10 @@ function renderResults(q){
   if(!lastResults.length) return '<div class="cal-hint">Sin resultados. Probá crear el alimento 👇</div>';
   return lastResults.map((f,i)=>`<div class="food-row" data-action="food-pick" data-idx="${i}">
     <div class="food-name">${esc(f.name)}</div>
-    <div class="food-kcal">${f.kcal} kcal<span>por 100 g</span></div>
+    <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}</span></div>
   </div>`).join("");
 }
-function entryBase(e){ return e.base ? e.base : { kcal: e.grams? e.kcal/e.grams*100:0, p: e.grams? e.p/e.grams*100:0, c: e.grams? e.c/e.grams*100:0, f: e.grams? e.f/e.grams*100:0 }; }
+function entryBase(e){ return e.base ? e.base : { kcal: e.grams? e.kcal/e.grams*100:0, p: e.grams? e.p/e.grams*100:0, c: e.grams? e.c/e.grams*100:0, f: e.grams? e.f/e.grams*100:0, unit: e.unit||"g" }; }
 function previewStr(food, grams){
   const fc=(parseFloat(grams)||0)/100;
   return `${Math.round(food.kcal*fc)} kcal · P ${(food.p*fc).toFixed(1)} · C ${(food.c*fc).toFixed(1)} · G ${(food.f*fc).toFixed(1)}`;
@@ -2014,7 +2099,7 @@ function renderSheet(){
       <div class="sheet-title">${esc(title)}</div>
       <div class="sheet-row">
         <input id="portionGrams" class="sheet-input" type="text" inputmode="numeric" value="${grams}" data-action="portion-grams">
-        <span class="sheet-unit">gramos</span>
+        <span class="sheet-unit">${base.unit==="ml"?"ml":"gramos"}</span>
       </div>
       <div class="sheet-preview" id="portionPreview">${previewStr(base, grams)}</div>
       <div class="sheet-btns">
@@ -2048,10 +2133,12 @@ function renderCalForm(){
 }
 function renderFoodForm(){
   const f = foodForm;
+  const ub=(v,l)=>`<button class="${(f.unit||"g")===v?'on':''}" data-action="cf-unit" data-val="${v}">${l}</button>`;
   return `
     <div class="form-head"><button class="form-back" data-action="food-create-cancel">‹</button><div class="form-title">Crear alimento</div></div>
-    <div class="form-sub">Cargá los valores por cada 100 g.</div>
+    <div class="form-sub">Cargá los valores por cada 100 ${(f.unit||"g")==="ml"?"ml":"g"}.</div>
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" value="${esc(f.name)}" data-action="cf-field" data-field="name"></div>
+    <div class="form-group"><label class="form-label">Se mide en</label><div class="seg">${ub("g","Gramos (sólido)")}${ub("ml","Mililitros (líquido)")}</div></div>
     <div class="form-group"><label class="form-label">Calorías (kcal)</label><input class="form-input" type="text" inputmode="numeric" value="${esc(f.kcal)}" data-action="cf-field" data-field="kcal"></div>
     <div class="form-row2">
       <div class="form-group"><label class="form-label">Proteína (g)</label><input class="form-input" type="text" inputmode="decimal" value="${esc(f.p)}" data-action="cf-field" data-field="p"></div>
@@ -2107,7 +2194,7 @@ function renderComida(){
   };
   const diary = state.diary.length ? state.diary.map(e=>`
     <div class="diary-item" data-action="diary-edit" data-id="${e.id}">
-      <div class="diary-name">${esc(e.name)}<span>${e.grams} g · P ${e.p} · C ${e.c} · G ${e.f}</span></div>
+      <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${e.p} · C ${e.c} · G ${e.f}</span></div>
       <div class="diary-kcal">${e.kcal} kcal</div>
       <button class="diary-rm" data-action="diary-remove" data-id="${e.id}" title="Quitar">${xSvg}</button>
     </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
@@ -2536,8 +2623,7 @@ function renderProgreso(){
     ${renderDaily()}
     ${renderCheckin()}
     ${renderVolumen()}
-    ${(cloudProfile && cloudProfile.role!=="coach" && !cloudProfile.coach_id) ? '<div class="join-box"><div class="join-t">Vinculate a tu coach</div><input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px"><button class="form-save" data-auth="join" style="margin-top:0">Vincular</button></div>' : ''}
-    ${cloudUser ? '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' : ''}`;
+    ${(cloudProfile && cloudProfile.role!=="coach" && !cloudProfile.coach_id) ? '<div class="join-box"><div class="join-t">Vinculate a tu coach</div><input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px"><button class="form-save" data-auth="join" style="margin-top:0">Vincular</button></div>' : ''}`;
 }
 
 let sheetGen = 0;
@@ -2778,11 +2864,12 @@ document.body.addEventListener("click", async e => {
     state.calProfile = Object.assign({}, calForm); state.calTarget = calcTarget(calForm); calEditing=false; save(); renderApp(); return;
   }
   if (a === "cal-manual") { const m=parseInt((document.getElementById("calManual")||{}).value); if(m>0){ state.calTarget=m; calEditing=false; save(); renderApp(); } else alert("Ingresá un número de calorías válido."); return; }
-  if (a === "food-create-open") { foodForm={name:"",kcal:"",p:"",c:"",f:""}; creatingFood=true; renderApp(); return; }
+  if (a === "food-create-open") { foodForm={name:"",kcal:"",p:"",c:"",f:"",unit:"g"}; creatingFood=true; renderApp(); return; }
   if (a === "food-create-cancel") { creatingFood=false; renderApp(); return; }
+  if (a === "cf-unit") { foodForm.unit = el.dataset.val; renderApp(); return; }
   if (a === "food-create-save") {
     if(!foodForm.name.trim() || !(+foodForm.kcal>=0) || foodForm.kcal===""){ alert("Poné al menos nombre y calorías."); return; }
-    state.foods.push({ name:foodForm.name.trim(), kcal:+foodForm.kcal||0, p:+foodForm.p||0, c:+foodForm.c||0, f:+foodForm.f||0, portion:100 });
+    state.foods.push({ name:foodForm.name.trim(), kcal:+foodForm.kcal||0, p:+foodForm.p||0, c:+foodForm.c||0, f:+foodForm.f||0, portion:100, unit:foodForm.unit||"g" });
     creatingFood=false; foodQuery=foodForm.name.trim(); save(); renderApp(); return;
   }
   if (a === "food-pick") { sheetGen++; selectedFood = lastResults[parseInt(el.dataset.idx)]; renderApp(); return; }
@@ -2790,13 +2877,13 @@ document.body.addEventListener("click", async e => {
   if (a === "portion-add") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const f = selectedFood; if(!f){ return; } const fc = g/100;
-    state.diary.push({ id:uid(), name:f.name, grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f} });
+    state.diary.push({ id:uid(), name:f.name, grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
     save(); closeSheet(()=>{ selectedFood=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const e = editEntry; if(!e){ return; } const base=entryBase(e); const fc=g/100;
-    e.grams=Math.round(g); e.kcal=Math.round(base.kcal*fc); e.p=+(base.p*fc).toFixed(1); e.c=+(base.c*fc).toFixed(1); e.f=+(base.f*fc).toFixed(1); e.base=base;
+    e.grams=Math.round(g); e.kcal=Math.round(base.kcal*fc); e.p=+(base.p*fc).toFixed(1); e.c=+(base.c*fc).toFixed(1); e.f=+(base.f*fc).toFixed(1); e.unit=base.unit||"g"; e.base=base;
     save(); closeSheet(()=>{ editEntry=null; renderApp(); }); return;
   }
   if (a === "diary-edit") { sheetGen++; editEntry = state.diary.find(x=>x.id===el.dataset.id)||null; selectedFood=null; renderApp(); return; }
@@ -3754,8 +3841,8 @@ function renderCoach(){
   document.body.classList.add("silk-coach");
   if(!coachSel && !coachTplEdit){
     const tabs='<div class="co-tabs">'+
-      '<button class="co-tab'+(coachView==="clients"?" on":"")+'" data-coach="view-clients">Clientes ('+coachClients.length+')</button>'+
-      '<button class="co-tab'+(coachView==="tpls"?" on":"")+'" data-coach="view-tpls">Mis rutinas ('+coachTpls.length+')</button>'+
+      '<button class="co-tab'+(coachView==="clients"?" on":"")+'" data-coach="view-clients">Clientes <span class="co-tab-count'+(coachClients.length?" has":"")+'">('+coachClients.length+')</span></button>'+
+      '<button class="co-tab'+(coachView==="tpls"?" on":"")+'" data-coach="view-tpls">Mis rutinas <span class="co-tab-count'+(coachTpls.length?" has":"")+'">('+coachTpls.length+')</span></button>'+
     '</div>';
     let body="";
     if(coachView==="tpls"){
@@ -3774,15 +3861,25 @@ function renderCoach(){
     } else {
       const q=(coachSearch||"").toLowerCase();
       const filtered=coachClients.filter(c=>(c.full_name||"").toLowerCase().includes(q));
+      const onboard='<div class="co-onboard">'+
+        '<div class="co-onboard-lead">Todavía no tenés clientes vinculados</div>'+
+        '<div class="co-item co-onboard-step"><div class="co-onboard-n">1</div><div class="co-onboard-txt">Copiá tu <b>código de invitación</b> de arriba</div></div>'+
+        '<div class="co-item co-onboard-step"><div class="co-onboard-n">2</div><div class="co-onboard-txt">Pasáselo a tu cliente por donde le quede más cómodo</div></div>'+
+        '<div class="co-item co-onboard-step"><div class="co-onboard-n">3</div><div class="co-onboard-txt">Se vincula solo — va a aparecer acá apenas lo haga</div></div>'+
+      '</div>';
       const list=filtered.length ? filtered.map(c=>{
         const st=coachClientStats[c.id]||{};
         const meta=st.nSess ? st.nSess+' entrenos'+(st.lastSess?' · último '+fmtDate(st.lastSess):'') : 'sin entrenos aún';
         return '<div class="co-item" data-coach="open" data-id="'+c.id+'"><div class="co-name">'+esc(c.full_name||"Sin nombre")+'</div><div class="co-item-meta">'+meta+'</div><div class="co-arrow">›</div></div>';
-      }).join("") : '<div class="cal-hint">'+(coachSearch?'Sin resultados.':'Todavía no tenés clientes vinculados. Pasales tu código para que se unan.')+'</div>';
+      }).join("") : '<div class="cal-hint">Sin resultados.</div>';
       const searchBox=coachClients.length>3 ? '<input class="co-search" placeholder="\u{1F50D} Buscar cliente…" data-coach="coach-search" value="'+esc(coachSearch||"")+'">' : "";
-      body=searchBox+'<div class="co-items">'+list+'</div>';
+      // El onboarding es un bloque ancho de texto/pasos, no una card angosta más — si lo
+      // metiera adentro de .co-items (grid de auto-fill,minmax(260px,1fr) en desktop)
+      // quedaría encajonado en una sola columna angosta con carriles vacíos al lado.
+      // Va como reemplazo del bloque entero (sin buscador ni grid), no como un item más.
+      body=(!coachSearch && !coachClients.length) ? onboard : searchBox+'<div class="co-items">'+list+'</div>';
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-title">Panel del Coach</div><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(coachInvite||"—")+'</span><div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div><div class="wordmark"><span class="b">Fit</span><span class="w">Sheet</span></div><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(coachInvite||"—")+'</span>'+(coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
   } else if(coachTplEdit){
     const rt=coachTplEdit.days||[];
     let ed="";
@@ -3824,6 +3921,21 @@ function renderCoach(){
 document.body.addEventListener("click", async e => {
   const b=e.target.closest("[data-coach]"); if(!b) return;
   const a=b.dataset.coach;
+  if(a==="copy-invite"){
+    if(!coachInvite) return;
+    try{ await navigator.clipboard.writeText(coachInvite); }
+    catch(err){
+      try{
+        const ta=document.createElement("textarea");
+        ta.value=coachInvite; ta.style.position="fixed"; ta.style.opacity="0";
+        document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+      }catch(e2){ alert("No se pudo copiar. Código: "+coachInvite); return; }
+    }
+    const prevHtml=b.innerHTML;
+    b.innerHTML=checkSvg+' ¡Copiado!'; b.classList.add("copied");
+    setTimeout(()=>{ b.innerHTML=prevHtml; b.classList.remove("copied"); }, 1600);
+    return;
+  }
   if(a==="open"){ openClient(b.dataset.id); return; }
   if(a==="back"){ coachSel=null; coachData=null; renderCoach(); return; }
   if(a==="refresh"){ if(coachSel) openClient(coachSel); return; }
@@ -4084,7 +4196,14 @@ if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navi
   }
   .cfg-empty { color:var(--txt-2); font-size:var(--text-body); text-align:center; padding:6px 0; }
   .cfg-row-simple { display:flex; align-items:center; justify-content:space-between; font-size:var(--text-body); color:var(--txt); }
-  .cfg-ok { color:var(--blue-2); font-weight:700; font-size:var(--text-meta); }
+  /* .cfg-ok ahora es un <button> (antes era un <span> puramente informativo) para poder
+     desvincularse del coach con un solo click — reseteo el chrome nativo de botón para
+     que en reposo se vea IDÉNTICO al texto de antes, y solo con :hover insinúo que es
+     una acción (se tiñe de rojo apagado, mismo tono que ya usa .cfg-danger más abajo
+     para "Borrar datos"), sin agregar ningún elemento visual nuevo a la pantalla. */
+  .cfg-ok { background:none; border:none; padding:0; font:inherit; cursor:pointer;
+    color:var(--blue-2); font-weight:700; font-size:var(--text-meta); transition:color .15s ease; }
+  .cfg-ok:hover { color:#e08a80; }
   .cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
   .cfg-about { text-align:center; color:var(--txt-3); font-size:var(--text-meta); margin-top:4px; padding-bottom:8px; }
   .cfg-danger { border-color:rgba(192,57,43,.35) !important; color:#e08a80 !important; }
@@ -4160,7 +4279,7 @@ if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navi
 
     var coachSection = !logged ? "" :
       linked
-        ? '<div class="card cfg-card"><div class="cfg-row-simple"><span>Tu coach</span><span class="cfg-ok">Vinculado ✅</span></div></div>'
+        ? '<div class="card cfg-card"><div class="cfg-row-simple"><span>Tu coach</span><button class="cfg-ok" data-action="cfg-unlink-coach" title="Desvincularte de tu coach">Vinculado ✅</button></div></div>'
         : needsLink
           ? '<div class="join-box" style="margin-top:0">' +
               '<div class="join-t">Vinculate a tu coach</div>' +
@@ -4215,10 +4334,27 @@ if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navi
   }
 
   // ---- 4. Acciones propias de esta sección ----
-  document.body.addEventListener("click", function(e){
+  document.body.addEventListener("click", async function(e){
     var loginBtn = e.target.closest('[data-action="cfg-login"]');
     if (loginBtn) {
       if (typeof showLogin === "function") showLogin("", "in");
+      return;
+    }
+    var unlinkBtn = e.target.closest('[data-action="cfg-unlink-coach"]');
+    if (unlinkBtn) {
+      if (!confirm("¿Seguro que te querés desvincular de tu coach? Vas a necesitar su código de invitación de nuevo si te querés volver a vincular.")) return;
+      var prevHtml = unlinkBtn.innerHTML;
+      unlinkBtn.disabled = true; unlinkBtn.innerHTML = "Desvinculando…";
+      try {
+        var r = await sb.from("profiles").update({coach_id: null}).eq("id", cloudUser.id);
+        if (r.error) throw r.error;
+        if (typeof loadCloud === "function") await loadCloud();
+        else cloudProfile.coach_id = null;
+        renderApp();
+      } catch (err) {
+        alert("No se pudo desvincular: " + ((err && err.message) || err));
+        unlinkBtn.disabled = false; unlinkBtn.innerHTML = prevHtml;
+      }
       return;
     }
     var clearBtn = e.target.closest('[data-action="cfg-clear-local"]');
