@@ -1,5 +1,9 @@
 /* css/screens/coach/index.css */
-.co-wrap { max-width:1340px; margin:0 auto; padding:22px 20px 60px; }
+/* #coachHost es position:fixed;inset:0 (ver layout.css), así que .co-wrap arranca
+     pegado al borde físico de la pantalla — a diferencia de .topbar (header del
+     cliente), que sí suma env(safe-area-inset-top). Sin ese mismo margen acá, el
+     logo y "Salir" quedan tapados por el notch/status bar del celular. */
+.co-wrap { max-width:1340px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top)) 20px calc(60px + env(safe-area-inset-bottom)); }
 
 @media (min-width: 900px){
     .co-grid { display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:start; }
