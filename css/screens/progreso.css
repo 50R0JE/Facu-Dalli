@@ -1,0 +1,82 @@
+/* css/screens/progreso.css */
+.w-current { text-align: center; margin: 6px 0 14px; }
+
+.w-now { font-weight:700; font-size: 42px; font-weight: 800; color: var(--txt); letter-spacing: -0.02em; }
+
+.w-now small { font-size: 18px; color: var(--txt-2); }
+
+.w-meta { font-size: var(--text-meta); color: var(--txt-2); margin-top: 4px; }
+
+.w-delta { color: var(--blue-2); font-weight: 600; margin-left: 4px; }
+
+.w-chart { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-12) var(--space-8); margin-bottom: var(--space-16); }
+
+.w-form { display: flex; gap: 8px; margin-bottom: 18px; }
+
+.w-list-head { font-size: var(--text-meta); color: var(--txt-2); margin-bottom: 10px; font-weight: 600; }
+
+.w-item { display: flex; align-items: center; gap: var(--space-12); background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-12) var(--space-14); margin-bottom: var(--space-8); cursor: pointer; transition: var(--transition-tap); }
+
+.w-item:active { background: var(--card-2); }
+
+.w-date { flex: 1; font-size: var(--text-body); color: var(--txt); }
+
+.w-kg { font-size: var(--text-body); font-weight: 600; color: var(--txt); font-variant-numeric: tabular-nums; }
+
+.vol-sub { font-size: var(--text-meta); color: var(--txt-2); margin-bottom: 12px; }
+
+.vol-card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-14); }
+
+.vol-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+
+.vol-row:last-child { margin-bottom: 0; }
+
+.vol-lbl { width: 92px; font-size: var(--text-body); color: var(--txt); flex-shrink: 0; }
+
+.vol-bar { flex: 1; height: 9px; background: var(--card-2); border-radius: 4px; overflow: hidden; }
+
+.vol-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue-2)); border-radius: 4px; }
+
+.vol-n { width: 26px; text-align: right; font-size: var(--text-body); font-weight: 600; color: var(--txt); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+.date-field { position: relative; display: flex; align-items: center; background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; }
+
+.date-disp { font-size: var(--text-emphasis); color: var(--txt); font-variant-numeric: tabular-nums; }
+
+.date-native { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; border: none; background: none; margin: 0; padding: 0; }
+
+.load-sel { margin-bottom:6px; }
+
+.hx-wrap { display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+
+.hx-row { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:10px 12px; }
+
+.hx-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+
+.hx-date { font-size: var(--text-meta); font-weight:700; color:var(--txt-2); }
+
+.hx-best { font-size: var(--text-meta); font-weight:800; color:var(--green); font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+
+.hx-sets { display:flex; flex-wrap:wrap; gap:6px; }
+
+.hx-set { display:flex; align-items:center; gap:3px; background:var(--card-2); border-radius:4px; padding:5px 8px; font-size: var(--text-meta); font-variant-numeric:tabular-nums; }
+
+.hx-n { color:var(--txt-3); font-weight:700; font-size:10px; font-family:var(--font-mono); }
+
+.hx-kg { color:var(--txt); font-weight:800; font-family:var(--font-mono); }
+
+.hx-x { color:var(--txt-3); }
+
+.hx-reps { color:var(--txt-2); font-weight:600; font-family:var(--font-mono); }
+
+.sess-n { color:var(--txt-3); font-weight:400; font-size: var(--text-meta); }
+
+.last-sess { background:var(--card-2); border-radius:4px; padding:8px 10px; margin-bottom:10px; }
+
+.ls-lbl { display:block; font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-bottom:4px; }
+
+.ls-sets { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size: var(--text-meta); color:var(--txt-2); }
+
+.ls-set b { color:var(--txt); }
+
+.ls-sep { color:var(--txt-3); }

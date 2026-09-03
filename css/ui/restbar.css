@@ -1,0 +1,30 @@
+/* css/ui/restbar.css */
+.rest-inner { position: relative; overflow: hidden; display:flex; align-items:center; gap:10px; background: var(--card-2); border:1px solid var(--blue); border-radius: 4px; padding: 11px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.45), var(--glow-md); }
+
+.rest-lbl { font-size: var(--text-meta); color: var(--txt-2); }
+
+.rest-time { font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 800; color:var(--txt); min-width: 52px; }
+
+.rest-opts { display:flex; gap:5px; margin-left:auto; }
+
+.rest-opt { padding: 6px 9px; border-radius: 4px; background: var(--card); border:1px solid var(--border); color: var(--txt-2); font-size: var(--text-meta); font-weight:600; cursor:pointer; }
+
+.rest-x { background:none; border:none; color: var(--txt-3); font-size:16px; cursor:pointer; padding:4px 6px; }
+
+.rest-x svg { width:var(--icon-md); height:var(--icon-md); display:block; }
+
+.rest-prog-track { position:absolute; left:0; right:0; bottom:0; height:3px; }
+
+.rest-prog { height:100%; width:100%; background: var(--blue-2); transform-origin: left; transform: scaleX(0); transition: transform 1s linear; }
+
+@media (prefers-reduced-motion: reduce) { .rest-prog { transition: none; } }
+
+.rest-done { justify-content: space-between; border-color: var(--blue-2); }
+
+.rest-msg { font-size: var(--text-body); font-weight:600; color:var(--txt); }
+
+.rest-lbl2 { font-size:11px; color:var(--txt-2); text-transform:uppercase; letter-spacing:.06em; font-weight:700; margin-right:4px; }
+
+.rest-idle .rest-opts { margin-left: 10px; }
+
+.rest-play { margin-left:auto; width:40px; height:40px; border-radius:4px; background: var(--green); border:none; color:#062e1a; font-size: var(--text-body); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }

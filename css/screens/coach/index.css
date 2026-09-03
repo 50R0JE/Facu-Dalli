@@ -1,0 +1,88 @@
+/* css/screens/coach/index.css */
+.co-wrap { max-width:1340px; margin:0 auto; padding:22px 20px 60px; }
+
+@media (min-width: 900px){
+    .co-grid { display:grid; grid-template-columns: 1fr 1fr; gap:28px; align-items:start; }
+    .co-col { min-width: 0; }
+    .co-title { font-size:26px; }
+    .co-client-name { font-size:30px; }
+    .co-items { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
+  }
+
+.co-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+
+/* Título del panel: mismo isotipo+wordmark que el header del cliente (.brand/.brand-ic/
+     .wordmark, ver topbar) en vez de un título de texto aparte — así "FitSheet" es siempre
+     el mismo logo en toda la app. El sufijo "Panel de coach" va en la tipografía normal
+     (no Orbitron, que es la fuente pesada/técnica reservada al wordmark) y en un tono más
+     apagado, para que se lea como una aclaración de contexto y no compita con la marca. */
+.co-brand { display:flex; align-items:center; gap:11px; flex-wrap:wrap; }
+
+.co-brand-dash { color:var(--txt-3); font-size:20px; font-weight:300; }
+
+.co-brand-tag { font-size:var(--text-emphasis); font-weight:600; color:var(--txt-2); }
+
+.co-logout, .co-back { display:inline-flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); color:var(--txt-2); font-size: var(--text-meta); padding:7px 12px; border-radius:4px; cursor:pointer; }
+
+.co-back svg { width:var(--icon-sm); height:var(--icon-sm); flex-shrink:0; }
+
+.co-invite { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; text-align:center; font-size: var(--text-meta); color:var(--txt-2); margin-bottom:14px; }
+
+.co-code { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:22px; font-weight:800; color:var(--blue); letter-spacing:3px; margin-top:6px; }
+
+.co-invite-sub { font-size:11px; color:var(--txt-3); margin-top:8px; }
+
+.co-item { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:15px 14px; margin-bottom:8px; cursor:pointer; }
+
+/* Estado vacío de "Clientes" cuando el coach todavía no vinculó a nadie: antes era una
+     sola línea de .cal-hint y dejaba el resto de la pantalla en negro sin nada — parecía
+     rota, no "aire" premium. Ahora es un mini-onboarding de 3 pasos que usa la clase
+     .co-item TAL CUAL (no una reimplementación): mismo fondo/borde/radio/padding, y de
+     yapa hereda gratis el fondo "Meteors" con estelas que ya tienen las cards reales de
+     cliente, vía la familia :is(...) de arriba. Solo se le saca el cursor de click (estos
+     pasos no son filas navegables) y se le pone una numeración circular en vez de la
+     flecha/nombre de un cliente real. */
+.co-onboard-lead { font-size:var(--text-body); color:var(--txt); font-weight:700; text-align:center; margin-bottom:14px; }
+
+.co-onboard-step { cursor:default; justify-content:flex-start; gap:12px; }
+
+.co-onboard-n { flex-shrink:0; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(51,196,129,.14); border:1px solid rgba(127,224,168,.35); color:var(--blue-2);
+    font-weight:800; font-size:var(--text-meta); font-family:var(--font-mono); }
+
+.co-onboard-txt { font-size:var(--text-body); color:var(--txt-2); line-height:1.4; }
+
+.co-onboard-txt b { color:var(--txt); font-weight:700; }
+
+.co-item:active { background:var(--card-2); }
+
+.co-name { font-size: var(--text-emphasis); color:var(--txt); font-weight:600; }
+
+.co-arrow { color:var(--txt-3); font-size:20px; }
+
+.co-client-name { font-size:22px; font-weight:800; color:var(--txt); margin-bottom:4px; }
+
+.co-list { margin-top:10px; }
+
+.co-row { display:flex; justify-content:space-between; align-items:center; padding:11px 14px; background:var(--card); border:1px solid var(--border); border-radius:4px; margin-bottom:6px; font-size: var(--text-body); color:var(--txt); }
+
+.co-val { font-weight:700; font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
+
+.co-bottom { display:block; margin-top:26px; }
+
+.co-tabs { display:flex; gap:8px; margin:4px 0 14px; }
+
+.co-tab { flex:1; padding:10px 12px; background:var(--card-2); border:1px solid var(--border); border-radius:5px; color:var(--txt-2); font-size: var(--text-meta); font-weight:700; cursor:pointer; }
+
+/* Color semántico del conteo, desacoplado de si la tab está seleccionada: gris/neutro
+     cuando no hay datos (0), verde de marca cuando sí hay — así el número comunica algo
+     por sí solo aunque no estés parado en esa tab. En estado .on el fondo ya es verde
+     sólido, así que el número pasa a blanco (igual que el resto de la etiqueta) en vez
+     de competir con ese fondo — la selección se sigue leyendo por el fill, no por el número. */
+.co-tab-count { color:var(--txt-3); font-weight:700; }
+
+.co-search { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:5px; padding:10px 13px; color:var(--txt); font-size: var(--text-body); margin-bottom:10px; }
+
+.co-item-meta { font-size:11px; color:var(--txt-3); margin-top:3px; }
+
+.tpl-item .co-name { font-weight:700; }

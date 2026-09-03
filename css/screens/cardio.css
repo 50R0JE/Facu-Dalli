@@ -1,0 +1,51 @@
+/* css/screens/cardio.css */
+/* Cardio */
+.cardio-modes { display: flex; gap: 8px; margin: 8px 0 8px; }
+
+.cmode { flex: 1; padding: 11px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); color: var(--txt-2); font-size: var(--text-body); font-weight: 600; cursor: pointer; text-align: center; }
+
+/* Corredor/reloj de arena animado (SMIL): aparece debajo de los controles mientras el
+     cronómetro o el temporizador están corriendo — corredor para el cronómetro, reloj de
+     arena para el temporizador. Arranca/pausa unas pocas veces por sesión de cardio (no en
+     cada tick), por eso --duration-standard en vez de --duration-frequent; misma curva
+     --ease-drawer que el resto de las entradas de la app. */
+.cardio-runner { display: flex; justify-content: center; margin: var(--space-16) 0 var(--space-4);
+    animation: runnerIn var(--duration-standard) var(--ease-drawer); }
+
+.cardio-runner svg { width: 96px; height: 96px; filter: drop-shadow(0 0 14px var(--glow)); }
+
+@media (prefers-reduced-motion: reduce) { .cardio-runner { display: none; } }
+
+.time-display { font-size: 64px; font-weight: 700; text-align: center; letter-spacing: -.02em; margin: 26px 0; color: var(--txt);  font-variant-numeric: tabular-nums; }
+
+.ctrl-row { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 18px; }
+
+.preset { padding: 12px 14px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); color: var(--txt-2); font-size: var(--text-body); cursor: pointer; font-variant-numeric: tabular-nums; }
+
+.custom-time { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+
+.ct-input { width: 74px; background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: 13px; text-align: center; color: var(--txt); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.ct-input:focus { outline: none; border-color: var(--blue); box-shadow: var(--focus-ring); }
+
+.ct-colon { font-size: 24px; font-weight: 700; color: var(--txt-2); }
+
+.ct-hint { text-align: center; font-size: var(--text-meta); color: var(--txt-3); margin-bottom: 22px; }
+
+.laps { margin-top: 26px; display: flex; flex-direction: column; gap: 6px; }
+
+.lap { display: flex; justify-content: space-between; padding: 11px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; font-variant-numeric: tabular-nums; font-size: var(--text-body); }
+
+.lap span:first-child { color: var(--txt-2); }
+
+.cardio-rx { background:var(--card); border:1px solid var(--blue); border-left:3px solid var(--blue); border-radius:4px; padding:var(--space-14); margin-bottom:var(--space-16); }
+
+.cardio-rx-h { font-size: var(--text-meta); color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:8px; }
+
+.cardio-rx-txt { font-size: var(--text-body); color:var(--txt); line-height:1.5; margin-bottom:6px; }
+
+.cardio-toolsec { margin-top:26px; padding-top:20px; border-top:1px solid var(--border); }
+
+.cardio-tools-h { font-size:11px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:14px; text-align:center; }
