@@ -1,0 +1,370 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]: FitSheet
+  - generic [ref=e8]:
+    - generic [ref=e9]:
+      - button "Torso" [ref=e10] [cursor=pointer]
+      - button "Piernas" [ref=e11] [cursor=pointer]
+      - button "Pecho/Espalda/Hombro" [ref=e12] [cursor=pointer]
+      - button "Pierna/Brazo" [ref=e13] [cursor=pointer]
+      - button "+" [ref=e14] [cursor=pointer]
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - textbox [ref=e17]: Torso
+        - button "Eliminar día" [ref=e18] [cursor=pointer]
+      - textbox "Grupos musculares…" [ref=e21]: Lunes · Hombros · Espalda · Pecho · Brazos
+      - generic [ref=e22]:
+        - generic [ref=e24]: 0/18 series
+        - button "Limpiar" [ref=e25] [cursor=pointer]
+    - button "+" [ref=e26] [cursor=pointer]
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - textbox [ref=e29]: Vuelos laterales sentado
+        - button "Cambiar ejercicio" [ref=e30] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e34] [cursor=pointer]
+      - generic [ref=e37]:
+        - generic [ref=e38]: B1
+        - generic [ref=e39]: RIR 2-0
+        - generic [ref=e40]: Progreso en reps
+      - generic [ref=e41]:
+        - generic [ref=e42]: "1"
+        - generic [ref=e43]:
+          - textbox "0" [ref=e44]
+          - generic [ref=e45]: kg
+        - generic [ref=e46]:
+          - textbox "0" [ref=e47]
+          - generic [ref=e48]: reps
+        - generic "Objetivo del coach" [ref=e49]: 8-14
+        - button [ref=e50] [cursor=pointer]
+        - button "Quitar serie" [ref=e51] [cursor=pointer]
+      - generic [ref=e54]:
+        - generic [ref=e55]: "2"
+        - generic [ref=e56]:
+          - textbox "0" [ref=e57]
+          - generic [ref=e58]: kg
+        - generic [ref=e59]:
+          - textbox "0" [ref=e60]
+          - generic [ref=e61]: reps
+        - generic "Objetivo del coach" [ref=e62]: 8-14
+        - button [ref=e63] [cursor=pointer]
+        - button "Quitar serie" [ref=e64] [cursor=pointer]
+      - generic [ref=e67]:
+        - generic [ref=e68]: "3"
+        - generic [ref=e69]:
+          - textbox "0" [ref=e70]
+          - generic [ref=e71]: kg
+        - generic [ref=e72]:
+          - textbox "0" [ref=e73]
+          - generic [ref=e74]: reps
+        - generic "Objetivo del coach" [ref=e75]: 14-18
+        - button [ref=e76] [cursor=pointer]
+        - button "Quitar serie" [ref=e77] [cursor=pointer]
+      - generic [ref=e80]:
+        - generic [ref=e81]: Nota de tu coach
+        - text: Mano apenas por delante del cuerpo. Excéntrica controlada. Codos extendidos.
+      - button "+ Serie" [ref=e82] [cursor=pointer]
+      - button "Iniciar descanso 2'-3'" [ref=e83] [cursor=pointer]:
+        - generic [ref=e84]: Iniciar descanso
+        - generic [ref=e87]: 2'-3'
+    - button "+" [ref=e88] [cursor=pointer]
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - textbox [ref=e91]: Jalón unilateral en estocada
+        - button "Cambiar ejercicio" [ref=e92] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e96] [cursor=pointer]
+      - generic [ref=e99]:
+        - generic [ref=e100]: C1
+        - generic [ref=e101]: RIR 2-0
+        - generic [ref=e102]: Progreso en reps
+      - generic [ref=e103]:
+        - generic [ref=e104]: "1"
+        - generic [ref=e105]:
+          - textbox "0" [ref=e106]
+          - generic [ref=e107]: kg
+        - generic [ref=e108]:
+          - textbox "0" [ref=e109]
+          - generic [ref=e110]: reps
+        - generic "Objetivo del coach" [ref=e111]: 12-16
+        - button [ref=e112] [cursor=pointer]
+        - button "Quitar serie" [ref=e113] [cursor=pointer]
+      - generic [ref=e116]:
+        - generic [ref=e117]: "2"
+        - generic [ref=e118]:
+          - textbox "0" [ref=e119]
+          - generic [ref=e120]: kg
+        - generic [ref=e121]:
+          - textbox "0" [ref=e122]
+          - generic [ref=e123]: reps
+        - generic "Objetivo del coach" [ref=e124]: 12-16
+        - button [ref=e125] [cursor=pointer]
+        - button "Quitar serie" [ref=e126] [cursor=pointer]
+      - generic [ref=e129]:
+        - generic [ref=e130]: "3"
+        - generic [ref=e131]:
+          - textbox "0" [ref=e132]
+          - generic [ref=e133]: kg
+        - generic [ref=e134]:
+          - textbox "0" [ref=e135]
+          - generic [ref=e136]: reps
+        - generic "Objetivo del coach" [ref=e137]: 12-16
+        - button [ref=e138] [cursor=pointer]
+        - button "Quitar serie" [ref=e139] [cursor=pointer]
+      - generic [ref=e142]:
+        - generic [ref=e143]: Nota de tu coach
+        - text: En estocada o banco regulable. Apenas inclinado hacia el lado que trabaja. Pensar en clavar la mano al suelo y llevar el codo a la cadera.
+      - button "+ Serie" [ref=e144] [cursor=pointer]
+      - button "Iniciar descanso 2'-3'" [ref=e145] [cursor=pointer]:
+        - generic [ref=e146]: Iniciar descanso
+        - generic [ref=e149]: 2'-3'
+    - button "+" [ref=e150] [cursor=pointer]
+    - generic [ref=e151]:
+      - generic [ref=e152]:
+        - textbox [ref=e153]: Remo neutro abierto en polea baja
+        - button "Cambiar ejercicio" [ref=e154] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e158] [cursor=pointer]
+      - generic [ref=e161]:
+        - generic [ref=e162]: D1
+        - generic [ref=e163]: RIR 2-0
+        - generic [ref=e164]: Progreso en reps
+      - generic [ref=e165]:
+        - generic [ref=e166]: "1"
+        - generic [ref=e167]:
+          - textbox "0" [ref=e168]
+          - generic [ref=e169]: kg
+        - generic [ref=e170]:
+          - textbox "0" [ref=e171]
+          - generic [ref=e172]: reps
+        - generic "Objetivo del coach" [ref=e173]: 8-12
+        - button [ref=e174] [cursor=pointer]
+        - button "Quitar serie" [ref=e175] [cursor=pointer]
+      - generic [ref=e178]:
+        - generic [ref=e179]: "2"
+        - generic [ref=e180]:
+          - textbox "0" [ref=e181]
+          - generic [ref=e182]: kg
+        - generic [ref=e183]:
+          - textbox "0" [ref=e184]
+          - generic [ref=e185]: reps
+        - generic "Objetivo del coach" [ref=e186]: 8-12
+        - button [ref=e187] [cursor=pointer]
+        - button "Quitar serie" [ref=e188] [cursor=pointer]
+      - generic [ref=e191]:
+        - generic [ref=e192]: Nota de tu coach
+        - text: Tronco a 90°. Solo se mueven escápulas y brazos. Llevar la barra a la boca del estómago. Codos bastante separados.
+      - button "+ Serie" [ref=e193] [cursor=pointer]
+      - button "Iniciar descanso 2'-4'" [ref=e194] [cursor=pointer]:
+        - generic [ref=e195]: Iniciar descanso
+        - generic [ref=e198]: 2'-4'
+    - button "+" [ref=e199] [cursor=pointer]
+    - generic [ref=e200]:
+      - generic [ref=e201]:
+        - textbox [ref=e202]: Press inclinado con mancuernas
+        - button "Cambiar ejercicio" [ref=e203] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e207] [cursor=pointer]
+      - generic [ref=e210]:
+        - generic [ref=e211]: E1
+        - generic [ref=e212]: RIR 2-0
+        - generic [ref=e213]: Progreso en reps, pasarse del rango
+      - generic [ref=e214]:
+        - generic [ref=e215]: "1"
+        - generic [ref=e216]:
+          - textbox "0" [ref=e217]
+          - generic [ref=e218]: kg
+        - generic [ref=e219]:
+          - textbox "0" [ref=e220]
+          - generic [ref=e221]: reps
+        - generic "Objetivo del coach" [ref=e222]: 7-10
+        - button [ref=e223] [cursor=pointer]
+        - button "Quitar serie" [ref=e224] [cursor=pointer]
+      - generic [ref=e227]:
+        - generic [ref=e228]: "2"
+        - generic [ref=e229]:
+          - textbox "0" [ref=e230]
+          - generic [ref=e231]: kg
+        - generic [ref=e232]:
+          - textbox "0" [ref=e233]
+          - generic [ref=e234]: reps
+        - generic "Objetivo del coach" [ref=e235]: 7-10
+        - button [ref=e236] [cursor=pointer]
+        - button "Quitar serie" [ref=e237] [cursor=pointer]
+      - generic [ref=e240]:
+        - generic [ref=e241]: "3"
+        - generic [ref=e242]:
+          - textbox "0" [ref=e243]
+          - generic [ref=e244]: kg
+        - generic [ref=e245]:
+          - textbox "0" [ref=e246]
+          - generic [ref=e247]: reps
+        - generic "Objetivo del coach" [ref=e248]: 9-12
+        - button [ref=e249] [cursor=pointer]
+        - button "Quitar serie" [ref=e250] [cursor=pointer]
+      - generic [ref=e253]:
+        - generic [ref=e254]: Nota de tu coach
+        - text: Banco a 30°, buena retracción, recorrido completo. Excéntrica 3".
+      - button "+ Serie" [ref=e255] [cursor=pointer]
+      - button "Iniciar descanso 1:30-2:30" [ref=e256] [cursor=pointer]:
+        - generic [ref=e257]: Iniciar descanso
+        - generic [ref=e260]: 1:30-2:30
+    - button "+" [ref=e261] [cursor=pointer]
+    - generic [ref=e262]:
+      - generic [ref=e263]:
+        - textbox [ref=e264]: Peck deck
+        - button "Cambiar ejercicio" [ref=e265] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e269] [cursor=pointer]
+      - generic [ref=e272]:
+        - generic [ref=e273]: F1
+        - generic [ref=e274]: RIR 2-0
+        - generic [ref=e275]: Progreso en reps
+      - generic [ref=e276]:
+        - generic [ref=e277]: "1"
+        - generic [ref=e278]:
+          - textbox "0" [ref=e279]
+          - generic [ref=e280]: kg
+        - generic [ref=e281]:
+          - textbox "0" [ref=e282]
+          - generic [ref=e283]: reps
+        - generic "Objetivo del coach" [ref=e284]: 9-12
+        - button [ref=e285] [cursor=pointer]
+        - button "Quitar serie" [ref=e286] [cursor=pointer]
+      - generic [ref=e289]:
+        - generic [ref=e290]: "2"
+        - generic [ref=e291]:
+          - textbox "0" [ref=e292]
+          - generic [ref=e293]: kg
+        - generic [ref=e294]:
+          - textbox "0" [ref=e295]
+          - generic [ref=e296]: reps
+        - generic "Objetivo del coach" [ref=e297]: 9-12
+        - button [ref=e298] [cursor=pointer]
+        - button "Quitar serie" [ref=e299] [cursor=pointer]
+      - generic [ref=e302]:
+        - generic [ref=e303]: Nota de tu coach
+        - text: Pausa 1/2" en contracción. Volver lentamente todo lo que puedas. Máximo recorrido. Codos apenas flexionados.
+      - button "+ Serie" [ref=e304] [cursor=pointer]
+      - button "Iniciar descanso 2'-3'" [ref=e305] [cursor=pointer]:
+        - generic [ref=e306]: Iniciar descanso
+        - generic [ref=e309]: 2'-3'
+    - button "+" [ref=e310] [cursor=pointer]
+    - generic [ref=e311]:
+      - generic [ref=e312]:
+        - textbox [ref=e313]: Curl bíceps en polea baja frontal
+        - button "Cambiar ejercicio" [ref=e314] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e318] [cursor=pointer]
+      - generic [ref=e321]:
+        - generic [ref=e322]: G1
+        - generic [ref=e323]: RIR 1-0
+        - generic [ref=e324]: Progreso en reps
+      - generic [ref=e325]:
+        - generic [ref=e326]: "1"
+        - generic [ref=e327]:
+          - textbox "0" [ref=e328]
+          - generic [ref=e329]: kg
+        - generic [ref=e330]:
+          - textbox "0" [ref=e331]
+          - generic [ref=e332]: reps
+        - generic "Objetivo del coach" [ref=e333]: 7-11
+        - button [ref=e334] [cursor=pointer]
+        - button "Quitar serie" [ref=e335] [cursor=pointer]
+      - generic [ref=e338]:
+        - generic [ref=e339]: "2"
+        - generic [ref=e340]:
+          - textbox "0" [ref=e341]
+          - generic [ref=e342]: kg
+        - generic [ref=e343]:
+          - textbox "0" [ref=e344]
+          - generic [ref=e345]: reps
+        - generic "Objetivo del coach" [ref=e346]: 7-11
+        - button [ref=e347] [cursor=pointer]
+        - button "Quitar serie" [ref=e348] [cursor=pointer]
+      - generic [ref=e351]:
+        - generic [ref=e352]: "3"
+        - generic [ref=e353]:
+          - textbox "0" [ref=e354]
+          - generic [ref=e355]: kg
+        - generic [ref=e356]:
+          - textbox "0" [ref=e357]
+          - generic [ref=e358]: reps
+        - generic "Objetivo del coach" [ref=e359]: 11-15
+        - button [ref=e360] [cursor=pointer]
+        - button "Quitar serie" [ref=e361] [cursor=pointer]
+      - generic [ref=e364]:
+        - generic [ref=e365]: Nota de tu coach
+        - text: Ubicarse alejado de la polea, brazos hacia adelante. Full ROM, excéntrica controlada.
+      - button "+ Serie" [ref=e366] [cursor=pointer]
+      - button "Iniciar descanso 1:30-2:30" [ref=e367] [cursor=pointer]:
+        - generic [ref=e368]: Iniciar descanso
+        - generic [ref=e371]: 1:30-2:30
+    - button "+" [ref=e372] [cursor=pointer]
+    - generic [ref=e373]:
+      - generic [ref=e374]:
+        - textbox [ref=e375]: Extensión de tríceps parado en polea
+        - button "Cambiar ejercicio" [ref=e376] [cursor=pointer]
+        - button "Eliminar ejercicio" [ref=e380] [cursor=pointer]
+      - generic [ref=e383]:
+        - generic [ref=e384]: H1
+        - generic [ref=e385]: RIR 1-0
+        - generic [ref=e386]: Progreso en reps
+      - generic [ref=e387]:
+        - generic [ref=e388]: "1"
+        - generic [ref=e389]:
+          - textbox "0" [ref=e390]
+          - generic [ref=e391]: kg
+        - generic [ref=e392]:
+          - textbox "0" [ref=e393]
+          - generic [ref=e394]: reps
+        - generic "Objetivo del coach" [ref=e395]: 8-12
+        - button [ref=e396] [cursor=pointer]
+        - button "Quitar serie" [ref=e397] [cursor=pointer]
+      - generic [ref=e400]:
+        - generic [ref=e401]: "2"
+        - generic [ref=e402]:
+          - textbox "0" [ref=e403]
+          - generic [ref=e404]: kg
+        - generic [ref=e405]:
+          - textbox "0" [ref=e406]
+          - generic [ref=e407]: reps
+        - generic "Objetivo del coach" [ref=e408]: 8-12
+        - button [ref=e409] [cursor=pointer]
+        - button "Quitar serie" [ref=e410] [cursor=pointer]
+      - generic [ref=e413]:
+        - generic [ref=e414]: Nota de tu coach
+        - text: Máximo rango de recorrido, excéntrica 2" y mini pausa abajo.
+      - button "+ Serie" [ref=e415] [cursor=pointer]
+      - button "Iniciar descanso 1:30-2:30" [ref=e416] [cursor=pointer]:
+        - generic [ref=e417]: Iniciar descanso
+        - generic [ref=e420]: 1:30-2:30
+    - button "+ Agregar ejercicio" [ref=e421] [cursor=pointer]
+    - generic [ref=e422]:
+      - generic [ref=e423]: Notas de tu coach · Torso
+      - generic [ref=e424]: "ENTRADA EN CALOR — A1 Pullover unilateral con banda: 2×10 c/lado · A2 Remo sentado con bandas: 2×15"
+      - generic [ref=e425]:
+        - generic [ref=e426]: Vuelos laterales sentado
+        - text: Mano apenas por delante del cuerpo. Excéntrica controlada. Codos extendidos.
+      - generic [ref=e427]:
+        - generic [ref=e428]: Jalón unilateral en estocada
+        - text: En estocada o banco regulable. Apenas inclinado hacia el lado que trabaja. Pensar en clavar la mano al suelo y llevar el codo a la cadera.
+      - generic [ref=e429]:
+        - generic [ref=e430]: Remo neutro abierto en polea baja
+        - text: Tronco a 90°. Solo se mueven escápulas y brazos. Llevar la barra a la boca del estómago. Codos bastante separados.
+      - generic [ref=e431]:
+        - generic [ref=e432]: Press inclinado con mancuernas
+        - text: Banco a 30°, buena retracción, recorrido completo. Excéntrica 3".
+      - generic [ref=e433]:
+        - generic [ref=e434]: Peck deck
+        - text: Pausa 1/2" en contracción. Volver lentamente todo lo que puedas. Máximo recorrido. Codos apenas flexionados.
+      - generic [ref=e435]:
+        - generic [ref=e436]: Curl bíceps en polea baja frontal
+        - text: Ubicarse alejado de la polea, brazos hacia adelante. Full ROM, excéntrica controlada.
+      - generic [ref=e437]:
+        - generic [ref=e438]: Extensión de tríceps parado en polea
+        - text: Máximo rango de recorrido, excéntrica 2" y mini pausa abajo.
+    - button "Guardar entreno de hoy" [ref=e439] [cursor=pointer]
+    - button "Cargar Meso 2 · Microciclo 8" [ref=e442] [cursor=pointer]
+    - paragraph [ref=e446]: Se guarda solo en este dispositivo
+  - navigation [ref=e447]:
+    - generic [ref=e448]:
+      - button "Entreno" [ref=e449] [cursor=pointer]
+      - button "Hábitos" [ref=e453] [cursor=pointer]
+      - button "Cardio" [ref=e458] [cursor=pointer]
+      - button "Comida" [ref=e463] [cursor=pointer]
+      - button "Progreso" [ref=e468] [cursor=pointer]
+      - button "Ajustes" [ref=e473] [cursor=pointer]
