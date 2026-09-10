@@ -20,6 +20,8 @@ import { openClient } from './screens/coach/clientes.js';
 
 import { renderCoach } from './screens/coach/index.js';
 
+import { renderCoachSettings } from './screens/coach/settings.js';
+
 import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, renderCoachPicker, rtDays } from './screens/coach/rutinas.js';
 
 import { CoachState } from './screens/coach/state.js';
@@ -380,6 +382,23 @@ document.body.addEventListener("click", async e => {
   if(a==="open"){ openClient(b.dataset.id); return; }
   if(a==="back"){ CoachState.coachSel=null; CoachState.coachData=null; renderCoach(); return; }
   if(a==="refresh"){ if(CoachState.coachSel) openClient(CoachState.coachSel); return; }
+  if(a==="open-settings"){ CoachState.coachNameForm=null; CoachState.coachSettingsOpen=true; renderCoachSettings(); return; }
+  if(a==="settings-cancel"){ closeSheet(()=>{ CoachState.coachSettingsOpen=false; CoachState.coachNameForm=null; renderCoachSettings(); }, {host:"#coachSheetHost", card:".cp-ccard", duration:150}); return; }
+  if(a==="settings-name-save"){
+    const val=(CoachState.coachNameForm!=null?CoachState.coachNameForm:"").trim();
+    if(!val){ alert("Poné un nombre."); return; }
+    const prevHtml=b.innerHTML; b.disabled=true; b.innerHTML="Guardando…";
+    try{
+      const r=await State.sb.from("profiles").update({full_name:val}).eq("id",State.cloudUser.id);
+      if(r.error) throw r.error;
+      await loadCloud();
+      closeSheet(()=>{ CoachState.coachSettingsOpen=false; CoachState.coachNameForm=null; renderCoachSettings(); renderCoach(); }, {host:"#coachSheetHost", card:".cp-ccard", duration:150});
+    }catch(err){
+      alert("No se pudo guardar: "+((err&&err.message)||err));
+      b.disabled=false; b.innerHTML=prevHtml;
+    }
+    return;
+  }
   if(a==="view-clients"){ CoachState.coachView="clients"; renderCoach(); return; }
   if(a==="view-tpls"){ CoachState.coachView="tpls"; await loadTpls(); renderCoach(); return; }
   if(a==="tpl-seed"){
@@ -545,7 +564,21 @@ document.body.addEventListener("input", async e => {
   const el=e.target.closest("[data-coach]"); if(!el) return;
   const a0=el.dataset.coach;
   if(a0==="tpl-name"){ if(CoachState.coachTplEdit) CoachState.coachTplEdit.name=el.value; return; }
-  if(a0==="coach-search"){ CoachState.coachSearch=el.value; renderCoach(); return; }
+  // A propósito NO llama a renderCoachSettings() acá: el input de "tpl-name" de arriba
+  // tampoco re-renderiza en cada tecla, por la misma razón que el buscador de clientes
+  // sí la tenía re-renderizar y hubo que arreglar (ver "coach-search" abajo) — reescribir
+  // el modal entero en cada letra le tiraría el foco al input igual que le pasaba a ese.
+  if(a0==="settings-name"){ CoachState.coachNameForm=el.value; return; }
+  if(a0==="coach-search"){
+    CoachState.coachSearch=el.value; renderCoach();
+    // renderCoach() reescribe todo el innerHTML del panel, así que el <input> viejo (el
+    // que tiene el foco) se destruye y aparece uno nuevo sin foco — cada letra tipeada
+    // "soltaba" el cursor y había que hacer click de nuevo para seguir escribiendo.
+    // Mismo arreglo que ya usa el buscador de ejercicios (.cp-search, ver más abajo):
+    // reenfocar el input nuevo y mandar el cursor al final del texto.
+    const si=document.querySelector(".co-search"); if(si){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
+    return;
+  }
   if(!rtDays()) return;
   const a=a0; const day=(rtDays()||[])[CoachState.coachEditDay]; if(!day) return;
   if(a==="rt-name"){ if(day.exercises[+el.dataset.i]) day.exercises[+el.dataset.i].name=el.value; }

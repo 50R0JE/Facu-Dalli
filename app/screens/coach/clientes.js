@@ -4,7 +4,7 @@ import { State } from '../../core/state.js';
 
 import { migrateNames } from '../../core/storage.js';
 
-import { esc, fmtDate, mondayOf } from '../../core/utils.js';
+import { esc, fmtDate, mondayOf, today } from '../../core/utils.js';
 
 import { renderCoach } from './index.js';
 
@@ -16,7 +16,17 @@ import { renderWChart } from '../progreso.js';
 
 export async function loadCoachClients(){
   try{
-    const r=await State.sb.from("profiles").select("id, full_name").eq("coach_id",State.cloudUser.id).order("full_name");
+    let r=await State.sb.from("profiles").select("id, full_name, email").eq("coach_id",State.cloudUser.id).order("full_name");
+    if(r.error){
+      // Supabase no tira excepción cuando una query falla (devuelve {data:null, error})
+      // — si "email" no existe como columna en profiles, o RLS no la deja leer, r.data
+      // quedaba null y la lista entera se vaciaba en silencio (el coach veía "0 clientes"
+      // aunque sí tuviera). El email es un plus, no algo crítico para ver la lista, así
+      // que ante un error reintentamos sin él en vez de perder los clientes por eso.
+      console.error("coachClients (con email)",r.error);
+      r=await State.sb.from("profiles").select("id, full_name").eq("coach_id",State.cloudUser.id).order("full_name");
+      if(r.error) console.error("coachClients",r.error);
+    }
     CoachState.coachClients=r.data||[];
     const ic=await State.sb.rpc("my_invite_code"); CoachState.coachInvite=ic.data||null;
   }catch(e){ console.error("coachClients",e); }
@@ -26,16 +36,57 @@ export async function loadCoachClients(){
 export async function loadCoachStats(){
   if(!State.sb||!State.cloudUser) return;
   try{
-    const {data}=await State.sb.from("sessions").select("client_id, date").order("date",{ascending:false});
+    // performed_on, no "date" — ver mismo campo usado en openClient() más abajo y en
+    // core/supabase.js. Un select a una columna inexistente le pega un 400 a PostgREST,
+    // que el catch se traga en silencio: coachClientStats quedaba siempre {} y todos los
+    // clientes mostraban "sin entrenos aún" aunque sí hubieran entrenado.
+    const {data, error}=await State.sb.from("sessions").select("client_id, performed_on").order("performed_on",{ascending:false});
+    if(error) console.error("coachStats",error);
     if(!Array.isArray(data)) return;
     const stats={};
     data.forEach(r=>{
       if(!stats[r.client_id]) stats[r.client_id]={nSess:0, lastSess:null};
       stats[r.client_id].nSess++;
-      if(!stats[r.client_id].lastSess) stats[r.client_id].lastSess=r.date;
+      if(!stats[r.client_id].lastSess) stats[r.client_id].lastSess=r.performed_on;
     });
     CoachState.coachClientStats=stats; renderCoach();
   }catch(e){ console.error("coachStats",e); }
+}
+
+// Colores rotados por id de cliente (no por nombre, que puede repetirse) para que cada
+// avatar de la lista tenga un color estable entre renders sin necesitar guardar nada.
+const CO_AVA_COLORS=["var(--blue)","var(--purple)","var(--pink)","var(--cyan)","var(--green-2)"];
+
+export function coachInitials(name){
+  const parts=(name||"").trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return "?";
+  const a=parts[0].charAt(0), b=parts.length>1?parts[parts.length-1].charAt(0):"";
+  return (a+b).toUpperCase();
+}
+
+export function coachAvatarColor(id){
+  const s=String(id||""); let h=0;
+  for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
+  return CO_AVA_COLORS[h%CO_AVA_COLORS.length];
+}
+
+// Última actividad de un cliente para la lista del coach: solo tenemos la fecha (no hora)
+// de la sesión más reciente, así que la etiqueta es "Hoy"/"Ayer"/"N días atrás" sin reloj.
+// "Activo" = entrenó en las últimas 48hs (hoy, ayer o antes de ayer).
+export function coachActivity(lastSess){
+  if(!lastSess) return {label:"Sin entrenos aún", statusLabel:"", active:false, has:false};
+  const base=new Date(today()+"T00:00:00");
+  const d=new Date(lastSess+"T00:00:00");
+  const days=Math.round((base-d)/86400000);
+  let label;
+  if(days<=0) label="Hoy";
+  else if(days===1) label="Ayer";
+  else if(days<7) label=days+" días atrás";
+  else if(days<14) label="1 semana atrás";
+  else if(days<30) label=Math.floor(days/7)+" semanas atrás";
+  else label=fmtDate(lastSess);
+  const active=days<=2;
+  return {label:label, statusLabel:active?"Activo":"Sin actividad", active:active, has:true};
 }
 
 export function coachExercises(sessions){ const m={}; (sessions||[]).forEach(se=>se.exercises.forEach(ex=>{ if(ex.name) m[ex.name]=1; })); return Object.keys(m).sort((a,b)=>a.localeCompare(b,"es")); }

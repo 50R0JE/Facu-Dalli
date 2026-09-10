@@ -30,6 +30,16 @@
 
 .co-back svg { width:var(--icon-sm); height:var(--icon-sm); flex-shrink:0; }
 
+.co-head-actions { display:flex; align-items:center; gap:8px; }
+
+/* Botón de tuerca (abre el panel de configuración del coach): mismo tratamiento visual
+     que .co-logout/.co-back (cuadrado, borde, sin relleno) pero solo-ícono. */
+.co-gear { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; flex-shrink:0; background:none; border:1px solid var(--border); color:var(--txt-2); border-radius:4px; cursor:pointer; }
+
+.co-gear svg { width:var(--icon-md); height:var(--icon-md); }
+
+.co-gear:active { color:var(--txt); }
+
 .co-invite { background:var(--card); border:1px solid var(--border); border-radius:4px; padding:14px; text-align:center; font-size: var(--text-meta); color:var(--txt-2); margin-bottom:14px; }
 
 .co-code { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:22px; font-weight:800; color:var(--blue); letter-spacing:3px; margin-top:6px; }
@@ -85,8 +95,62 @@
      de competir con ese fondo — la selección se sigue leyendo por el fill, no por el número. */
 .co-tab-count { color:var(--txt-3); font-weight:700; }
 
-.co-search { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:5px; padding:10px 13px; color:var(--txt); font-size: var(--text-body); margin-bottom:10px; }
+.co-search { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:5px; padding:8px 12px; color:var(--txt); font-size: var(--text-meta); margin-bottom:10px; }
 
 .co-item-meta { font-size:11px; color:var(--txt-3); margin-top:3px; }
 
 .tpl-item .co-name { font-weight:700; }
+
+/* Lista de clientes como tabla (nombre+avatar / email / última actividad / acciones), a
+     pedido — ver boceto compartido. En mobile no hay ancho para 4 columnas reales, así
+     que cada fila se apila como card (igual criterio que .co-item de siempre: bloque
+     ancho, sin grid) y la flecha de "abrir" queda flotando en la esquina; recién a partir
+     de 900px (mismo breakpoint que .co-items) pasa a grid de 4 columnas. En ese punto
+     .co-table pasa a ser UN solo panel con borde (no cada fila con su propio borde+radio+
+     margen, que quedaba viéndose como tarjetitas sueltas con huecos en vez de tabla): las
+     filas se separan con un divisor fino y el hover marca la fila entera, como cualquier
+     tabla de un dashboard. */
+.co-table { margin-top:2px; }
+
+.co-trow { position:relative; display:block; background:var(--card); border:1px solid var(--border); border-radius:4px; padding:13px 46px 13px 14px; margin-bottom:8px; cursor:pointer; transition:var(--transition-tap); }
+
+.co-trow.co-thead { display:none; cursor:default; }
+
+.co-trow:active { background:var(--card-2); }
+
+.co-td-name { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+
+.co-avatar { flex-shrink:0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#04150b; font-family:var(--font-mono); }
+
+.co-cname { font-size:var(--text-emphasis); color:var(--txt); font-weight:600; }
+
+.co-td-email { font-size:var(--text-meta); color:var(--txt-2); margin:0 0 4px 42px; }
+
+.co-td-email.co-empty { color:var(--txt-3); }
+
+.co-td-activity { margin-left:42px; }
+
+.co-act-date { font-size:var(--text-meta); color:var(--txt-2); }
+
+.co-act-status { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--txt-3); margin-top:2px; }
+
+.co-dot { width:7px; height:7px; border-radius:50%; background:var(--txt-3); flex-shrink:0; }
+
+.co-dot.on { background:var(--blue); box-shadow:0 0 6px var(--glow); }
+
+.co-td-actions { position:absolute; top:50%; right:14px; transform:translateY(-50%); }
+
+@media (min-width: 900px){
+    .co-search { max-width:280px; }
+    .co-table { background:var(--card); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+    .co-trow.co-thead { display:grid; background:var(--card-2); }
+    .co-trow { display:grid; grid-template-columns: 2.2fr 2fr 1.6fr 60px; align-items:center; column-gap:16px; padding:13px 16px;
+        background:none; border:none; border-radius:0; margin:0; border-bottom:1px solid var(--border); }
+    .co-trow:last-child { border-bottom:none; }
+    .co-trow:not(.co-thead):hover { background:var(--card-2); }
+    .co-th { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--txt-3); }
+    .co-td-name, .co-td-email, .co-td-activity { margin:0; }
+    .co-td-actions { position:static; transform:none; display:flex; justify-content:flex-end; }
+    .co-td-actions .co-arrow { display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; transition:var(--transition-tap); }
+    .co-trow:hover .co-td-actions .co-arrow { background:var(--card); color:var(--txt); }
+  }

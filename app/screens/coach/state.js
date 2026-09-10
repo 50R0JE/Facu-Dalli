@@ -40,6 +40,10 @@ export const CoachState = {
 
   coachPQ: "",
 
+  coachSettingsOpen: false,
+
+  coachNameForm: null,
+
 };
 
 export let coachCopyPicker = false;
