@@ -62,6 +62,32 @@
 
 .co-note { width:100%; margin-top:8px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:9px 10px; color:var(--txt); font-size: var(--text-meta); }
 
+/* Panel de configuración del coach (ícono de tuerca): .cs-* es solo el contenido interno
+     del modal — el modal en sí (.cp-bg/.cp-ccard/.cp-head/.cp-title/.cp-x) y la lista de
+     opciones (.cp-clist/.cp-copt) ya existen y se reusan tal cual. */
+.cs-avatar-row { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+
+/* .co-avatar.cs-avatar-big (dos clases) a propósito: .co-avatar se define en index.css,
+     que carga DESPUÉS de este archivo — con la misma especificidad que un .cs-avatar-big
+     solo, ese orden de carga le haría ganar al .co-avatar de 32px de la tabla de clientes
+     (mismo motivo que el comentario de .co-copy-btn.co-invite-copy más arriba). */
+.co-avatar.cs-avatar-big { width:56px; height:56px; font-size:18px; flex-shrink:0; }
+
+.cs-avatar-col { flex:1; min-width:0; }
+
+/* "Cambiar foto" deshabilitado a propósito (no hay todavía dónde guardar la foto en
+     Supabase): mismo .cp-copt de siempre pero sin el hover verde ni el cursor de link,
+     para que se lea como "todavía no" y no como una opción rota. */
+.cp-copt:disabled { opacity:.5; cursor:not-allowed; }
+
+.cp-copt:disabled:hover { border-color:var(--border); color:var(--txt); }
+
+.cs-hint { font-size:11px; color:var(--txt-3); margin-top:6px; }
+
+.cs-field { margin-bottom:6px; }
+
+.cs-field label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
+
 /* ---- Escritorio: layout del panel del coach ---- */
 @media (min-width: 1000px){
     .co-bottom { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }

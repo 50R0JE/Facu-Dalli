@@ -1,8 +1,8 @@
-import { copySvg, downloadSvg, resetSvg } from '../../core/icons.js';
+import { copySvg, downloadSvg, gearSvg, resetSvg } from '../../core/icons.js';
 
 import { esc, fmtDate } from '../../core/utils.js';
 
-import { renderCoachInfo } from './clientes.js';
+import { coachActivity, coachAvatarColor, coachInitials, renderCoachInfo } from './clientes.js';
 
 import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine } from './rutinas.js';
 
@@ -48,19 +48,29 @@ export function renderCoach(){
         '<div class="co-item co-onboard-step"><div class="co-onboard-n">2</div><div class="co-onboard-txt">Pasáselo a tu cliente por donde le quede más cómodo</div></div>'+
         '<div class="co-item co-onboard-step"><div class="co-onboard-n">3</div><div class="co-onboard-txt">Se vincula solo — va a aparecer acá apenas lo haga</div></div>'+
       '</div>';
-      const list=filtered.length ? filtered.map(c=>{
+      const rows=filtered.map(c=>{
         const st=CoachState.coachClientStats[c.id]||{};
-        const meta=st.nSess ? st.nSess+' entrenos'+(st.lastSess?' · último '+fmtDate(st.lastSess):'') : 'sin entrenos aún';
-        return '<div class="co-item" data-coach="open" data-id="'+c.id+'"><div class="co-name">'+esc(c.full_name||"Sin nombre")+'</div><div class="co-item-meta">'+meta+'</div><div class="co-arrow">›</div></div>';
-      }).join("") : '<div class="cal-hint">Sin resultados.</div>';
-      const searchBox=CoachState.coachClients.length>3 ? '<input class="co-search" placeholder="\u{1F50D} Buscar cliente…" data-coach="coach-search" value="'+esc(CoachState.coachSearch||"")+'">' : "";
+        const act=coachActivity(st.lastSess);
+        const statusLine=act.has ? '<div class="co-act-status"><span class="co-dot'+(act.active?' on':'')+'"></span>'+act.statusLabel+'</div>' : "";
+        return '<div class="co-trow" data-coach="open" data-id="'+c.id+'">'+
+            '<div class="co-td co-td-name"><span class="co-avatar" style="background:'+coachAvatarColor(c.id)+'">'+esc(coachInitials(c.full_name))+'</span><span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
+            '<div class="co-td co-td-email'+(c.email?'':' co-empty')+'">'+esc(c.email||"Sin email")+'</div>'+
+            '<div class="co-td co-td-activity"><div class="co-act-date">'+esc(act.label)+'</div>'+statusLine+'</div>'+
+            '<div class="co-td co-td-actions"><span class="co-arrow">›</span></div>'+
+          '</div>';
+      }).join("");
+      const list=filtered.length ? '<div class="co-table"><div class="co-trow co-thead"><div class="co-th">Nombre</div><div class="co-th">Email</div><div class="co-th">Última actividad</div><div class="co-th">Acciones</div></div>'+rows+'</div>' : '<div class="cal-hint">Sin resultados.</div>';
+      // Antes solo aparecía con más de 3 clientes — con pocos igual conviene mostrarlo
+      // siempre: en uso real la lista crece, y ocultarlo generaba la duda de "¿no hay
+      // buscador?" incluso con 1 o 2 clientes cargados.
+      const searchBox='<input class="co-search" placeholder="\u{1F50D} Buscar cliente…" data-coach="coach-search" value="'+esc(CoachState.coachSearch||"")+'">';
       // El onboarding es un bloque ancho de texto/pasos, no una card angosta más — si lo
       // metiera adentro de .co-items (grid de auto-fill,minmax(260px,1fr) en desktop)
       // quedaría encajonado en una sola columna angosta con carriles vacíos al lado.
       // Va como reemplazo del bloque entero (sin buscador ni grid), no como un item más.
-      body=(!CoachState.coachSearch && !CoachState.coachClients.length) ? onboard : searchBox+'<div class="co-items">'+list+'</div>';
+      body=(!CoachState.coachSearch && !CoachState.coachClients.length) ? onboard : searchBox+list;
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div><div class="wordmark"><span class="b">Fit</span><span class="w">Sheet</span></div><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><button class="co-logout" data-auth="logout">Salir</button></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><div class="brand-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg></div><div class="wordmark"><span class="b">Fit</span><span class="w">Sheet</span></div><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
   } else if(CoachState.coachTplEdit){
     const rt=CoachState.coachTplEdit.days||[];
     let ed="";
@@ -96,6 +106,6 @@ export function renderCoach(){
            '</div>'+
            '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wchart+wlist;
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div><button class="co-back" data-coach="refresh" style="margin-right:8px">'+resetSvg+' Actualizar</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((CoachState.coachData&&CoachState.coachData.name)||"Cliente")+'</div>'+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div class="co-head-actions"><button class="co-back" data-coach="refresh" style="margin-right:8px">'+resetSvg+' Actualizar</button><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((CoachState.coachData&&CoachState.coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
 }
