@@ -283,7 +283,7 @@ document.body.addEventListener("click", async e => {
     // Se acaba de completar recién ahora (no estaba reabierto a mano) -> animar el
     // colapso. Si ya estaba todo tildado y esto es una corrección (reabierto), o si
     // se destildó, el render es inmediato como siempre.
-    if(!wasDone && nowDone && !expandedOverride.has(ex.id)){ collapseExerciseAnimated(ex.id, renderApp); }
+    if(!wasDone && nowDone && !expandedOverride.has(ex.id)){ collapseExerciseAnimated(ex.id, renderApp, true); }
     else { renderApp(); }
     return;
   }

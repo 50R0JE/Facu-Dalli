@@ -47,11 +47,23 @@ export function closeSheet(mutate, opts){
 
 export let collapseGen = {};
 
-export function collapseExerciseAnimated(exId, after){
+export function collapseExerciseAnimated(exId, after, flash){
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const card = document.querySelector('.card[data-ex-id="'+exId+'"]');
   if(!card || reduced){ after(); return; }
-  card.classList.add("ex-collapsing");
   const gen = (collapseGen[exId] = (collapseGen[exId]||0) + 1);
-  setTimeout(()=>{ if(collapseGen[exId]===gen) after(); }, 150);
+  const startCollapse = ()=>{
+    card.classList.add("ex-collapsing");
+    setTimeout(()=>{ if(collapseGen[exId]===gen) after(); }, 150);
+  };
+  // El flash solo aplica cuando el ejercicio se acaba de completar (ver main.js): un
+  // destello verde breve que refuerza el check antes de encogerse a la fila compacta.
+  // El colapso manual (botón de flecha) va directo al encogido, sin flash.
+  if(!flash){ startCollapse(); return; }
+  card.classList.add("ex-complete-flash");
+  setTimeout(()=>{
+    if(collapseGen[exId]!==gen) return;
+    card.classList.remove("ex-complete-flash");
+    startCollapse();
+  }, 220);
 }

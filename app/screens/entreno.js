@@ -130,7 +130,7 @@ export function renderEntreno(){
       // mostramos el mejor número de reps en su lugar; sin ninguno de los dos, "Completado".
       let bestReps=0; (ex.sets||[]).forEach(s=>{ const r=+s.reps||0; if(r>bestReps) bestReps=r; });
       const bestStr = best ? (best.kg+' kg × '+best.reps) : (bestReps>0 ? bestReps+' reps' : 'Completado');
-      return `${insertBtn}<div class="ex-collapsed${exIdx===0?' ex-focused':''}" data-action="ex-expand" data-ex="${ex.id}">
+      return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${ex.id}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
         <span class="ex-collapsed-name">${esc(ex.name)}</span>
         <span class="ex-collapsed-best">${bestStr}</span>

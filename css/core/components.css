@@ -106,22 +106,39 @@
     opacity: .45; transform: scale(.90);
     transition: opacity var(--duration-frequent) var(--ease-drawer), transform var(--duration-frequent) var(--ease-drawer); }
 
+/* Sin atenuado por scroll acá a propósito: son ejercicios ya completados, una lista
+     de filas "listo" que tiene que leerse pareja de punta a punta. El foco por scroll
+     (.ex-focused, ver abajo) es solo para .card — ayuda a ubicar en cuál ejercicio
+     activo estás parado mientras lo estás completando; en una fila ya tildada ese
+     mismo efecto solo apaga y prende filas al azar según dónde quedó el scroll, que es
+     justo lo desprolijo que había que evitar. */
 .ex-collapsed { display: flex; align-items: center; gap: var(--space-10); background: var(--card); border: 1px solid var(--border);
-    border-radius: 4px; padding: var(--space-12) var(--space-14); margin-bottom: var(--space-12); cursor: pointer;
-    opacity: .45; transform: scale(.90);
-    transition: opacity var(--duration-frequent) var(--ease-drawer), transform var(--duration-frequent) var(--ease-drawer); }
+    border-radius: 4px; padding: var(--space-12) var(--space-14); margin-bottom: var(--space-12); cursor: pointer; }
 
-/* Foco de scroll: la card/fila que cruza la banda central del viewport se ve a pleno,
-     el resto queda atenuado (opacity .6 / scale .96, deliberadamente sutil — tiene que
-     seguir siendo legible mientras el cliente descansa y mira qué sigue). */
-.card.ex-focused, .ex-collapsed.ex-focused { opacity: 1; transform: scale(1); }
+/* Foco de scroll: la card que cruza la banda central del viewport se ve a pleno, el
+     resto queda atenuado (deliberadamente sutil — tiene que seguir siendo legible
+     mientras el cliente descansa y mira qué sigue). Exclusivo de .card (ejercicios
+     todavía en curso); .ex-collapsed no lo usa, ver comentario arriba. */
+.card.ex-focused { opacity: 1; transform: scale(1); }
 
 /* .ex-collapsing siempre gana el empate con .ex-focused (misma especificidad, define
      después en la cascada): si justo se está colapsando, eso manda sobre el foco. */
 .card.ex-collapsing { opacity: 0; transform: scale(.97) translateY(-4px); pointer-events: none; }
 
+/* Destello verde al completar un ejercicio (collapseExerciseAnimated con flash=true en
+     sheet.js): confirma el check antes de que la card se encoja a la fila compacta.
+     Solo se dispara desde JS — con prefers-reduced-motion el colapso animado ni se
+     ejecuta, así que esta clase nunca llega a agregarse. */
+@keyframes exCompleteFlash {
+  0% { background: var(--card); border-color: var(--border); box-shadow: none; }
+  40% { background: rgba(34,224,138,.14); border-color: var(--green); box-shadow: 0 0 0 1px rgba(34,224,138,.3), 0 0 16px rgba(34,224,138,.22); }
+  100% { background: var(--card); border-color: var(--border); box-shadow: none; }
+}
+
+.card.ex-complete-flash { animation: exCompleteFlash .22s ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
-    .card, .ex-collapsed { opacity: 1 !important; transform: none !important; }
+    .card { opacity: 1 !important; transform: none !important; }
   }
 
 .set { display: flex; align-items: center; gap: var(--space-8); margin-bottom: var(--space-8); }
