@@ -1,0 +1,46 @@
+import { EX_DB } from './data.js';
+
+export const uid = () => Math.random().toString(36).slice(2, 9);
+
+export const mkSet = (target) => { const s = { id: uid(), kg: "", reps: "", done: false }; if (target) s.target = target; return s; };
+
+export const mkSets = n => Array.from({ length: n }, mkSet);
+
+export const mkEx = (name, n, mus) => { const e = { id: uid(), name, sets: mkSets(n) }; if (mus) e.mus = mus; return e; };
+
+export const mkExT = (name, mus, targets, note, opt) => { const e = { id: uid(), name, sets: targets.map(t => mkSet(t)) }; if (mus) e.mus = mus; if (note) e.note = note; if (opt) { if(opt.o) e.o=opt.o; if(opt.rir) e.rir=opt.rir; if(opt.rest) e.rest=opt.rest; if(opt.goal) e.goal=opt.goal; } return e; };
+
+export function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+export function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+export const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+export function fmt(ms, ceil){ let s = ceil?Math.ceil(ms/1000):Math.floor(ms/1000); if(s<0)s=0;
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  const mm=String(m).padStart(2,"0"), ss=String(sec).padStart(2,"0"); return h>0 ? h+":"+mm+":"+ss : mm+":"+ss; }
+
+export function hkey(name){ return today()+"|"+name; }
+
+export function mondayOf(dstr){ const d=new Date((dstr||today())+"T00:00:00"); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return d.toISOString().slice(0,10); }
+
+export function fmtDate(d){ const p=(d||"").split("-"); if(p.length!==3) return d; const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return parseInt(p[2],10)+" "+(m[parseInt(p[1],10)-1]||""); }
+
+export function fmtDInput(d){ const p=(d||"").split("-"); if(p.length!==3) return d; return p[2]+"/"+p[1]+"/"+p[0]; }
+
+export function muscleOf(name){ const n=(name||"").trim().toLowerCase(); for(const cat in EX_DB){ if(EX_DB[cat].some(x=>x.toLowerCase()===n)) return cat; } return "otros"; }
+
+export function exMuscle(ex){ if(ex && ex.mus && EX_DB[ex.mus]) return ex.mus; return muscleOf(ex && ex.name); }
+
+export function tabRipple(btn, clientX, clientY){
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 2.2;
+  const x = (typeof clientX==="number" ? clientX : rect.left+rect.width/2) - rect.left - size/2;
+  const y = (typeof clientY==="number" ? clientY : rect.top+rect.height/2) - rect.top - size/2;
+  const span = document.createElement("span");
+  span.className = "tab-ripple";
+  span.style.width = span.style.height = size+"px";
+  span.style.left = x+"px"; span.style.top = y+"px";
+  btn.appendChild(span);
+  setTimeout(()=>{ span.remove(); }, 520);
+}

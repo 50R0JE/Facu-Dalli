@@ -1,0 +1,3 @@
+[     248ms] ReferenceError: Cannot access 'State' before initialization
+    at ensureSb (http://localhost:8000/app/core/supabase.js:35:3)
+    at http://localhost:8000/app/core/supabase.js:50:1

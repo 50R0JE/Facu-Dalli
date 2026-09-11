@@ -1,0 +1,115 @@
+/* css/core/tokens.css */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+    /* Paleta "estilo WHOOP" (prueba, ver App-gym.html) — fondo casi negro puro en vez del
+       verde Excel claro por defecto. Cambiados: bg/card/card-2/border/txt (pedido explícito),
+       más blue-2/green-2/glow porque son la sombra/shade derivada de blue/green y se usan
+       junto a ellos en todos lados (hover, "over", glow de botones activos) — dejarlos en el
+       verde Excel viejo se hubiera visto como dos marcas distintas conviviendo. red/purple/
+       pink/cyan/txt-2/txt-3/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro,
+       categorías del plan de comidas), no la identidad de marca. Commit propio a propósito
+       para poder revertir solo esto. */
+    --bg: #060907; --card: #0e1512; --card-2: #141c17; --border: rgba(255,255,255,.09);
+    --txt: #f3f7f4; --txt-2: #566159; --txt-3: #8a948b;
+    --blue: #22e08a; --blue-2: #17b56d; --red: #c0392b;
+    --green: #22e08a; --green-2: #17b56d; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
+    --glow: rgba(34,224,138,.28);
+    --ring-over: #d43f3f; --glow-over: rgba(212,63,63,.30);
+    --xl-head: #217346; --xl-band: #185c37;
+    --font-mono: "JetBrains Mono", monospace;
+    --text-meta: 12px;      /* secundario: hints, timestamps, sub-labels, botones fantasma */
+    --text-body: 14px;      /* primario: nombres, valores, inputs, botones estándar */
+    --text-emphasis: 15px;  /* énfasis dentro de una fila: nombre destacado, CTA principal */
+    --text-set-value: 18px; /* el dato central del entreno: kg/reps de la serie — no es un paso de la escala 12-15, es su propio rol */
+    --transition-tap: color .15s, background-color .15s, border-color .15s;
+    --ease-drawer: cubic-bezier(.32,.72,0,1);
+    --duration-frequent: .15s; /* se ve/cierra muchas veces por sesión: modales del coach */
+    --duration-standard: .22s; /* el caso por defecto: bottom sheet de logueo */
+    --duration-rare: .3s;      /* poco frecuente o primera vez: pantalla de login */
+    --focus-ring: 0 0 0 3px rgba(164,168,165,.12);
+    --shadow-card: 0 1px 2px rgba(30,43,34,.06), 0 3px 8px rgba(30,43,34,.05);
+    --glow-sm: 0 0 10px var(--glow);  /* acentos finos: barra de progreso, línea de título */
+    --glow-md: 0 0 14px var(--glow);  /* estado seleccionado/activo: tab, chip, check, toggle */
+    --glow-lg: 0 0 18px var(--glow);  /* CTA principal / marca: botón primario, ícono de marca */
+    --icon-xs: 12px;  /* ícono inline dentro de texto chico/meta */
+    --icon-sm: 14px;  /* ícono inline junto a texto secundario */
+    --icon-md: 16px;  /* botón solo-ícono estándar */
+    --icon-lg: 18px;  /* botón solo-ícono en la barra superior */
+    --icon-xl: 20px;  /* ícono enfatizado — el control más tocado (.done) */
+    --space-2: 2px;   /* hairline */
+    --space-4: 4px;   /* ajustado */
+    --space-6: 6px;   /* gap compacto: ícono+texto, tabs */
+    --space-8: 8px;   /* el valor más común de toda la app */
+    --space-10: 10px; /* segundo más común — padding/margin por defecto */
+    --space-12: 12px; /* padding cómodo */
+    --space-14: 14px; /* padding de card/sheet */
+    --space-16: 16px; /* espaciado a nivel de sección */
+    --space-24: 24px; /* espaciado grande, poco frecuente */
+  }
+
+input::placeholder, textarea::placeholder { color: var(--txt-3); opacity:.7; }
+
+html, body { background: var(--bg); background-attachment: fixed; color: var(--txt); }
+
+body { font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(720px circle at 50% -6%, rgba(33,115,70,.06), transparent 55%); }
+
+@keyframes cardMeteor {
+    0% { transform: rotate(215deg) translateX(0); opacity: 0; }
+    4% { opacity: 1; }
+    20% { opacity: 1; }
+    28% { opacity: 0; }
+    100% { transform: rotate(215deg) translateX(-220px); opacity: 0; }
+  }
+
+@keyframes cmbPulse { 0%, 100% { opacity: .55; transform: scale(.85); } 50% { opacity: 1; transform: scale(1); } }
+
+.top-btn { width: 38px; height: 38px; border-radius: 4px; background: var(--card); border: 1px solid var(--border);
+    color: var(--txt-2); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+.top-btn svg { width: var(--icon-lg); height: var(--icon-lg); }
+
+.top-btn:active { color: var(--txt); }
+
+@keyframes tabRippleAnim { to { transform: scale(1); opacity: 0; } }
+
+@keyframes runnerIn { from { opacity: 0; transform: translateY(6px) scale(.9); } to { opacity: 1; transform: none; } }
+
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+@keyframes ringOverPulse {
+    0%, 100% { filter: drop-shadow(0 0 5px var(--glow-over)); }
+    50% { filter: drop-shadow(0 0 11px var(--glow-over)); }
+  }
+
+.reset-routine { display:block; margin:16px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size: var(--text-meta); padding:9px 16px; border-radius:4px; cursor:pointer; }
+
+.reset-routine:active { background:var(--card-2); }
+
+@keyframes authFadeUp { from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+
+@keyframes authShake { 15%,85%{ transform:translateX(-1px);} 30%,70%{ transform:translateX(2px);} 45%,60%{ transform:translateX(-3px);} }
+
+.opt-card { background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:10px; margin-bottom:8px; }
+
+.opt-head { display:flex; gap:6px; margin-bottom:8px; }
+
+/* ===== Revelado por scroll: cualquier bloque marcado con [data-reveal] arranca oculto y
+     corrido hacia abajo, y sube a su lugar con fade apenas entra en pantalla (ver
+     initScrollReveal()/revealedBlocks en el JS). Portado desde App-gym.html (variante WHOOP)
+     a pedido — aplicado en Entreno solo al encabezado del día y a las notas del coach, a
+     propósito NO a las cards de ejercicio: esas ya tienen su propio efecto de foco por scroll
+     (setupExerciseFocus/.ex-focused), que controla opacity/transform con sus propios valores
+     de reposo (opacity .6, scale .96). Si la card también fuera [data-reveal], el estado
+     "revelado" de esta regla (opacity:1, sin transform) pisaría el estado "no enfocado" de esa
+     otra la primera vez que la card entra en pantalla — y como el reveal es de una sola vez,
+     la card quedaría a pleno para siempre después de la primera vez que se vio, arruinando el
+     dimming. Mismo motivo por el que esta regla nunca fija "transform" en el estado revelado:
+     si lo hiciera, competiría por especificidad con cualquier otro estado que sí necesite
+     tocar transform en ese bloque (ver .card.ex-focused). Es una sola vez por bloque: como
+     renderApp() recrea el DOM entero en cada toggle de serie/kg/reps, sin esa memoria la
+     animación se repetiría en cada tap del check mientras entrenás. */
+[data-reveal] { transition: opacity var(--duration-rare) var(--ease-drawer), transform var(--duration-rare) var(--ease-drawer); }

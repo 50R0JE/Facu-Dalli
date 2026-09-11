@@ -1,0 +1,87 @@
+/* css/screens/comida.css */
+.macro-top { display: flex; justify-content: space-between; font-size: var(--text-body); margin-bottom: 5px; }
+
+.macro-top b { color: var(--txt); font-weight: 600; }
+
+.macro-top span { color: var(--txt-2); font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+
+.cal-search input { width: 100%; background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: 13px 14px 13px 38px; color: var(--txt); font-size: var(--text-emphasis); }
+
+.cal-search input:focus { outline: none; border-color: var(--blue); box-shadow: var(--focus-ring); }
+
+.food-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-10); background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-10) var(--space-14); cursor: pointer; }
+
+.food-row:active { background: var(--card-2); }
+
+.food-name { font-size: var(--text-body); color: var(--txt); }
+
+.food-kcal { font-size: var(--text-body); color: var(--blue-2); font-variant-numeric: tabular-nums; font-family: var(--font-mono); display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+
+.food-kcal span { font-size: 10px; color: var(--txt-3); }
+
+.cal-create { margin: 10px 0 20px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: var(--text-body);
+    color: var(--blue-2); background: transparent; cursor: pointer; border: 1px dashed var(--border); border-radius: 4px; padding: 11px; }
+
+.cal-create:active { border-color: var(--blue); }
+
+.diary-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+
+.diary-item { display: flex; align-items: center; gap: var(--space-10); background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-12) var(--space-14); margin-bottom: var(--space-8); cursor: pointer; transition: var(--transition-tap); }
+
+.diary-item:active { background: var(--card-2); }
+
+.diary-name { flex: 1; min-width: 0; font-size: var(--text-body); }
+
+.diary-name span { display: block; font-size: var(--text-meta); color: var(--txt-3); margin-top: 2px; }
+
+.diary-kcal { font-size: var(--text-body); color: var(--txt); font-variant-numeric: tabular-nums; font-family: var(--font-mono); flex-shrink: 0; }
+
+.cal-empty { text-align: center; padding: 40px 20px; }
+
+.cal-empty-ic { width: 60px; height: 60px; border-radius: 4px; background: var(--card-2); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; color: var(--blue-2); }
+
+.cal-empty-ic svg { width: 30px; height: 30px; }
+
+.cal-empty-title { font-size: 21px; font-weight: 700; margin-bottom: 8px; }
+
+.cal-empty-sub { color: var(--txt-2); font-size: var(--text-body); line-height: 1.6; margin-bottom: 22px; }
+
+.form-head { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; }
+
+.form-back { background: none; border: none; color: var(--txt); font-size: 28px; cursor: pointer; line-height: 1; padding: 0 4px; }
+
+.form-title { font-size: 22px; font-weight: 700; }
+
+.form-sub { color: var(--txt-2); font-size: var(--text-meta); margin-bottom: 20px; }
+
+.form-group { margin-bottom: 18px; }
+
+.form-label { font-size: var(--text-meta); color: var(--txt-2); margin-bottom: 9px; display: block; }
+
+.form-row2 { display: flex; gap: 10px; }
+
+.form-row2 .form-group { flex: 1; }
+
+.form-or { text-align: center; color: var(--txt-3); font-size: var(--text-meta); margin: 22px 0 12px; }
+
+.water-card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-14); margin-bottom: var(--space-14); }
+
+.water-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+.water-ttl { font-size: var(--text-body); font-weight: 600; color: var(--txt); }
+
+.water-val { font-size: var(--text-body); color: var(--blue-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.water-btns { display: flex; gap: 8px; margin-top: 12px; }
+
+.water-undo { color: var(--txt-2) !important; }
+
+.plan-banner { background:var(--card); border:1px solid var(--blue); border-radius:4px; padding:var(--space-12) var(--space-14); margin-bottom:var(--space-16); }
+
+.plan-t { font-size:10px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin-bottom:8px; }
+
+.plan-macros { display:flex; gap:16px; flex-wrap:wrap; }
+
+.plan-macros span { font-size: var(--text-meta); color:var(--txt-2); }
+
+.plan-macros b { color:var(--txt); font-size:16px; font-weight:800; margin-right:2px; font-variant-numeric:tabular-nums; }
