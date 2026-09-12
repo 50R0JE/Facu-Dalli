@@ -379,7 +379,7 @@ document.body.addEventListener("click", async e => {
     setTimeout(()=>{ b.innerHTML=prevHtml; b.classList.remove("copied"); }, 1600);
     return;
   }
-  if(a==="open"){ openClient(b.dataset.id); return; }
+  if(a==="open"){ CoachState.coachClientTab="ficha"; openClient(b.dataset.id); return; }
   if(a==="back"){ CoachState.coachSel=null; CoachState.coachData=null; renderCoach(); return; }
   if(a==="refresh"){ if(CoachState.coachSel) openClient(CoachState.coachSel); return; }
   if(a==="open-settings"){ CoachState.coachNameForm=null; CoachState.coachSettingsOpen=true; renderCoachSettings(); return; }
@@ -435,6 +435,7 @@ document.body.addEventListener("click", async e => {
     CoachState.coachTplEdit=null; CoachState.coachView="tpls"; renderCoach(); return;
   }
   if(!CoachState.coachData && !CoachState.coachTplEdit) return;
+  if(a==="client-tab"){ CoachState.coachClientTab=b.dataset.t; renderCoach(); return; }
   if(a==="edit-day"){ CoachState.coachEditDay=+b.dataset.i||0; renderCoach(); return; }
   if(a==="rt-tosave"){
     const nm=prompt("Nombre para guardar esta rutina en tu biblioteca:","");

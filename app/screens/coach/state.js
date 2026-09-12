@@ -26,6 +26,8 @@ export const CoachState = {
 
   coachView: "clients",
 
+  coachClientTab: "ficha",
+
   coachTpls: [],
 
   coachTplEdit: null,
