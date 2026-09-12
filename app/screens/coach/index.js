@@ -92,19 +92,31 @@ export function renderCoach(){
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
       const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
       const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
-      body='<div class="co-bottom"><div class="co-panel"><div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+'</div>'+
-             '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div></div>'+
-           renderCoachRoutine(d)+
-           renderCoachPlan(d)+
-           '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
-           '<div class="co-sec">Seguimiento diario</div>'+renderCoachDaily(d)+
-           '<div class="co-sec">Check-in semanal</div>'+renderCoachCheckins(d)+
-           '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
-           '<div class="co-bottom">'+
-             '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
-             '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
-           '</div>'+
-           '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wchart+wlist;
+      const tab=CoachState.coachClientTab||"ficha";
+      const tabs='<div class="co-tabs">'+
+        '<button class="co-tab'+(tab==="ficha"?" on":"")+'" data-coach="client-tab" data-t="ficha">Ficha</button>'+
+        '<button class="co-tab'+(tab==="rutina"?" on":"")+'" data-coach="client-tab" data-t="rutina">Rutina</button>'+
+        '<button class="co-tab'+(tab==="plan"?" on":"")+'" data-coach="client-tab" data-t="plan">Plan alimenticio</button>'+
+      '</div>';
+      let panel;
+      if(tab==="rutina"){
+        panel=renderCoachRoutine(d);
+      } else if(tab==="plan"){
+        panel=renderCoachPlan(d);
+      } else {
+        panel='<div class="co-bottom"><div class="co-panel"><div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+'</div>'+
+               '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div></div>'+
+             '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
+             '<div class="co-sec">Seguimiento diario</div>'+renderCoachDaily(d)+
+             '<div class="co-sec">Check-in semanal</div>'+renderCoachCheckins(d)+
+             '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
+             '<div class="co-bottom">'+
+               '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
+               '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
+             '</div>'+
+             '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wchart+wlist;
+      }
+      body=tabs+panel;
     }
     host.innerHTML='<div class="co-wrap"><div class="co-head"><button class="co-back" data-coach="back">‹ Volver</button><div class="co-head-actions"><button class="co-back" data-coach="refresh" style="margin-right:8px">'+resetSvg+' Actualizar</button><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-client-name">'+esc((CoachState.coachData&&CoachState.coachData.name)||"Cliente")+'</div>'+body+'</div>';
   }
