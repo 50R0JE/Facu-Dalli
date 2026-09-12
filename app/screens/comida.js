@@ -167,6 +167,12 @@ export function renderComida(){
     </div>`;
   }
   const t = (state.coachPlan && state.coachPlan.kcal) ? state.coachPlan.kcal : state.calTarget, tot = diaryTotals(), mt = macroTargets();
+  // planFull/planBanner se calculan acá (ya con coachPlan cargado) pero se insertan al
+  // final del return, no acá arriba: el plan escrito por el coach puede ser largo
+  // (varias tablas de comidas, opciones, reemplazos) y antes iba primero en la pantalla,
+  // empujando el anillo de calorías y el diario —lo que el cliente usa a diario— bajo
+  // todo ese texto de referencia. Ahora el uso diario queda arriba sin interrupciones y
+  // el plan completo del coach como lectura al final.
   const planFull = (state.coachPlan && state.coachPlan.plan) ? renderClientPlan(state.coachPlan.plan) : '';
   const planBanner = state.coachPlan ? `<div class="plan-banner"><div class="plan-t">Plan de tu coach</div><div class="plan-macros"><span><b>${state.coachPlan.kcal||"-"}</b> kcal</span><span><b>${state.coachPlan.protein||"-"}</b>P</span><span><b>${state.coachPlan.carbs||"-"}</b>C</span><span><b>${state.coachPlan.fat||"-"}</b>G</span></div>${state.coachPlan.notes?`<div class="plan-notes">${esc(state.coachPlan.notes)}</div>`:''}</div>` : '';
   const wml = state.water||0, wgoal = state.waterGoal||3000, wpct = wgoal?Math.min(Math.round(wml/wgoal*100),100):0;
@@ -184,8 +190,6 @@ export function renderComida(){
       <button class="diary-rm" data-action="diary-remove" data-id="${e.id}" title="Quitar">${xSvg}</button>
     </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
   return `
-    ${planBanner}
-    ${planFull}
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
         <circle class="ring-track" cx="60" cy="60" r="52"></circle>
@@ -217,5 +221,7 @@ export function renderComida(){
     <div id="foodResults">${renderResults(ComidaState.foodQuery)}</div>
     <button class="cal-create" data-action="food-create-open">+ Crear alimento propio</button>
     <div class="diary-head"><span class="t">Hoy</span><span class="s">${state.diary.length} ítems · ${tot.kcal} kcal</span></div>
-    ${diary}`;
+    ${diary}
+    ${planBanner}
+    ${planFull}`;
 }
