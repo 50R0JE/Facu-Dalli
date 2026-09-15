@@ -9,7 +9,7 @@ import { loadCloud } from '../core/supabase.js';
 import { esc } from '../core/utils.js';
 import { showLogin } from './auth.js';
 import { renderApp } from '../main.js';
-import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg } from '../core/icons.js';
+import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg } from '../core/icons.js';
 
 function cfgRoleLabel(p) { return (p && p.role === "coach") ? "Coach" : "Cliente"; }
 
@@ -55,15 +55,30 @@ export function renderConfig() {
   const email = logged ? State.cloudUser.email : "";
   const initial = (name || "?").trim().charAt(0).toUpperCase();
 
+  // Nombre "de fábrica" quedaba pegado si el cliente se equivocó al escribirlo al
+  // registrarse (o directamente lo quiere cambiar más adelante) — antes solo el coach
+  // podía corregirlo desde SU panel; ahora el propio cliente lo edita acá.
+  const editingName = logged && !!State.cfgEditingName;
+  const whoInner = editingName
+    ? '<div class="cfg-name-edit">' +
+        '<input id="cfgNameInput" class="form-input cfg-name-input" value="' + esc(name) + '" placeholder="Tu nombre" maxlength="60">' +
+        '<div class="cfg-name-edit-actions">' +
+          '<button class="form-save cfg-name-save-btn" data-action="cfg-name-save">Guardar</button>' +
+          '<button class="logout-btn cfg-name-cancel-btn" data-action="cfg-name-cancel">Cancelar</button>' +
+        '</div>' +
+      '</div>'
+    : '<div class="cfg-name-row">' +
+        '<span class="cfg-name">' + esc(name || "Sin nombre") + '</span>' +
+        '<button class="cfg-edit-name-btn" data-action="cfg-edit-name" title="Editar nombre">' + pencilSvg + '</button>' +
+      '</div>' +
+      '<div class="cfg-email">' + esc(email) + '</div>';
+
   const account = logged
     ? '<div class="card cfg-card">' +
         '<div class="cfg-row">' +
           '<div class="cfg-avatar">' + esc(initial) + '</div>' +
-          '<div class="cfg-who">' +
-            '<div class="cfg-name">' + esc(name || "Sin nombre") + '</div>' +
-            '<div class="cfg-email">' + esc(email) + '</div>' +
-          '</div>' +
-          (profile ? '<div class="cfg-badge">' + esc(cfgRoleLabel(profile)) + '</div>' : '') +
+          '<div class="cfg-who">' + whoInner + '</div>' +
+          (!editingName && profile ? '<div class="cfg-badge">' + esc(cfgRoleLabel(profile)) + '</div>' : '') +
         '</div>' +
         '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' +
       '</div>'
@@ -126,9 +141,47 @@ export function renderConfig() {
     account + coachSection + notifSection + legalSection + contactSection + dataSection + dangerSection + about;
 }
 
+document.body.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter" || !e.target || e.target.id !== "cfgNameInput") return;
+  e.preventDefault();
+  const btn = document.querySelector('[data-action="cfg-name-save"]');
+  if (btn) btn.click();
+});
+
 document.body.addEventListener("click", async function (e) {
   const loginBtn = e.target.closest('[data-action="cfg-login"]');
   if (loginBtn) { showLogin("", "in"); return; }
+
+  const editNameBtn = e.target.closest('[data-action="cfg-edit-name"]');
+  if (editNameBtn) {
+    State.cfgEditingName = true; renderApp();
+    const i = document.getElementById("cfgNameInput"); if (i) { i.focus(); i.select(); }
+    return;
+  }
+
+  const cancelNameBtn = e.target.closest('[data-action="cfg-name-cancel"]');
+  if (cancelNameBtn) { State.cfgEditingName = false; renderApp(); return; }
+
+  const saveNameBtn = e.target.closest('[data-action="cfg-name-save"]');
+  if (saveNameBtn) {
+    if (!State.sb || !State.cloudUser) { alert("Iniciá sesión para poder cambiar tu nombre."); return; }
+    const input = document.getElementById("cfgNameInput");
+    const val = ((input && input.value) || "").trim();
+    if (!val) { alert("Poné un nombre."); return; }
+    const prevHtml = saveNameBtn.innerHTML;
+    saveNameBtn.disabled = true; saveNameBtn.innerHTML = "Guardando…";
+    try {
+      const r = await State.sb.from("profiles").update({ full_name: val }).eq("id", State.cloudUser.id);
+      if (r.error) throw r.error;
+      await loadCloud();
+      State.cfgEditingName = false;
+      renderApp();
+    } catch (err) {
+      alert("No se pudo guardar: " + ((err && err.message) || err));
+      saveNameBtn.disabled = false; saveNameBtn.innerHTML = prevHtml;
+    }
+    return;
+  }
 
   const unlinkBtn = e.target.closest('[data-action="cfg-unlink-coach"]');
   if (unlinkBtn) {

@@ -12,6 +12,18 @@
 
 .cfg-who { flex:1; min-width:0; }
 
+/* Nombre + lápiz para entrar en modo edición (ver cfg-name-edit más abajo) — mismo
+     ícono/idea que ya usa el coach para su propio nombre en su panel de Configuración,
+     ahora disponible también para el cliente por si se equivocó al escribirlo al
+     registrarse o simplemente lo quiere cambiar. */
+.cfg-name-row { display:flex; align-items:center; gap:6px; min-width:0; }
+
+.cfg-edit-name-btn { flex-shrink:0; background:none; border:none; padding:2px; color:var(--txt-3); cursor:pointer; display:flex; }
+
+.cfg-edit-name-btn svg { width:14px; height:14px; }
+
+.cfg-edit-name-btn:active { color:var(--blue-2); }
+
 .cfg-name { font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .cfg-email { font-size:var(--text-meta); color:var(--txt-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -113,3 +125,16 @@
 .cfg-link-chev svg { width:16px; height:16px; }
 
 .cfg-link-row:hover .cfg-link-chev { color:var(--blue-2); }
+
+/* Formulario inline de edición de nombre (reemplaza el bloque nombre+email de
+     .cfg-who mientras State.cfgEditingName está en true — ver screens/config.js).
+     Reutiliza .form-input/.form-save/.logout-btn (mismos botones que el resto de la
+     app) solo pisando el margin-top que traen por defecto, para que queden en fila
+     en vez de apilados con espacio de sobra. */
+.cfg-name-edit { display:flex; flex-direction:column; gap:8px; }
+
+.cfg-name-input { padding:9px 10px; font-size:var(--text-body); }
+
+.cfg-name-edit-actions { display:flex; gap:8px; }
+
+.cfg-name-save-btn, .cfg-name-cancel-btn { margin-top:0; width:auto; flex:1; }
