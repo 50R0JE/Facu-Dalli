@@ -143,15 +143,20 @@
 
 .set { display: flex; align-items: center; gap: var(--space-8); margin-bottom: var(--space-8); }
 
-.idx { width: 24px; height: 24px; border-radius: 4px; background: var(--card-2); color: var(--txt-2); font-size: var(--text-meta); font-family: var(--font-mono);
+.idx { width: 24px; height: 24px; border-radius: 4px; background: rgba(34,129,224,.16); border: 1px solid rgba(34,129,224,.4); color: #fff; font-size: var(--text-meta); font-family: var(--font-mono); font-weight: 700;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 .field { display: flex; align-items: center; gap: var(--space-4); }
 
-.field input { background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-10) var(--space-8); text-align: right;
-    font-variant-numeric: tabular-nums; color: var(--txt); font-size: var(--text-set-value); }
+/* Antes usaban var(--card-2)/var(--border): dentro de una .card (que redefine --card-2 casi
+     igual al fondo general en modo silk) el input se fundía con la caja que lo contiene y
+     el valor quedaba difícil de leer a simple vista. Un relleno/borde celeste fijo (no atado
+     al scope de --card-2) asegura que la caja del dato siempre resalte sobre cualquier fondo
+     oscuro, con el número en blanco puro y en negrita como el peso/reps más importante de la fila. */
+.field input { background: rgba(34,129,224,.14); border: 1px solid rgba(34,129,224,.35); border-radius: 4px; padding: var(--space-10) var(--space-8); text-align: right;
+    font-variant-numeric: tabular-nums; color: #fff; font-weight: 700; font-size: var(--text-set-value); }
 
-.field input:focus { outline: none; border-color: var(--blue); box-shadow: var(--focus-ring); }
+.field input:focus { outline: none; border-color: var(--blue); box-shadow: var(--glow-sm), var(--focus-ring); }
 
 .kg { width: 74px; }
 
