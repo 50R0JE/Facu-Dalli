@@ -27,4 +27,4 @@
 
 .rest-idle .rest-opts { margin-left: 10px; }
 
-.rest-play { margin-left:auto; width:40px; height:40px; border-radius:4px; background: var(--green); border:none; color:#062e1a; font-size: var(--text-body); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rest-play { margin-left:auto; width:40px; height:40px; border-radius:4px; background: var(--green); border:none; color:#061a2e; font-size: var(--text-body); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }

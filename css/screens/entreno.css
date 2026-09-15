@@ -95,7 +95,7 @@
 
 .blk { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--blue); border-radius:4px; padding:12px 14px; margin-bottom:12px; }
 
-.blk.deload { border-color:#00c801; border-left-color:#00c801; }
+.blk.deload { border-color:#0064c8; border-left-color:#0064c8; }
 
 .blk-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
 

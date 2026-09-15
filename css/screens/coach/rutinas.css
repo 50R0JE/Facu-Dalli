@@ -123,21 +123,21 @@
 
 .opt-label { flex:1; color:var(--txt-2); font-weight:700; }
 
-.opt-item.oc-0 { border-left:3px solid #00ff00; }
+.opt-item.oc-0 { border-left:3px solid #007fff; }
 
-.opt-item.oc-0 .opt-label { color:#00ff00; }
+.opt-item.oc-0 .opt-label { color:#007fff; }
 
-.opt-item.oc-1 { border-left:3px solid #00c801; }
+.opt-item.oc-1 { border-left:3px solid #0064c8; }
 
-.opt-item.oc-1 .opt-label { color:#00c801; }
+.opt-item.oc-1 .opt-label { color:#0064c8; }
 
 .opt-item.oc-2 { border-left:3px solid #d2d6d8; }
 
 .opt-item.oc-2 .opt-label { color:#d2d6d8; }
 
-.opt-item.oc-3 { border-left:3px solid #008805; }
+.opt-item.oc-3 { border-left:3px solid #004488; }
 
-.opt-item.oc-3 .opt-label { color:#00c801; }
+.opt-item.oc-3 .opt-label { color:#0064c8; }
 
 .opt-item.oc-4 { border-left:3px solid #a4a8a5; }
 

@@ -10,14 +10,14 @@
     display: none; position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom));
     transform: translateX(-50%); z-index: 200; align-items: center; gap: 7px;
     padding: 7px 14px 7px 11px; border-radius: 20px; pointer-events: none;
-    background: rgba(10,20,14,.85); border: 1px solid rgba(127,224,168,.32);
-    color: #a9d9bd; font-size: var(--text-meta); font-weight: 700; letter-spacing: .02em;
+    background: rgba(10,15,20,.85); border: 1px solid rgba(127,175,224,.32);
+    color: #a9c1d9; font-size: var(--text-meta); font-weight: 700; letter-spacing: .02em;
     box-shadow: 0 4px 14px rgba(0,0,0,.35);
   }
 
 #coachModeBadge .cmb-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: #33c481; flex-shrink: 0;
-    box-shadow: 0 0 6px rgba(51,196,129,.7); animation: cmbPulse 2.4s ease-in-out infinite;
+    width: 7px; height: 7px; border-radius: 50%; background: #337bc4; flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(51,123,196,.7); animation: cmbPulse 2.4s ease-in-out infinite;
   }
 
 @media (prefers-reduced-motion: reduce) {
@@ -26,7 +26,7 @@
 
 .brand { display: flex; align-items: center; gap: 11px; }
 
-.brand-ic { width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(135deg, #185c37, #33c481);
+.brand-ic { width: 40px; height: 40px; border-radius: 4px; background: linear-gradient(135deg, #183a5c, #337bc4);
     display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-lg), inset 0 1px 0 rgba(255,255,255,.3); }
 
 .brand-ic svg { width: 22px; height: 22px; color: #fff; }

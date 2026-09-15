@@ -61,7 +61,7 @@
 .co-onboard-step { cursor:default; justify-content:flex-start; gap:12px; }
 
 .co-onboard-n { flex-shrink:0; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    background:rgba(51,196,129,.14); border:1px solid rgba(127,224,168,.35); color:var(--blue-2);
+    background:rgba(51,123,196,.14); border:1px solid rgba(127,175,224,.35); color:var(--blue-2);
     font-weight:800; font-size:var(--text-meta); font-family:var(--font-mono); }
 
 .co-onboard-txt { font-size:var(--text-body); color:var(--txt-2); line-height:1.4; }

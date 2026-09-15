@@ -54,7 +54,7 @@
 /* Elevación + iluminación de borde al pasar el cursor — mismo verde de marca
      que ya usan el borde y el glow de las cajas (--glow, --border en modo silk-on),
      así queda del mismo lenguaje visual en vez de un efecto ajeno a la estética. */
-.cfg-card:hover { transform: translateY(-2px); border-color: rgba(127,224,168,.5);
+.cfg-card:hover { transform: translateY(-2px); border-color: rgba(127,175,224,.5);
     box-shadow: var(--shadow-card), 0 0 16px var(--glow); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -87,7 +87,7 @@
 
 .cfg-switch.on { background:var(--green); border-color:var(--green); }
 
-.cfg-switch.on .cfg-switch-knob { background:#062e1a; transform:translateX(18px); }
+.cfg-switch.on .cfg-switch-knob { background:#061a2e; transform:translateX(18px); }
 
 @media (prefers-reduced-motion: reduce) {
     .cfg-switch, .cfg-switch-knob { transition:none; }
