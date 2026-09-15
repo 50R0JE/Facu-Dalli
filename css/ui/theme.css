@@ -51,12 +51,12 @@ body.silk-on :is(.card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .wa
     &::before, &::after {
       content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
       background: linear-gradient(90deg, #64a6e9, transparent);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+      box-shadow: 0 0 6px 1px rgba(100,166,233,.4), 0 0 0 1px rgba(255,255,255,.06);
       transform: rotate(215deg); transform-origin: left center;
       opacity: 0; z-index: 0; pointer-events: none;
-      animation: cardMeteor 6s linear infinite;
+      animation: cardMeteor 11s linear infinite;
     }
-    &::after { left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s; }
+    &::after { left: 82%; width: 60px; animation-duration: 15s; animation-delay: 4s; }
     & > * { position: relative; z-index: 1; }
     @media (prefers-reduced-motion: reduce) {
       &::before, &::after { animation: none; opacity: 0; }
@@ -110,12 +110,12 @@ body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-ed
     &::before, &::after {
       content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
       background: linear-gradient(90deg, #64a6e9, transparent);
-      box-shadow: 0 0 0 1px rgba(255,255,255,.06);
+      box-shadow: 0 0 6px 1px rgba(100,166,233,.4), 0 0 0 1px rgba(255,255,255,.06);
       transform: rotate(215deg); transform-origin: left center;
       opacity: 0; z-index: 0; pointer-events: none;
-      animation: cardMeteor 6s linear infinite;
+      animation: cardMeteor 11s linear infinite;
     }
-    &::after { left: 82%; width: 60px; animation-duration: 8s; animation-delay: 2.4s; }
+    &::after { left: 82%; width: 60px; animation-duration: 15s; animation-delay: 4s; }
     & > * { position: relative; z-index: 1; }
     @media (prefers-reduced-motion: reduce) {
       &::before, &::after { animation: none; opacity: 0; }
