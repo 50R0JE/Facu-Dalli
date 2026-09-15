@@ -183,7 +183,6 @@ export function renderEntreno(){
         <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname" ${routineLocked()?'readonly':''}>
         ${routineLocked()?'':`<button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>`}
       </div>
-      <input class="day-sub" type="text" value="${esc(d.subtitle)}" placeholder="Grupos musculares…" data-action="subtitle" ${routineLocked()?'readonly':''}>
       <div class="progress-row">
         <div class="bar"><div style="width:${pct}%"></div></div>
         <span class="count">${done}/${total} series</span>
