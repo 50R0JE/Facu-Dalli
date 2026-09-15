@@ -28,7 +28,7 @@
     --duration-standard: .22s; /* el caso por defecto: bottom sheet de logueo */
     --duration-rare: .3s;      /* poco frecuente o primera vez: pantalla de login */
     --focus-ring: 0 0 0 3px rgba(164,168,165,.12);
-    --shadow-card: 0 1px 2px rgba(30,43,34,.06), 0 3px 8px rgba(30,43,34,.05);
+    --shadow-card: 0 1px 2px rgba(30,36,43,.06), 0 3px 8px rgba(30,36,43,.05);
     --glow-sm: 0 0 10px var(--glow);  /* acentos finos: barra de progreso, línea de título */
     --glow-md: 0 0 14px var(--glow);  /* estado seleccionado/activo: tab, chip, check, toggle */
     --glow-lg: 0 0 18px var(--glow);  /* CTA principal / marca: botón primario, ícono de marca */

@@ -47,7 +47,7 @@ body.silk-on :is(.card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .wa
     --txt: #eaf4ff; --txt-2: #a9c1d9; --txt-3: #7f9fbf; --glow: rgba(51,123,196,.22);
     --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
     position: relative; overflow: hidden; isolation: isolate;
-    background: linear-gradient(160deg, #0e1a13 0%, #0a0f14 60%, #070d09 100%);
+    background: linear-gradient(160deg, #0e141a 0%, #0a0f14 60%, #070a0d 100%);
     &::before, &::after {
       content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
       background: linear-gradient(90deg, #64a6e9, transparent);
@@ -104,7 +104,7 @@ body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-ed
     --card: #0d141b; --card-2: #0a0f14; --border: rgba(127,175,224,.22);
     --txt: #eaf4ff; --txt-2: #a9c1d9; --txt-3: #7f9fbf; --glow: rgba(51,123,196,.22);
     position: relative; overflow: hidden; isolation: isolate;
-    background: linear-gradient(160deg, #0e1a13 0%, #0a0f14 60%, #070d09 100%);
+    background: linear-gradient(160deg, #0e141a 0%, #0a0f14 60%, #070a0d 100%);
     border-color: rgba(127,175,224,.22); color: #eaf4ff;
     box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
     &::before, &::after {
