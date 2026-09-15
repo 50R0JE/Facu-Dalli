@@ -24,7 +24,11 @@
 
 .cfg-edit-name-btn:active { color:var(--blue-2); }
 
-.cfg-name { font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* flex:1 + min-width:0: sin esto un nombre largo no se achica dentro de .cfg-name-row
+     (los flex items no bajan de su ancho de contenido por defecto) y en una pantalla
+     angosta el lápiz de editar terminaba recortado por el overflow:hidden de la card
+     en vez de mostrarse siempre al lado del nombre truncado con "…". */
+.cfg-name { flex:1; min-width:0; font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .cfg-email { font-size:var(--text-meta); color:var(--txt-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
