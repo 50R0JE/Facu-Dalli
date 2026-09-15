@@ -18,6 +18,12 @@ export const State = {
 
   cloudLoading: false,
 
+  // Modo edición del nombre en Configuración (ver screens/config.js) — solo el toggle
+  // vive acá; el valor tipeado se lee directo del <input> al guardar (mismo criterio que
+  // ya usa el input de "joinCode" en esa pantalla), así no hace falta re-renderizar en
+  // cada tecla ni perder el foco del campo.
+  cfgEditingName: false,
+
   routineTimer: null,
 
   brandName: "",
