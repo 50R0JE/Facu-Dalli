@@ -1,10 +1,10 @@
-// J-FIT service worker — "network-first" para que SIEMPRE veas la última versión,
+// Core service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "jfit-v3";
+const CACHE = "core-v1";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
-const ASSETS = ["./", "./index.html", "./icon-192.png", "./icon-512.png", "./manifest.json"];
+const ASSETS = ["./", "./index.html", "./icon-192.png", "./icon-512.png", "./logo.png", "./manifest.json"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})).then(()=>self.skipWaiting()));

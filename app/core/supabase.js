@@ -21,8 +21,8 @@ export const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 export function applyBrand(){
   const t=document.getElementById("brandTag"), n=document.getElementById("brandName");
   if(!t||!n) return;
-  if(State.brandName){ n.textContent=State.brandName; t.style.display="block"; document.title=State.brandName+" \u00b7 FitSheet"; }
-  else { t.style.display="none"; document.title="FitSheet"; }
+  if(State.brandName){ n.textContent=State.brandName; t.style.display="block"; document.title=State.brandName+" \u00b7 Core"; }
+  else { t.style.display="none"; document.title="Core"; }
 }
 
 // Crear el cliente de Supabase apenas el script del CDN esté listo. No alcanza con

@@ -1,6 +1,6 @@
 {
-  "name": "FitSheet",
-  "short_name": "FitSheet",
+  "name": "Core",
+  "short_name": "Core",
   "description": "Tu rutina, tu progreso.",
   "start_url": "./",
   "scope": "./",

@@ -1,4 +1,4 @@
-import { auIcoDumbbell, auIcoEye, auIcoLock, auIcoMail, auIcoTicket, auIcoUser } from '../core/icons.js';
+import { auIcoEye, auIcoLock, auIcoMail, auIcoTicket, auIcoUser } from '../core/icons.js';
 
 import { hideSilkBg, startAuthParticles, stopAuthParticles } from '../ui/background.js';
 
@@ -21,8 +21,8 @@ export function showLogin(msg, mode, vals){
   host.innerHTML =
     '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
     '<div class="auth-card" role="region" aria-label="'+(isUp?"Crear cuenta":"Iniciar sesión")+'">'+
-      '<div class="auth-brand-ic" aria-hidden="true">'+auIcoDumbbell+'</div>'+
-      '<div class="auth-logo"><span class="b">Fit</span>Sheet</div>'+
+      '<div class="auth-brand-ic" aria-hidden="true"><img src="logo.png" alt="Core"></div>'+
+      '<div class="auth-logo">Core</div>'+
       '<div class="auth-sub">Tu planilla de entrenamiento</div>'+
       (isUp?field("auName", auIcoUser, "", "Tu nombre y apellido", "text", "name", vals.name):"")+
       field("auEmail", auIcoMail, "", "Email (ej: nombre@gmail.com)", "email", "username", vals.email)+

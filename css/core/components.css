@@ -29,17 +29,13 @@
     }
   }
 
-.wordmark .b { color: var(--blue);  }
-
-.wordmark .w { color: var(--txt); }
-
 .view { position: relative; z-index: 1; max-width: 540px; margin: 0 auto; padding: 10px 16px calc(112px + env(safe-area-inset-bottom)); }
 
 .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
 
 .tabs::-webkit-scrollbar { display: none; }
 
-.tab { padding: 8px 16px; border-radius: 4px; font-size: var(--text-body); white-space: nowrap; flex-shrink: 0;
+.tab { padding: 8px 16px; border-radius: 4px; font-size: var(--text-body); font-weight: 700; letter-spacing: -.01em; white-space: nowrap; flex-shrink: 0;
     background: var(--card); border: 1px solid var(--border); color: var(--txt-2); cursor: pointer; transition: color .3s ease, border-color .3s ease;
     position: relative; overflow: hidden; isolation: isolate; --gx: 50%; --gy: 50%; }
 
@@ -383,8 +379,6 @@
   }
 
 #authHost canvas.auth-particles { position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
-
-.auth-logo .b { color:var(--green-2); }
 
 .auth-in {
     width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:4px;
