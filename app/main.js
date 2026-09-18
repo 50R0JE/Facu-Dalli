@@ -481,23 +481,27 @@ document.body.addEventListener("click", async e => {
     return;
   }
   if(a==="day-add"){ if(CoachState.coachTplEdit){ CoachState.coachTplEdit.days.push({id:uid(), name:"Nuevo día", subtitle:"", exercises:[]}); CoachState.coachEditDay=CoachState.coachTplEdit.days.length-1; } else { if(!CoachState.coachData.routine) CoachState.coachData.routine=[]; CoachState.coachData.routine.push({id:uid(), name:"Nuevo día", subtitle:"", exercises:[]}); CoachState.coachEditDay=CoachState.coachData.routine.length-1; } renderCoach(); return; }
-  if(a==="day-left"){
-    const D=rtDays(); const i=CoachState.coachEditDay;
-    if(D && i>0){ const t=D[i-1]; D[i-1]=D[i]; D[i]=t; CoachState.coachEditDay=i-1; renderCoach(); }
-    return;
-  }
-  if(a==="day-right"){
-    const D=rtDays(); const i=CoachState.coachEditDay;
-    if(D && i<D.length-1){ const t=D[i+1]; D[i+1]=D[i]; D[i]=t; CoachState.coachEditDay=i+1; renderCoach(); }
-    return;
-  }
+  if(a==="day-prev"){ const D=rtDays(); if(D&&D.length){ CoachState.coachEditDay=(CoachState.coachEditDay-1+D.length)%D.length; renderCoach(); } return; }
+  if(a==="day-next"){ const D=rtDays(); if(D&&D.length){ CoachState.coachEditDay=(CoachState.coachEditDay+1)%D.length; renderCoach(); } return; }
   if(a==="day-del"){ const D=rtDays(); if(D&&D.length>1){ D.splice(CoachState.coachEditDay,1); CoachState.coachEditDay=0; renderCoach(); } return; }
   if(a==="rt-setadd"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex) ex.sets.push(mkSet()); renderCoach(); return; }
   if(a==="rt-setdel"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex && ex.sets.length>1) ex.sets.splice(+b.dataset.j,1); renderCoach(); return; }
-  if(a==="rt-up"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i>0){ const arr=day.exercises; [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; renderCoach(); } return; }
-  if(a==="rt-down"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i<day.exercises.length-1){ const arr=day.exercises; [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; renderCoach(); } return; }
-  if(a==="rt-del"){ const day=(rtDays()||[])[CoachState.coachEditDay]; day.exercises.splice(+b.dataset.i,1); renderCoach(); return; }
-  if(a==="rt-swap"){ CoachState.coachPicker={mode:"swap", i:(+b.dataset.i||0)}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }
+  if(a==="rt-up"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i>0){ const arr=day.exercises; [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; CoachState.coachExMenu=null; renderCoach(); } return; }
+  if(a==="rt-down"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i<day.exercises.length-1){ const arr=day.exercises; [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; CoachState.coachExMenu=null; renderCoach(); } return; }
+  if(a==="rt-del"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex){ CoachState.coachExpandedEx.delete(ex.id); if(CoachState.coachExMenu===ex.id) CoachState.coachExMenu=null; } day.exercises.splice(+b.dataset.i,1); renderCoach(); return; }
+  if(a==="rt-dup"){
+    const day=(rtDays()||[])[CoachState.coachEditDay]; const i=+b.dataset.i; const ex=day&&day.exercises[i]; if(!ex) return;
+    const copy=JSON.parse(JSON.stringify(ex)); copy.id=uid(); (copy.sets||[]).forEach(s=>{ s.id=uid(); s.kg=""; s.reps=""; s.done=false; });
+    day.exercises.splice(i+1,0,copy); CoachState.coachExpandedEx.add(copy.id); renderCoach(); return;
+  }
+  if(a==="rt-toggle"){
+    const id=b.dataset.id;
+    if(CoachState.coachExpandedEx.has(id)){ CoachState.coachExpandedEx.delete(id); CoachState.coachExMenu=null; }
+    else CoachState.coachExpandedEx.add(id);
+    renderCoach(); return;
+  }
+  if(a==="rt-menu"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day&&day.exercises[+b.dataset.i]; if(!ex) return; CoachState.coachExMenu=(CoachState.coachExMenu===ex.id)?null:ex.id; renderCoach(); return; }
+  if(a==="rt-swap"){ CoachState.coachExMenu=null; CoachState.coachPicker={mode:"swap", i:(+b.dataset.i||0)}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }
   if(a==="rt-add"){ CoachState.coachPicker={mode:"add"}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }
   if(a==="rt-ins"){ CoachState.coachPicker={mode:"insert", idx:(+b.dataset.i||0)}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }
   if(a==="info-save"){
@@ -537,6 +541,7 @@ document.body.addEventListener("click", async e => {
     try{ await State.sb.from("nutrition").upsert(row,{onConflict:"client_id"}); CoachState.coachData.plan=row; CoachState.coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     renderCoach(); return;
   }
+  if(a==="pl-rest-toggle"){ coachPlanObj(CoachState.coachData); CoachState.coachPlanRestOpen=!CoachState.coachPlanRestOpen; renderCoach(); return; }
   if(a==="pl-mealadd"){ const p=coachPlanObj(CoachState.coachData); (p[b.dataset.key]=p[b.dataset.key]||[]).push({meal:"",time:"",kcal:"",cho:"",fat:"",prot:"",note:""}); renderCoach(); return; }
   if(a==="pl-mealdel"){ const p=coachPlanObj(CoachState.coachData); p[b.dataset.key].splice(+b.dataset.i,1); renderCoach(); return; }
   if(a==="pl-listadd"){ const p=coachPlanObj(CoachState.coachData); (p[b.dataset.key]=p[b.dataset.key]||[]).push(""); renderCoach(); return; }
@@ -585,6 +590,7 @@ document.body.addEventListener("input", async e => {
   if(a==="rt-name"){ if(day.exercises[+el.dataset.i]) day.exercises[+el.dataset.i].name=el.value; }
   else if(a==="day-name"){ day.name=el.value; }
   else if(a==="rt-target"){ const ex=day.exercises[+el.dataset.i]; const st=ex&&ex.sets[+el.dataset.j]; if(st){ const v=el.value.trim(); if(v) st.target=v; else delete st.target; } }
+  else if(a==="rt-targetkg"){ const ex=day.exercises[+el.dataset.i]; const st=ex&&ex.sets[+el.dataset.j]; if(st) st.targetKg=el.value; }
   else if(a==="rt-note"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const v=el.value.trim(); if(v) ex.note=v; else delete ex.note; } }
   else if(a==="day-note"){ const v=el.value.trim(); if(v) day.note=v; else delete day.note; }
   else if(a==="rt-o"||a==="rt-rir"||a==="rt-rest"||a==="rt-goal"||a==="rt-video"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const k=(a==="rt-video")?"video":a.slice(3); const v=el.value.trim(); if(v) ex[k]=v; else delete ex[k]; } }

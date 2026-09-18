@@ -104,8 +104,8 @@ export function renderCoach(){
       } else if(tab==="plan"){
         panel=renderCoachPlan(d);
       } else {
-        panel='<div class="co-bottom"><div class="co-panel"><div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+'</div>'+
-               '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div></div>'+
+        panel='<div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+
+               '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div>'+
              '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
              '<div class="co-sec">Seguimiento diario</div>'+renderCoachDaily(d)+
              '<div class="co-sec">Check-in semanal</div>'+renderCoachCheckins(d)+
