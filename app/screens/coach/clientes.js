@@ -1,5 +1,7 @@
 import { EX_DB } from '../../core/data.js';
 
+import { auIcoUser, flameSvg, trophySvg } from '../../core/icons.js';
+
 import { State } from '../../core/state.js';
 
 import { migrateNames } from '../../core/storage.js';
@@ -126,6 +128,7 @@ export async function openClient(id){
     const c=CoachState.coachClients.find(x=>x.id===id);
     CoachState.coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos};
     CoachState.coachPlanForm=null; CoachState.coachInfoForm=null; CoachState.coachBlockForm=null;
+    CoachState.coachExpandedEx=new Set(); CoachState.coachExMenu=null; CoachState.coachPlanRestOpen=null;
   }catch(e){ CoachState.coachData={error:true}; console.error("openClient",e); }
   renderCoach();
 }
@@ -187,24 +190,58 @@ export function exTable(d, dayName, exName){
   return '<table class="co-tbl"><thead><tr>'+th.join("")+'</tr></thead><tbody>'+rows+'</tbody></table>';
 }
 
+// Resumen de una línea para el toggle "Ver progreso" de la card de ejercicio colapsable
+// (ej. "2 sep: 80 kg × 8") — coachLogFor ya viene ordenado del más reciente al más viejo.
+export function exSummary(d, dayName, exName){
+  const log=coachLogFor(d.sessions, dayName, exName);
+  if(!log.length) return "";
+  const last=log[0];
+  let best=null;
+  last.sets.forEach(st=>{ if(!best || (st.kg||0)>=(best.kg||0)) best=st; });
+  if(!best) return "";
+  const kg=Math.round((best.kg||0)*10)/10;
+  const parts=[]; if(kg>0) parts.push(kg+" kg"); if((best.reps||0)>0) parts.push(best.reps+" reps");
+  if(!parts.length) return "";
+  return fmtDate(last.date)+": "+parts.join(" × ");
+}
+
 export function weeklyAvg(weights){
   const wk={};
   (weights||[]).forEach(w=>{ const k=mondayOf(w.date); (wk[k]=wk[k]||[]).push(w.kg); });
   return Object.keys(wk).sort().map(k=>({date:k, kg: wk[k].reduce((a,b)=>a+b,0)/wk[k].length, n:wk[k].length}));
 }
 
+const CI_AVAILABILITY=["2 d\u00edas / semana","3 d\u00edas / semana","4 d\u00edas / semana","5 d\u00edas / semana","6 d\u00edas / semana"];
+const CI_STAGE=["Volumen","D\u00e9ficit","Mantenimiento","Recomposici\u00f3n","Definici\u00f3n"];
+const CI_COMMITMENT=["Bajo","Medio","Alto"];
+const CI_COMMIT_COLOR={Bajo:"var(--green-2)", Medio:"var(--blue-2)", Alto:"var(--pink)"};
+
 export function renderCoachInfo(d){
   const i = CoachState.coachInfoForm || d.info || {};
   const F=(k,lbl,ph,type)=>'<div class="ci-f"><label>'+lbl+'</label><input class="co-note" data-coach="info-'+k+'" value="'+esc(i[k]==null?"":String(i[k]))+'" placeholder="'+ph+'"'+(type?' inputmode="'+type+'"':'')+'></div>';
-  return '<div class="ci-grid">'+
-      F("age","Edad","","numeric")+F("height_cm","Altura (cm)","","numeric")+
-      F("availability","Disponibilidad","")+F("stage","Etapa","")+
-      F("commitment","Compromiso","")+F("steps_goal","Pasos diarios","","numeric")+
-    '</div>'+
-    F("objective","Objetivo","")+
-    F("block_goal","Objetivo del bloque","")+
-    F("structure","Estructura","")+
-    F("cardio","Cardio","")+
-    F("injuries","Lesiones o patolog\u00edas","")+
+  const S=(k,lbl,opts)=>{
+    const val=i[k]==null?"":String(i[k]);
+    const color=(k==="commitment"&&CI_COMMIT_COLOR[val])?' style="color:'+CI_COMMIT_COLOR[val]+'"':'';
+    const extra=(val && opts.indexOf(val)<0) ? '<option value="'+esc(val)+'" selected>'+esc(val)+'</option>' : '';
+    const optsHtml=opts.map(o=>'<option value="'+esc(o)+'"'+(val===o?' selected':'')+'>'+esc(o)+'</option>').join("");
+    return '<div class="ci-f"><label>'+lbl+'</label><select class="co-note co-select" data-coach="info-'+k+'"'+color+'>'+(val?'':'<option value="">\u2014</option>')+extra+optsHtml+'</select></div>';
+  };
+  const card=(icon,title,body)=>'<div class="ci-card"><div class="ci-card-head">'+icon+'<span>'+title+'</span></div>'+body+'</div>';
+  return card(auIcoUser,"Datos personales",
+      '<div class="ci-grid-4">'+
+        F("age","Edad","","numeric")+F("height_cm","Altura (cm)","","numeric")+
+        F("steps_goal","Pasos diarios","","numeric")+F("injuries","Lesiones o patolog\u00edas","")+
+      '</div>')+
+    card(flameSvg,"Contexto de entrenamiento",
+      '<div class="ci-grid-3">'+
+        S("availability","Disponibilidad",CI_AVAILABILITY)+S("stage","Etapa",CI_STAGE)+S("commitment","Compromiso",CI_COMMITMENT)+
+      '</div>')+
+    card(trophySvg,"Objetivos",
+      '<div class="ci-grid-2">'+
+        F("objective","Objetivo general","")+F("block_goal","Objetivo del bloque actual","")+
+      '</div>'+
+      '<div class="ci-grid-2" style="margin-top:14px">'+
+        F("structure","Estructura","")+F("cardio","Cardio","")+
+      '</div>')+
     '<button class="co-save-rt" data-coach="info-save">Guardar ficha del cliente</button>';
 }

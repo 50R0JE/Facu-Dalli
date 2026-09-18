@@ -52,6 +52,27 @@
 
 .ci-f label { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:5px; }
 
+/* Ficha del cliente: cards agrupadas por tema (Datos personales / Contexto de
+     entrenamiento / Objetivos), cada una con ícono + título — ver renderCoachInfo(). */
+.ci-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px; }
+
+.ci-card-head { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+
+.ci-card-head svg { width:var(--icon-md); height:var(--icon-md); color:var(--blue-2); flex-shrink:0; }
+
+.ci-card-head span { font-size: var(--text-meta); font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--txt-2); }
+
+.ci-grid-2, .ci-grid-3, .ci-grid-4 { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:0; }
+
+.ci-grid-2 .ci-f, .ci-grid-3 .ci-f, .ci-grid-4 .ci-f { margin-bottom:0; }
+
+@media (min-width: 640px){
+    .ci-grid-3 { grid-template-columns:repeat(3,1fr); }
+    .ci-grid-4 { grid-template-columns:repeat(4,1fr); }
+  }
+
+select.co-select { cursor:pointer; }
+
 .co-copy-btn { display:inline-flex; align-items:center; gap:6px; padding:6px 11px; background:transparent; border:1px solid var(--border); border-radius:5px; color:var(--txt-3); font-size: var(--text-meta); font-weight:600; cursor:pointer; letter-spacing:.01em; }
 
 .co-copy-btn svg { width:var(--icon-sm); height:var(--icon-sm); flex-shrink:0; }
@@ -92,8 +113,4 @@
 @media (min-width: 1000px){
     .co-bottom { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }
     .co-bottom .co-panel { min-width:0; margin-bottom:0; }
-    .co-exc-grid { display:grid; grid-template-columns: 1fr 340px; gap:22px; align-items:start; }
-    .co-exc-grid > div { min-width:0; }
-    .co-exc-prog { margin-top:0; }
-    .co-exc-tbl { grid-column: 1 / -1; }
   }

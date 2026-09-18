@@ -2,7 +2,7 @@ import { EX_DB } from './data.js';
 
 export const uid = () => Math.random().toString(36).slice(2, 9);
 
-export const mkSet = (target) => { const s = { id: uid(), kg: "", reps: "", done: false }; if (target) s.target = target; return s; };
+export const mkSet = (target) => { const s = { id: uid(), kg: "", reps: "", targetKg: "", done: false }; if (target) s.target = target; return s; };
 
 export const mkSets = n => Array.from({ length: n }, mkSet);
 

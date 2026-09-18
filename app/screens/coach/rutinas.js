@@ -1,12 +1,12 @@
 import { EX_CATS, EX_DB } from '../../core/data.js';
 
-import { checkSvg, copySvg, downloadSvg, saveSvg, searchSvg, xSvg } from '../../core/icons.js';
+import { checkSvg, chevronDownSvg, chevronLeftSvg, chevronRightSvg, copySvg, downloadSvg, gripSvg, saveSvg, searchSvg, xSvg } from '../../core/icons.js';
 
 import { State } from '../../core/state.js';
 
 import { esc, mkEx, muscleOf, today } from '../../core/utils.js';
 
-import { coachDatalist, exChart, exTable } from './clientes.js';
+import { coachDatalist, exChart, exSummary, exTable } from './clientes.js';
 
 import { renderCoach } from './index.js';
 
@@ -33,9 +33,10 @@ export function planDefault(){
 }
 
 export function coachPlanObj(d){
-  if(!CoachState.coachPlanForm){ CoachState.coachPlanForm = Object.assign(planDefault(), (d.plan && d.plan.plan) ? JSON.parse(JSON.stringify(d.plan.plan)) : {}); 
+  if(!CoachState.coachPlanForm){ CoachState.coachPlanForm = Object.assign(planDefault(), (d.plan && d.plan.plan) ? JSON.parse(JSON.stringify(d.plan.plan)) : {});
     // arrastrar macros globales viejos si existían
     if(d.plan){ CoachState.coachPlanForm._kcal=d.plan.kcal||""; CoachState.coachPlanForm._protein=d.plan.protein||""; CoachState.coachPlanForm._carbs=d.plan.carbs||""; CoachState.coachPlanForm._fat=d.plan.fat||""; CoachState.coachPlanForm._notes=d.plan.notes||""; }
+    CoachState.coachPlanRestOpen=(CoachState.coachPlanForm.restDays||[]).length>0;
   }
   return CoachState.coachPlanForm;
 }
@@ -56,8 +57,9 @@ export function mealRows(p, key){
     '</div>').join("");
   // fila total
   let tk=0,tc=0,tf=0,tp=0; rows.forEach(r=>{ tk+=+r.kcal||0; tc+=+r.cho||0; tf+=+r.fat||0; tp+=+r.prot||0; });
-  const tot='<div class="ml-tot"><span>OBJETIVO</span><span></span><span>'+tk+'</span><span>'+tc+'</span><span>'+tf+'</span><span>'+tp+'</span><span></span><span></span></div>';
-  return head+body+tot+'<button class="pl-add" data-coach="pl-mealadd" data-key="'+key+'">+ Agregar comida</button>';
+  const tot='<div class="ml-tot"><span>Objetivo diario</span><span></span><span>'+tk+'</span><span>'+tc+'</span><span>'+tf+'</span><span>'+tp+'</span><span></span><span></span></div>';
+  const tbl=rows.length?'<div class="ml-tablewrap">'+head+body+tot+'</div>':'';
+  return tbl+'<button class="pl-add" data-coach="pl-mealadd" data-key="'+key+'">+ Agregar comida</button>';
 }
 
 export function listEditor(p, key, label, ph){
@@ -112,24 +114,45 @@ export function habitsEditor(p){
 
 export function renderCoachPlan(d){
   const p = coachPlanObj(d);
-  return '<div class="co-sec">Plan nutricional</div><div class="co-panel plan-edit">'+
-    '<div class="pl-sub">Días de entrenamiento — reparto de comidas</div>'+mealRows(p,"trainDays")+
-    '<div class="pl-sub" style="margin-top:20px">Días de descanso — reparto de comidas</div>'+mealRows(p,"restDays")+
-    '<div class="ml-row2" style="margin-top:16px">'+
-      '<div class="ci-f"><label>Agua por día</label><input class="co-note" data-coach="pl-water" value="'+esc(p.water||"")+'" placeholder=""></div>'+
-      '<div class="ci-f"><label>Sal por día</label><input class="co-note" data-coach="pl-salt" value="'+esc(p.salt||"")+'" placeholder=""></div>'+
-    '</div>'+
-    listEditor(p,"guidelines","Pautas nutricionales","")+
-    listEditor(p,"supps","Suplementos recomendados","")+
-    optionsEditor(p)+
-    listEditor(p,"extras","Adicionales (aderezos, condimentos permitidos)","")+
-    swapsEditor(p)+
-    '<div class="pl-sub" style="margin-top:22px">Cardio prescripto</div>'+
-    '<div class="co-note-wrap"><span class="co-note-lbl">Indicación general de cardio</span><input class="co-note" data-coach="pl-cardiotext" value="'+esc((p.cardio&&p.cardio.text)||"")+'" placeholder=""></div>'+
-    cardioItemsEditor(p)+
-    '<div class="pl-sub" style="margin-top:22px">Hábitos diarios (checklist del cliente)</div>'+
-    habitsEditor(p)+
-    '<button class="co-save-rt" data-coach="plan-save">Guardar plan nutricional</button></div>';
+  const restOpen = !!CoachState.coachPlanRestOpen;
+  const hasRest = (p.restDays||[]).length>0;
+  const card=(title, body, extra)=>'<div class="ci-card plan-edit"><div class="pl-sub-row"><div class="pl-sub">'+title+'</div>'+(extra||"")+'</div>'+body+'</div>';
+
+  return '<div class="co-page-title">Plan nutricional</div>'+
+
+    card("Días de entrenamiento — reparto de comidas", mealRows(p,"trainDays"))+
+
+    card("Días de descanso — reparto de comidas",
+      restOpen ? mealRows(p,"restDays") : '',
+      '<button class="pl-toggle" data-coach="pl-rest-toggle">'+(restOpen?"Ocultar":(hasRest?"Mostrar":"Sin configurar"))+' '+(restOpen?"▾":"▸")+'</button>')+
+
+    card("Hidratación",
+      '<div class="ci-grid-2">'+
+        '<div class="ci-f"><label>Agua por día (litros)</label><input class="co-note" data-coach="pl-water" value="'+esc(p.water||"")+'" placeholder=""></div>'+
+        '<div class="ci-f"><label>Sal por día (g)</label><input class="co-note" data-coach="pl-salt" value="'+esc(p.salt||"")+'" placeholder=""></div>'+
+      '</div>')+
+
+    card("Indicaciones",
+      '<div class="ci-grid-2">'+
+        '<div>'+listEditor(p,"guidelines","Pautas nutricionales","")+'</div>'+
+        '<div>'+listEditor(p,"supps","Suplementos recomendados","")+'</div>'+
+      '</div>')+
+
+    card("Personalización del menú",
+      optionsEditor(p)+
+      '<div class="pl-divider"></div>'+
+      '<div class="ci-grid-2">'+
+        '<div>'+listEditor(p,"extras","Adicionales (aderezos, condimentos permitidos)","")+'</div>'+
+        '<div>'+swapsEditor(p)+'</div>'+
+      '</div>')+
+
+    card("Cardio prescripto",
+      '<div class="co-note-wrap" style="margin-top:0"><span class="co-note-lbl">Indicación general de cardio</span><input class="co-note" data-coach="pl-cardiotext" value="'+esc((p.cardio&&p.cardio.text)||"")+'" placeholder=""></div>'+
+      cardioItemsEditor(p))+
+
+    card("Hábitos diarios (checklist del cliente)", habitsEditor(p))+
+
+    '<button class="co-save-rt" data-coach="plan-save">Guardar plan nutricional</button>';
 }
 
 export function renderCoachBlock(d){
@@ -220,6 +243,79 @@ export function renderApplyPicker(){
   el.innerHTML='<div class="cp-bg" data-coach="ap-cancel"></div><div class="cp-ccard">'+markup+'</div>';
 }
 
+// Un color estable por grupo muscular (swatch de la card de ejercicio) \u2014 mismo esquema de
+// "hashear a una paleta fija" que coachAvatarColor() para los avatares de cliente.
+const EX_SWATCH_COLORS=["var(--blue)","var(--purple)","var(--pink)","var(--cyan)","var(--green-2)"];
+function exSwatchColor(ex){
+  const mus=ex.mus||muscleOf(ex.name)||"otros";
+  let h=0; for(let i=0;i<mus.length;i++) h=(h*31+mus.charCodeAt(i))>>>0;
+  return EX_SWATCH_COLORS[h%EX_SWATCH_COLORS.length];
+}
+
+function rirRestSummary(ex){
+  const bits=[]; if(ex.rir) bits.push("RIR "+ex.rir); if(ex.rest) bits.push(ex.rest+"s");
+  return bits.join(" \u00b7 ");
+}
+
+function exerciseCard(d, day, ex, i, rt){
+  const open=CoachState.coachExpandedEx.has(ex.id);
+  const nSets=(ex.sets||[]).length;
+  const swatch='<span class="co-exc-swatch" style="background:'+exSwatchColor(ex)+'"></span>';
+  const grip='<button class="co-exc-icon-btn co-exc-grip" data-coach="rt-menu" data-i="'+i+'" title="Reordenar / cambiar">'+gripSvg+'</button>';
+  const badge='<span class="co-exc-badge">'+nSets+' serie'+(nSets===1?'':'s')+'</span>';
+  const rirTxt=rirRestSummary(ex);
+  const dup='<button class="co-exc-icon-btn" data-coach="rt-dup" data-i="'+i+'" title="Duplicar ejercicio">'+copySvg+'</button>';
+  const del='<button class="co-exc-icon-btn danger" data-coach="rt-del" data-i="'+i+'" title="Eliminar ejercicio">'+xSvg+'</button>';
+  const chevron='<span class="co-exc-chevron'+(open?' open':'')+'">'+chevronDownSvg+'</span>';
+  const menu=(CoachState.coachExMenu===ex.id) ? (
+    '<div class="co-exc-menu">'+
+      '<button data-coach="rt-up" data-i="'+i+'"'+(i===0?' disabled':'')+'>\u2191 Subir</button>'+
+      '<button data-coach="rt-down" data-i="'+i+'"'+(i===rt.length-1?' disabled':'')+'>\u2193 Bajar</button>'+
+      '<button data-coach="rt-swap" data-i="'+i+'">\u21c4 Cambiar ejercicio</button>'+
+    '</div>'
+  ) : '';
+
+  if(!open){
+    return '<div class="co-exc co-exc-collapsed" data-coach="rt-toggle" data-i="'+i+'" data-id="'+ex.id+'">'+
+        grip+swatch+
+        '<span class="co-exc-cname">'+esc(ex.name||"Sin nombre")+'</span>'+
+        badge+
+        (rirTxt?'<span class="co-exc-rirtxt">'+esc(rirTxt)+'</span>':'')+
+        dup+del+chevron+
+      '</div>'+menu;
+  }
+
+  const sets=(ex.sets||[]).map((st,j)=>
+    '<div class="co-set-row">'+
+      '<span class="co-set-n">'+(j+1)+'</span>'+
+      '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="8-10">'+
+      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="peso corporal / +10 kg">'+
+      '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie">\u2715</button>'+
+    '</div>').join("");
+  const setsTbl=nSets ? '<div class="co-set-head"><span>Serie</span><span>Reps objetivo</span><span>Peso objetivo</span><span></span></div>'+sets : '';
+  const prog=exSummary(d, day.name, ex.name);
+  return '<div class="co-exc co-exc-open" data-id="'+ex.id+'">'+
+      '<div class="co-exc-head" data-coach="rt-toggle" data-i="'+i+'" data-id="'+ex.id+'">'+
+        grip+swatch+
+        '<input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
+        badge+dup+del+chevron+
+      '</div>'+menu+
+      '<div class="co-exc-body">'+
+        '<div class="co-prow">'+
+          '<span class="co-note-lbl">Orden</span><input class="co-pin sm" data-coach="rt-o" data-i="'+i+'" value="'+esc(ex.o||"")+'" placeholder="A1" title="Etiqueta de orden/superserie que ve el cliente (ej. A1, B2)">'+
+          '<span class="co-note-lbl">RIR</span><input class="co-pin" data-coach="rt-rir" data-i="'+i+'" value="'+esc(ex.rir||"")+'" placeholder="">'+
+          '<span class="co-note-lbl">Descanso (seg)</span><input class="co-pin" data-coach="rt-rest" data-i="'+i+'" value="'+esc(ex.rest||"")+'" placeholder="">'+
+        '</div>'+
+        '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder=""></div>'+
+        setsTbl+
+        '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
+        '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder=""></div>'+
+        '<details class="co-exc-fold"><summary>Link de video</summary><div class="co-note-wrap"><input class="co-note" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="https://youtu.be/..."></div></details>'+
+        '<details class="co-exc-fold"><summary>Ver progreso'+(prog?' <span class="co-exc-fold-hint">('+esc(prog)+')</span>':'')+'</summary><div class="co-exc-prog">'+exChart(d, day.name, ex.name)+'</div><div class="co-exc-tbl">'+exTable(d, day.name, ex.name)+'</div></details>'+
+      '</div>'+
+    '</div>';
+}
+
 export function renderCoachRoutine(d){
   const rt=d.routine||[];
   if(!rt.length) return '<div class="co-sec">Rutina y progreso</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';
@@ -228,38 +324,24 @@ export function renderCoachRoutine(d){
   const day=rt[CoachState.coachEditDay];
   const totalSets=(day.exercises||[]).reduce((n,x)=>n+((x.sets||[]).length),0);
   const totalEx=(day.exercises||[]).length;
-  const cards=(day.exercises||[]).map((ex,i)=>{
-    const sets=(ex.sets||[]).map((st,j)=>'<div class="co-set-row"><span class="co-set-n">'+(j+1)+'</span><input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder=""><span class="co-set-u">reps objetivo</span><button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie">\u2715</button></div>').join("");
-    return '<button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+
-      '<div class="co-exc"><div class="co-exc-head"><input class="co-ord" data-coach="rt-o" data-i="'+i+'" value="'+esc(ex.o||"")+'" placeholder=""><input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
-      '<span class="co-exc-sets">'+((ex.sets||[]).length)+' series</span>'+
-      '<button class="co-exc-btn" data-coach="rt-up" data-i="'+i+'" title="Subir"'+(i===0?' disabled':'')+'>\u2191</button>'+
-      '<button class="co-exc-btn" data-coach="rt-down" data-i="'+i+'" title="Bajar"'+(i===rt.length-1?' disabled':'')+'>\u2193</button>'+
-      '<button class="co-exc-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio">\u21c4</button>'+
-      '<button class="co-exc-btn del" data-coach="rt-del" data-i="'+i+'" title="Eliminar">\u2715</button></div>'+
-      '<div class="co-exc-grid">'+
-        '<div class="co-exc-plan">'+
-          '<div class="co-prow"><span class="co-note-lbl">RIR</span><input class="co-pin" data-coach="rt-rir" data-i="'+i+'" value="'+esc(ex.rir||"")+'" placeholder=""><span class="co-note-lbl">Descanso</span><input class="co-pin" data-coach="rt-rest" data-i="'+i+'" value="'+esc(ex.rest||"")+'" placeholder=""></div>'+
-          '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder=""></div>'+
-          '<div class="co-note-wrap"><span class="co-note-lbl">Link de video (YouTube)</span><input class="co-note" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="https://youtu.be/..."></div>'+
-          sets+
-          '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
-          '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder=""></div>'+
-        '</div>'+
-        '<div class="co-exc-prog">'+exChart(d, day.name, ex.name)+'</div>'+
-        '<div class="co-exc-tbl">'+exTable(d, day.name, ex.name)+'</div>'+
-      '</div></div>';
-  }).join("");
+  const cards=(day.exercises||[]).map((ex,i)=>
+    '<button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+
+    exerciseCard(d, day, ex, i, rt)
+  ).join("");
   return '<div class="co-sec">Rutina y progreso</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+
-    '<div class="co-dayname-row"><input class="co-dayname" data-coach="day-name" value="'+esc(day.name||"")+'" placeholder="Nombre del d\u00eda">'+
-    (rt.length>1?'<button class="co-exc-btn" data-coach="day-left" title="Mover este d\u00eda a la izquierda"'+(CoachState.coachEditDay===0?' disabled':'')+'>\u2190</button>':'')+
-    (rt.length>1?'<button class="co-exc-btn" data-coach="day-right" title="Mover este d\u00eda a la derecha"'+(CoachState.coachEditDay===rt.length-1?' disabled':'')+'>\u2192</button>':'')+
-    (rt.length>1?'<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>':'')+'</div>'+
-    '<div class="co-daystats"><span class="co-stat"><b>'+totalEx+'</b> ejercicios</span><span class="co-stat"><b>'+totalSets+'</b> series en total</span></div>'+
-    '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
+    '<div class="co-day-card">'+
+      '<div class="co-day-head-row">'+
+        '<input class="co-dayname" data-coach="day-name" value="'+esc(day.name||"")+'" placeholder="Nombre del d\u00eda">'+
+        (rt.length>1?'<button class="co-daynav-btn" data-coach="day-prev" title="D\u00eda anterior">'+chevronLeftSvg+'</button>':'')+
+        (rt.length>1?'<button class="co-daynav-btn" data-coach="day-next" title="D\u00eda siguiente">'+chevronRightSvg+'</button>':'')+
+        (rt.length>1?'<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>':'')+
+      '</div>'+
+      '<div class="co-daystats"><span class="co-stat"><b>'+totalEx+'</b> ejercicio'+(totalEx===1?'':'s')+'</span><span class="co-stat"><b>'+totalSets+'</b> serie'+(totalSets===1?'':'s')+' en total</span></div>'+
+      '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
+    '</div>'+
+    '<div class="co-exc-section-head"><span class="co-sec" style="margin:0">Ejercicios</span><button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
-    '<button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button>'+
     (CoachState.coachTplEdit ? '' : '<button class="co-save-rt" data-coach="save-routine">Guardar rutina</button>')+
     (CoachState.coachTplEdit ? "" : "<div class='rt-actions'><button class='co-copy-btn' data-coach='rt-apply'>"+downloadSvg+" Aplicar una de mis rutinas</button><button class='co-copy-btn' data-coach='rt-copy'>"+copySvg+" Copiar a otro cliente</button><button class='co-copy-btn' data-coach='rt-tosave'>"+saveSvg+" Guardar como rutina</button></div>");
 }
@@ -295,8 +377,12 @@ export function cpApply(name){
   if(!rtDays()) return;
   const day=(rtDays()||[])[CoachState.coachEditDay]; if(!day) return;
   const mm=(muscleOf(name)!=="otros")?muscleOf(name):(CoachState.coachPCat||"otros");
-  if(CoachState.coachPicker.mode==="swap"){ const ex=day.exercises[CoachState.coachPicker.i]; if(ex){ ex.name=name; ex.mus=mm; } }
-  else if(CoachState.coachPicker.mode==="insert"){ day.exercises.splice(CoachState.coachPicker.idx,0,mkEx(name,3,mm)); }
-  else { day.exercises.push(mkEx(name,3,mm)); }
+  let ex;
+  if(CoachState.coachPicker.mode==="swap"){ ex=day.exercises[CoachState.coachPicker.i]; if(ex){ ex.name=name; ex.mus=mm; } }
+  else if(CoachState.coachPicker.mode==="insert"){ ex=mkEx(name,3,mm); day.exercises.splice(CoachState.coachPicker.idx,0,ex); }
+  else { ex=mkEx(name,3,mm); day.exercises.push(ex); }
+  // el ejercicio recién agregado/cambiado arranca expandido para que el coach lo complete
+  // de una — el resto del día sigue colapsado (ver CoachState.coachExpandedEx).
+  if(ex) CoachState.coachExpandedEx.add(ex.id);
   closeSheet(()=>{ CoachState.coachPicker=null; renderCoachPicker(); renderCoach(); }, {host:"#coachSheetHost", card:".cp-modal", duration:150});
 }
