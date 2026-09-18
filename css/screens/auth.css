@@ -7,13 +7,13 @@
   }
 
 .auth-brand-ic {
-    width:52px; height:52px; margin:0 auto 2px; border-radius:4px; background:linear-gradient(135deg, var(--blue), var(--green-2));
+    width:52px; height:52px; margin:0 auto 2px; border-radius:4px; overflow:hidden;
     display:flex; align-items:center; justify-content:center;
     box-shadow: var(--glow-lg);
     animation:authFadeUp var(--duration-rare) var(--ease-drawer) .05s both;
   }
 
-.auth-brand-ic svg { width:26px; height:26px; color:#fff; }
+.auth-brand-ic img { width:100%; height:100%; object-fit:cover; }
 
 .auth-logo { font-family:"Orbitron",monospace; font-size:29px; font-weight:800; text-align:center; letter-spacing:.4px; color:var(--txt); animation:authFadeUp var(--duration-rare) var(--ease-drawer) .1s both; }
 

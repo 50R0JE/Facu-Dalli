@@ -16,7 +16,7 @@
 .co-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
 
 /* Título del panel: mismo isotipo+wordmark que el header del cliente (.brand/.brand-ic/
-     .wordmark, ver topbar) en vez de un título de texto aparte — así "FitSheet" es siempre
+     .wordmark, ver topbar) en vez de un título de texto aparte — así "Core" es siempre
      el mismo logo en toda la app. El sufijo "Panel de coach" va en la tipografía normal
      (no Orbitron, que es la fuente pesada/técnica reservada al wordmark) y en un tono más
      apagado, para que se lea como una aclaración de contexto y no compita con la marca. */

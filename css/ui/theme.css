@@ -4,7 +4,7 @@
      dentro de Entreno/Hábitos/Cardio/Comida/Progreso. No toca coach panel ni sheet modal. */
 body.silk-on .day-name, body.silk-on .hb-title, body.silk-on .time-display,
   body.silk-on .ring-num, body.silk-on .w-now, body.silk-on .diary-head .t,
-  body.silk-on .cal-empty-title, body.silk-on .macro-top b, body.silk-on .wordmark .w,
+  body.silk-on .cal-empty-title, body.silk-on .macro-top b, body.silk-on .wordmark,
   body.silk-on .client-name { color: #eaf4ff; }
 
 body.silk-on .day-sub, body.silk-on .count, body.silk-on .empty, body.silk-on .ring-sub,
@@ -72,7 +72,7 @@ body.silk-on .cal-search {
 
 /* --- Texto suelto del coach (sin card opaca detrás) --- */
 body.silk-coach .co-title, body.silk-coach .co-client-name,
-  body.silk-coach .hb-title, body.silk-coach .co-brand .wordmark .w,
+  body.silk-coach .hb-title, body.silk-coach .co-brand .wordmark,
   body.silk-coach .co-onboard-lead { color: #eaf4ff; }
 
 body.silk-coach .co-brand-tag { color: #a9c1d9; }

@@ -39,8 +39,30 @@ export function setupExerciseFocus(){
   // propósito — ver el comentario en components.css junto a .ex-collapsed.
   const nodes = document.querySelectorAll("#view .card");
   if(!nodes.length) return;
+
+  // El observer solo nos avisa qué cards entran/salen de la banda central — no
+  // alcanza con prenderle/apagarle la clase a cada una por separado, porque si dos
+  // caben a la vez dentro de esa banda (cards cortas, scroll rápido) las dos quedan
+  // "isIntersecting" al mismo tiempo y terminan enfocadas juntas. Mantenemos el set de
+  // las que están adentro y, de esas, enfocamos una sola: la que tiene el centro más
+  // cerca del centro del viewport.
+  const intersecting = new Set();
+  const applyFocus = ()=>{
+    let winner=null, bestDist=Infinity;
+    const centerY = window.innerHeight/2;
+    intersecting.forEach(n=>{
+      const r=n.getBoundingClientRect();
+      const d=Math.abs((r.top+r.bottom)/2 - centerY);
+      if(d<bestDist){ bestDist=d; winner=n; }
+    });
+    nodes.forEach(n=>n.classList.toggle("ex-focused", n===winner));
+  };
   exerciseObserver = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{ entry.target.classList.toggle("ex-focused", entry.isIntersecting); });
+    entries.forEach(entry=>{
+      if(entry.isIntersecting) intersecting.add(entry.target);
+      else intersecting.delete(entry.target);
+    });
+    applyFocus();
   }, { root:null, rootMargin:"-45% 0px -45% 0px", threshold:0 });
   nodes.forEach(n=>exerciseObserver.observe(n));
 
@@ -53,7 +75,7 @@ export function setupExerciseFocus(){
   const last = nodes[nodes.length-1];
   exerciseFocusScrollHandler = ()=>{
     const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-    if(atBottom) nodes.forEach(n=>n.classList.toggle("ex-focused", n===last));
+    if(atBottom){ intersecting.clear(); intersecting.add(last); applyFocus(); }
   };
   window.addEventListener("scroll", exerciseFocusScrollHandler, { passive:true });
   exerciseFocusScrollHandler();
