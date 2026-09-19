@@ -1,0 +1,162 @@
+/* ==========================================================================
+   Rediseño de botones — minimalista, bien marcados
+   Capa de override (se carga DESPUÉS de todo). No toca el HTML ni el JS.
+
+   Sistema (3 estados, siempre los mismos en toda la app):
+     1. Acción principal  → relleno azul sólido, sin glow
+     2. Acción secundaria → borde neutro visible, sin relleno
+     3. Selección (tabs/chips/toggles) → tinte azul + borde azul
+   Radio único 10px, altura mínima táctil, foco visible, cero efectos
+   decorativos (ripples, glow que sigue al mouse, meteoros en botones).
+   ========================================================================== */
+
+body:not(#_) {
+  --btn-r: 10px;
+  --btn-line: rgba(255,255,255,.18);
+  --btn-line-hi: rgba(255,255,255,.34);
+  --btn-fill: rgba(255,255,255,.035);
+  --btn-fill-hi: rgba(255,255,255,.08);
+  --btn-txt: #e6eaee;
+  --btn-txt-dim: #98a1a9;
+  --acc: #2281e0;
+  --acc-hi: #3b93ee;
+  --acc-tint: rgba(34,129,224,.16);
+  --danger: #e0574b;
+
+  /* ---------- 2) SECUNDARIOS: borde neutro marcado ---------- */
+  :is(.co-back, .co-logout, .co-gear, .top-btn, .clear, .reset-routine, .logout-btn,
+      .load-def, .co-copy-btn, .qbtn, .ctrl.ghost, .co-exc-btn, .co-daynav-btn, .bw,
+      .cp-back, .pl-toggle, .cal-edit, .water-goal, .ex-custom, .cp-copt, .cp-cat, .cp-ex,
+      .ap-radio, .ex-pick, .co-exc-menu button) {
+    background: var(--btn-fill);
+    border: 1px solid var(--btn-line);
+    color: var(--btn-txt);
+    border-radius: var(--btn-r);
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: none;
+    transition: background-color .15s, border-color .15s, color .15s, transform .12s;
+    &:hover { background: var(--btn-fill-hi); border-color: var(--btn-line-hi); color: #fff; }
+    &:active { transform: scale(.98); }
+  }
+  :is(.co-back, .co-logout, .co-copy-btn, .load-def, .clear, .reset-routine, .logout-btn, .qbtn) { min-height: 38px; }
+  :is(.co-gear, .top-btn) { width: 38px; height: 38px; }
+
+  /* ---------- Selección: chips / tabs / toggles ---------- */
+  :is(.tab, .cmode, .seg button, .ex-chip, .rest-opt, .fb-n, .sc-opt, .preset, .co-daytab, .ap-day) {
+    background: transparent;
+    border: 1px solid var(--btn-line);
+    color: var(--btn-txt-dim);
+    border-radius: var(--btn-r);
+    font-weight: 600;
+    box-shadow: none;
+    transition: background-color .15s, border-color .15s, color .15s;
+    &:hover { border-color: var(--btn-line-hi); color: #fff; }
+  }
+  :is(.tab.active, .cmode.active, .seg button.on, .ex-chip.on, .rest-opt.on, .fb-n.on,
+      .sc-opt.on, .preset.on, .co-daytab.on, .ap-day.on, .ap-radio.on) {
+    background: var(--acc-tint);
+    border-color: var(--acc);
+    color: #fff;
+    box-shadow: none;
+  }
+  /* fuera glow que sigue al mouse + ripple de los tabs de día */
+  .tab::before, .tab .tab-ripple { display: none; }
+  .tab { padding: 10px 16px; overflow: visible; }
+
+  /* ---------- 1) PRINCIPALES: relleno azul sólido ---------- */
+  :is(.ctrl.primary, .form-save, .save-session, .co-save-rt, .hb-add-btn, .co-rt-add,
+      .auth-btn, .bw.dl) {
+    background: var(--acc);
+    border: 1px solid var(--acc);
+    color: #fff;
+    border-radius: var(--btn-r);
+    font-weight: 600;
+    letter-spacing: 0;
+    box-shadow: none;
+    transition: background-color .15s, transform .12s, filter .15s;
+    &:hover { background: var(--acc-hi); border-color: var(--acc-hi); transform: none; }
+    &:active { transform: scale(.98); filter: none; }
+  }
+  .auth-btn { background-image: none; }
+
+  /* ---------- "Agregar": borde punteado más marcado ---------- */
+  :is(.add-set, .cal-create, .co-add-day, .co-set-add, .pl-add, .cp-custom) {
+    background: transparent;
+    border: 1px dashed var(--btn-line-hi);
+    border-radius: var(--btn-r);
+    color: #8ec1f5;
+    font-weight: 600;
+    opacity: 1;
+    &:hover { border-color: var(--acc); color: #fff; background: var(--acc-tint); }
+  }
+
+  /* botones "+" de insertar entre ejercicios: discretos a propósito */
+  :is(.ins-ex, .co-rt-ins) { border-radius: var(--btn-r); border-color: var(--btn-line); opacity: .55; }
+  :is(.ins-ex, .co-rt-ins):hover { opacity: 1; border-color: var(--acc); color: #fff; }
+
+  /* ---------- Destructivo ---------- */
+  .co-day-del { border: 1px solid rgba(224,87,75,.55); color: var(--danger); border-radius: var(--btn-r); background: transparent; }
+  .co-day-del:hover { background: rgba(224,87,75,.12); border-color: var(--danger); }
+
+  /* ---------- Check de serie / hábito ---------- */
+  .done, .hb-check { border-radius: var(--btn-r); border: 1px solid var(--btn-line-hi); background: transparent; }
+  .done.on, .hb-check.on { background: var(--acc); border-color: var(--acc); color: #fff; box-shadow: none; }
+
+  /* Botón de descanso en la card */
+  .rest-btn-full { border-radius: var(--btn-r); background: var(--acc-tint); border-color: var(--acc); color: #fff; }
+
+  /* ---------- Navegación inferior ---------- */
+  .nav-item { position: relative; border-radius: var(--btn-r); color: var(--btn-txt-dim); font-weight: 600; }
+  .nav-item.active { color: #fff; background: transparent; }
+  .nav-item.active svg { filter: none; }
+  .nav-item.active::before {
+    content: ""; position: absolute; top: -9px; left: 50%; width: 26px; height: 2px;
+    transform: translateX(-50%); border-radius: 2px; background: var(--acc);
+  }
+  .nav-item:hover { color: #fff; }
+
+  /* ---------- Tabs segmentados (Ficha / Rutina / Plan · Clientes / Mis rutinas) ---------- */
+  .co-tabs {
+    --n: 2; --i: 0;
+    position: relative; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 0;
+    padding: 4px; margin: 6px 0 16px;
+    background: #0b0e11; border: 1px solid var(--btn-line); border-radius: 12px;
+    &:has(> .co-tab:nth-child(3)) { --n: 3; }
+    &:has(> .co-tab:nth-child(2).on) { --i: 1; }
+    &:has(> .co-tab:nth-child(3).on) { --i: 2; }
+    /* indicador que se desliza */
+    &::before {
+      content: ""; position: absolute; top: 4px; bottom: 4px;
+      left: calc(4px + var(--i) * (100% - 8px) / var(--n));
+      width: calc((100% - 8px) / var(--n));
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); border-radius: 9px;
+      transition: left .28s cubic-bezier(.4,0,.2,1);
+    }
+    &::after {
+      content: ""; position: absolute; bottom: 4px;
+      left: calc(4px + var(--i) * (100% - 8px) / var(--n));
+      width: calc((100% - 8px) / var(--n)); height: 2px;
+      transition: left .28s cubic-bezier(.4,0,.2,1);
+      background: linear-gradient(var(--acc), var(--acc)) center / 24px 2px no-repeat;
+      pointer-events: none;
+    }
+  }
+  .co-tab {
+    position: relative; z-index: 1; overflow: visible; isolation: auto;
+    background: transparent; border: 0; border-radius: 9px; box-shadow: none;
+    color: var(--btn-txt-dim); font-weight: 600; font-size: 13px; padding: 11px 12px;
+    &::before, &::after { display: none; }
+    &.on { background: transparent; color: #fff; }
+    &:hover { color: #fff; }
+    .co-tab-count { color: inherit; opacity: .7; font-weight: 600; }
+  }
+  .co-tab.on .co-tab-count { color: #fff; opacity: .85; }
+
+  /* Foco de teclado consistente en todos los botones */
+  :is(button, [role="button"]):focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+}
+
+/* En los coach y cards con "meteoros", los botones internos no heredan la decoración */
+body.silk-coach .co-daytab::before, body.silk-coach .co-daytab::after,
+body.silk-coach .ap-day::before, body.silk-coach .ap-day::after { display: none; }

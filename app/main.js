@@ -298,6 +298,14 @@ document.body.addEventListener("click", async e => {
 });
 
 document.body.addEventListener("click", e=>{
+  const rb=e.target.closest("[data-auth-role]"); if(!rb) return;
+  const name=((document.getElementById("auName")||{}).value||"").trim();
+  const email=((document.getElementById("auEmail")||{}).value||"").trim();
+  const code=((document.getElementById("auCode")||{}).value||"").trim();
+  showLogin("","up",{name:name, email:email, code:code, role:rb.dataset.authRole});
+});
+
+document.body.addEventListener("click", e=>{
   const tg=e.target.closest("[data-toggle-pass]"); if(!tg) return;
   const inp=document.getElementById("auPass"); if(!inp) return;
   const showingText = inp.type==="text";
@@ -319,7 +327,8 @@ document.body.addEventListener("click", async e=>{
     const pass=(document.getElementById("auPass")||{}).value||"";
     const name=((document.getElementById("auName")||{}).value||"").trim();
     const code=((document.getElementById("auCode")||{}).value||"").trim();
-    const V={name:name, email:email, code:code};
+    const role=((document.getElementById("auRole")||{}).value||"client").trim();
+    const V={name:name, email:email, code:code, role:role};
     if(!email||!pass){ showLogin("Completá email y contraseña.", mode, V); return; }
     if(!/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(email)){ showLogin("Poné un email válido, con @ y punto (ej: nombre@gmail.com).", mode, V); return; }
     if(mode==="up" && pass.length<6){ showLogin("La contraseña necesita al menos 6 caracteres.", mode, V); return; }
@@ -330,7 +339,7 @@ document.body.addEventListener("click", async e=>{
     try{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
-        const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name}}});
+        const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}}});
         if(r.error) throw r.error;
         if(code) { try{ localStorage.setItem("jfit_pending_code", code.toUpperCase()); }catch(e){} }
       } else {
@@ -340,7 +349,7 @@ document.body.addEventListener("click", async e=>{
       const sess=await State.sb.auth.getSession();
       if(!sess.data.session){ showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
       await afterLogin();
-    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code}); }
+    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code, role:role}); }
     return;
   }
 });
