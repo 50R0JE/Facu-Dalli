@@ -202,10 +202,11 @@ export async function cloudDeleteSession(cid){ if(!State.sb||!State.cloudUser||!
 
 export async function cloudBoot(){
   await ensureSb();
-  if(!State.sb){ renderApp(); return; }
+  if(!State.sb){ renderApp(); if(window.coreEnter) window.coreEnter(); return; }
   try{
     const sess=await State.sb.auth.getSession();
     if(sess.data.session){ await afterLogin(); }
     else { showLogin("","in"); }
   }catch(e){ renderApp(); }
+  finally{ if(window.coreEnter) window.coreEnter(); }
 }

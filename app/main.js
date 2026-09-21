@@ -334,8 +334,13 @@ document.body.addEventListener("click", async e=>{
     if(mode==="up" && pass.length<6){ showLogin("La contraseña necesita al menos 6 caracteres.", mode, V); return; }
     if(mode==="up" && name.length<2){ showLogin("Poné tu nombre y apellido, así tu coach sabe quién sos.", mode, V); return; }
     b.textContent="Cargando..."; b.disabled=true;
+    // Repite el splash de arranque durante la espera de red del login: entrar
+    // al panel de coach implica varios viajes a Supabase (perfil, clientes...)
+    // después de este punto, así que conviene taparlos con la misma animación
+    // en vez de dejar la pantalla de login colgada sin feedback.
+    if(window.coreReplay) window.coreReplay();
     if(!State.sb) await ensureSb();
-    if(!State.sb){ showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", mode, V); return; }
+    if(!State.sb){ if(window.coreCancel) window.coreCancel(); showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", mode, V); return; }
     try{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
@@ -347,9 +352,10 @@ document.body.addEventListener("click", async e=>{
         if(r.error) throw r.error;
       }
       const sess=await State.sb.auth.getSession();
-      if(!sess.data.session){ showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
+      if(!sess.data.session){ if(window.coreCancel) window.coreCancel(); showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
       await afterLogin();
-    }catch(err){ showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code, role:role}); }
+      if(window.coreEnter) window.coreEnter();
+    }catch(err){ if(window.coreCancel) window.coreCancel(); showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code, role:role}); }
     return;
   }
 });

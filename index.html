@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=JetBrains+Mono:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/core/splash.css">
 <link rel="stylesheet" href="css/core/tokens.css">
 <link rel="stylesheet" href="css/core/components.css">
 <link rel="stylesheet" href="css/core/layout.css">
@@ -44,7 +45,38 @@
 <link rel="stylesheet" href="css/ui/botones-rediseno.css">
 
 </head>
-<body>
+<body class="is-booting">
+  <template id="splashTpl">
+    <div id="splash">
+      <svg class="core-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CORE">
+        <defs>
+          <mask id="core-ink">
+            <g transform="translate(60.5,26.4) scale(1.15) skewX(-12)"
+               fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+              <path class="ink ink-1" pathLength="1" d="M44,9H8V51H44"/>
+              <path class="ink ink-2" pathLength="1" transform="translate(52)" d="M8,8H36V52H8Z"/>
+              <path class="ink ink-3" pathLength="1" transform="translate(0,68)" d="M8,52V8H36V24M14,34H36V52"/>
+              <path class="ink ink-4" pathLength="1" transform="translate(52,68)" d="M44,9H8V51H44M8,30H38"/>
+            </g>
+          </mask>
+        </defs>
+
+        <path class="half" d="M100,6H194V194H100" fill="none" stroke="#1E6BFF" stroke-width="3"/>
+        <path class="half" d="M100,6H6V194H100" fill="none" stroke="#1E6BFF" stroke-width="3"/>
+        <path class="run" d="M6,6H194V194H6Z" fill="none" stroke="#1E6BFF" stroke-width="3" stroke-linecap="round"/>
+
+        <g mask="url(#core-ink)">
+          <g transform="translate(60.5,26.4) scale(1.15) skewX(-12)" fill-rule="evenodd" fill="#1E6BFF">
+            <path d="M8,0H44V18H16V42H44V60H8L0,52V8Z"/>
+            <path transform="translate(52)" d="M8,0H36L44,8V52L36,60H8L0,52V8Z M16,16V44H28V16Z"/>
+            <path transform="translate(0,68)" d="M0,0H36L44,8V26L38,32L44,38V60H28V42H16V60H0Z M16,14V26H28V14Z"/>
+            <path transform="translate(52,68)" d="M8,0H44V14H16V23H38V37H16V46H44V60H8L0,52V8Z"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </template>
+  <div id="splashHost"></div>
   <canvas id="silkCanvas" aria-hidden="true"></canvas>
   <div id="authHost"></div>
   <div id="coachHost"></div>
@@ -53,8 +85,7 @@
   <div id="fbHost"></div>
   <div class="topbar">
     <div class="brand">
-      <div class="brand-ic"><img src="logo.png" alt="Core"></div>
-      <div class="wordmark">Core</div>
+      <img class="brand-logo" src="logo-horizontal.jpg" alt="Core">
     </div>
     <div class="client-tag" id="brandTag" style="display:none">
       <div class="client-name" id="brandName"></div>
@@ -93,6 +124,61 @@
   <div id="sheetHost"></div>
   <div id="restBar"></div>
 
+<script>
+(function () {
+  var TOTAL_MS = 3700; // duración completa de la animación
+  var MAX_MS = 8000;   // techo de seguridad si la app nunca avisa que está lista
+  var tpl = document.getElementById('splashTpl');
+  var host = document.getElementById('splashHost');
+  var current = null; // splash en pantalla ahora mismo, si hay uno
+
+  function reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  // El splash arranca dentro de un <template> (inerte, sin animar) y se clona
+  // cada vez que hace falta mostrarlo, así las animaciones CSS (que corren una
+  // sola vez) se pueden repetir en cada login sin tener que reconstruirlas a mano.
+  function mount() {
+    host.innerHTML = '';
+    var el = tpl.content.firstElementChild.cloneNode(true);
+    host.appendChild(el);
+    document.body.classList.add('is-booting');
+    var state = { el: el, startTs: Date.now(), done: false, safety: null };
+    state.safety = setTimeout(function () { finish(state); }, reduced() ? 1600 : MAX_MS);
+    current = state;
+    return state;
+  }
+
+  function finish(state) {
+    if (!state || state.done) return;
+    state.done = true;
+    clearTimeout(state.safety);
+    state.el.remove();
+    if (current === state) { document.body.classList.remove('is-booting'); current = null; }
+  }
+
+  // La app llama a esto cuando ya armó la pantalla real (login, app de cliente
+  // o panel de coach) que corresponde al splash activo. No corta la animación
+  // antes de que termine sola: el panel de coach hace varios viajes a Supabase
+  // antes de estar listo y puede tardar más que los 3.7s de la animación.
+  window.coreEnter = function () {
+    var state = current; if (!state) return;
+    if (reduced()) { finish(state); return; }
+    var wait = Math.max(0, TOTAL_MS - (Date.now() - state.startTs));
+    setTimeout(function () { finish(state); }, wait);
+  };
+
+  // Corta el splash activo ya mismo, sin esperar a que termine la animación
+  // (para cuando la "carga" en realidad falló, ej. login incorrecto).
+  window.coreCancel = function () { if (current) finish(current); };
+
+  // Vuelve a mostrar el splash desde cero — se usa en cada login/registro,
+  // no solo en la carga inicial de la página, porque entrar al panel de coach
+  // desde el formulario de login es su propia espera de red.
+  window.coreReplay = function () { if (!current || current.done) mount(); };
+
+  mount(); // splash de arranque de la página
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="module" src="app/main.js"></script>
 </body>
