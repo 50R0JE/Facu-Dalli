@@ -6,6 +6,8 @@ import { State, state } from '../core/state.js';
 
 import { save } from '../core/storage.js';
 
+import { syncFootText } from '../core/supabase.js';
+
 import { esc, norm, today } from '../core/utils.js';
 
 import { renderApp } from '../main.js';
@@ -194,7 +196,7 @@ export function renderEntreno(){
     ${renderDayNotes(d)}
     ${d.exercises.length ? '<button class="save-session" data-action="save-session">'+checkSvg+' Guardar entreno de hoy</button>' : ''}
     ${routineLocked() ? '' : '<button class="load-def" data-action="load-default-routine">'+resetSvg+' Cargar Meso 2 · Microciclo 8</button>'}
-    <p class="foot">${State.cloudUser ? 'Sincronizado con tu cuenta' : 'Se guarda solo en este dispositivo'}</p>`;
+    <p class="foot" id="syncFoot">${syncFootText()}</p>`;
 }
 
 export function renderExList(){

@@ -6,7 +6,7 @@ import { State, state } from './core/state.js';
 
 import { migrateNames, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, sbOk } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, tabRipple, today, uid } from './core/utils.js';
 
@@ -227,8 +227,10 @@ document.body.addEventListener("click", async e => {
     const rec = Object.assign({}, state.daily[today()]||{}, d);
     state.daily[today()] = rec;
     if(kg>0){ const exw=state.weights.find(w=>w.date===today()); if(exw) exw.kg=kg; else state.weights.push({id:uid(), date:today(), kg:kg}); }
-    CheckinState.dailyForm=null; save(); try{ cloudSaveDaily(today(), rec); }catch(e){}
-    alert("Registro guardado \u2713"); renderApp(); return;
+    CheckinState.dailyForm=null; save();
+    const synced = await cloudSaveDaily(today(), rec);
+    alert(synced ? "Registro guardado \u2713" : "Se guard\u00f3 en este dispositivo pero todav\u00eda no lleg\u00f3 a tu coach (sin conexi\u00f3n). Queda pendiente y se env\u00eda solo cuando vuelva internet.");
+    renderApp(); return;
   }
   if (a === "fb-set") { CheckinState.fbForm=CheckinState.fbForm||{}; CheckinState.fbForm[el.dataset.k]=el.dataset.v; renderFeedback(); return; }
   if (a === "fb-skip") { CheckinState.fbSession=null; CheckinState.fbForm=null; CheckinState.newPRs=[]; renderApp(); return; }
@@ -238,7 +240,7 @@ document.body.addEventListener("click", async e => {
     CheckinState.fbSession=null; CheckinState.fbForm=null; CheckinState.newPRs=[]; renderApp(); return;
   }
   if (a === "ci-open") { CheckinState.checkinOpen=true; CheckinState.checkinForm=null; renderApp(); return; }
-  if (a === "photo-del") { const path=el.dataset.path, id=el.dataset.id; try{ await cloudDeletePhoto(id, path); }catch(e){} return; }
+  if (a === "photo-del") { const path=el.dataset.path, id=el.dataset.id; const ok=await cloudDeletePhoto(id, path); if(!ok) alert("No se pudo borrar la foto. Revisá tu conexión e intentá de nuevo."); return; }
   if (a === "ci-close") { CheckinState.checkinOpen=false; CheckinState.checkinForm=null; renderApp(); return; }
   if (a === "ci-adh") { CheckinState.checkinForm = CheckinState.checkinForm || JSON.parse(JSON.stringify(state.checkins[mondayOf(today())]||{})); CheckinState.checkinForm.adherence = parseInt(el.dataset.v); renderApp(); return; }
   if (a === "ci-save") {
@@ -246,7 +248,8 @@ document.body.addEventListener("click", async e => {
     const f = CheckinState.checkinForm || {};
     state.checkins[wk] = Object.assign({}, state.checkins[wk]||{}, f);
     CheckinState.checkinOpen=false; CheckinState.checkinForm=null; save();
-    try{ cloudSaveCheckin(wk, state.checkins[wk]); }catch(e){}
+    const synced = await cloudSaveCheckin(wk, state.checkins[wk]);
+    if(!synced){ alert("Tu check-in se guardó en este dispositivo pero todavía no llegó a tu coach (sin conexión). Queda pendiente y se envía solo cuando vuelva internet."); renderApp(); return; }
     alert("\u00a1Check-in enviado a tu coach! 💪"); renderApp(); return;
   }
   if (a === "daily-set") { CheckinState.dailyForm = CheckinState.dailyForm || Object.assign({}, state.daily[today()]||{}); CheckinState.dailyForm[el.dataset.k] = el.dataset.v; renderApp(); return; }
@@ -446,7 +449,7 @@ document.body.addEventListener("click", async e => {
   if(a==="tpl-del"){
     if(!CoachState.coachTplEdit||!CoachState.coachTplEdit.id){ CoachState.coachTplEdit=null; CoachState.coachView="tpls"; renderCoach(); return; }
     if(!confirm("\u00bfBorrar esta rutina? No afecta a los clientes que ya la tienen aplicada.")) return;
-    try{ await State.sb.from("routine_templates").delete().eq("id",CoachState.coachTplEdit.id); await loadTpls(); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    try{ sbOk(await State.sb.from("routine_templates").delete().eq("id",CoachState.coachTplEdit.id)); await loadTpls(); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     CoachState.coachTplEdit=null; CoachState.coachView="tpls"; renderCoach(); return;
   }
   if(!CoachState.coachData && !CoachState.coachTplEdit) return;
@@ -525,7 +528,7 @@ document.body.addEventListener("click", async e => {
       availability:i.availability||null, objective:i.objective||null, stage:i.stage||null, commitment:i.commitment||null,
       structure:i.structure||null, block_goal:i.block_goal||null, injuries:i.injuries||null, cardio:i.cardio||null,
       steps_goal:parseInt(i.steps_goal)||null, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id};
-    try{ await State.sb.from("client_info").upsert(row,{onConflict:"client_id"}); CoachState.coachData.info=row; CoachState.coachInfoForm=null; alert("Ficha guardada \u2713"); }
+    try{ sbOk(await State.sb.from("client_info").upsert(row,{onConflict:"client_id"})); CoachState.coachData.info=row; CoachState.coachInfoForm=null; alert("Ficha guardada \u2713"); }
     catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     renderCoach(); return;
   }
@@ -541,8 +544,8 @@ document.body.addEventListener("click", async e => {
     const row={client_id:CoachState.coachData.id, name:bf.name||null, start_date:bf.start_date, weeks:parseInt(bf.weeks)||8,
       phase:bf.phase||null, calories:bf.calories||null, deloads:Array.isArray(bf.deloads)?bf.deloads:[], notes:bf.notes||null, active:true};
     try{
-      if(CoachState.coachData.block && CoachState.coachData.block.id){ await State.sb.from("blocks").update(row).eq("id",CoachState.coachData.block.id); row.id=CoachState.coachData.block.id; }
-      else { const r=await State.sb.from("blocks").insert(row).select("id").single(); if(r.data) row.id=r.data.id; }
+      if(CoachState.coachData.block && CoachState.coachData.block.id){ sbOk(await State.sb.from("blocks").update(row).eq("id",CoachState.coachData.block.id)); row.id=CoachState.coachData.block.id; }
+      else { const r=sbOk(await State.sb.from("blocks").insert(row).select("id").single()); if(r.data) row.id=r.data.id; }
       CoachState.coachData.block=row; CoachState.coachBlockForm=null; alert("Bloque guardado \u2713");
     }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     renderCoach(); return;
@@ -553,7 +556,7 @@ document.body.addEventListener("click", async e => {
     let tk=0,tp=0,tc=0,tf=0; (p.trainDays||[]).forEach(r=>{ tk+=+r.kcal||0; tp+=+r.prot||0; tc+=+r.cho||0; tf+=+r.fat||0; });
     const clean={trainDays:p.trainDays||[], restDays:p.restDays||[], water:p.water||"", salt:p.salt||"", guidelines:p.guidelines||[], supps:p.supps||[], options:p.options||[], extras:p.extras||[], swaps:p.swaps||[], cardio:p.cardio||{text:"",items:[]}, habits:p.habits||[]};
     const row={client_id:CoachState.coachData.id, kcal:tk||parseInt(p._kcal)||null, protein:tp||parseInt(p._protein)||null, carbs:tc||parseInt(p._carbs)||null, fat:tf||parseInt(p._fat)||null, notes:p._notes||null, plan:clean, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id};
-    try{ await State.sb.from("nutrition").upsert(row,{onConflict:"client_id"}); CoachState.coachData.plan=row; CoachState.coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    try{ sbOk(await State.sb.from("nutrition").upsert(row,{onConflict:"client_id"})); CoachState.coachData.plan=row; CoachState.coachPlanForm=null; alert("Plan guardado \u2713"); }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
     renderCoach(); return;
   }
   if(a==="pl-rest-toggle"){ coachPlanObj(CoachState.coachData); CoachState.coachPlanRestOpen=!CoachState.coachPlanRestOpen; renderCoach(); return; }
@@ -630,7 +633,7 @@ document.addEventListener("visibilitychange", async ()=>{
   try{
     const rt=await State.sb.from("routines").select("days").eq("client_id",State.cloudUser.id).maybeSingle();
     if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
-      state.days=rt.data.days;
+      state.days=mergeLocalProgress(rt.data.days, state.days); // conserva lo que el cliente ya cargó
       if(!state.days.find(x=>x.id===State.activeId)) State.activeId=state.days[0].id;
       renderApp();
     }
