@@ -18,11 +18,18 @@
      registrarse o simplemente lo quiere cambiar. */
 .cfg-name-row { display:flex; align-items:center; gap:6px; min-width:0; }
 
-.cfg-edit-name-btn { flex-shrink:0; background:none; border:none; padding:2px; color:var(--txt-3); cursor:pointer; display:flex; }
+/* Botón cuadrado con borde (mismo lenguaje que .top-btn / botones secundarios):
+     antes era un ícono gris de 14px suelto, difícil de ver y de tocar. */
+.cfg-edit-name-btn { flex-shrink:0; width:32px; height:32px; padding:0; border-radius:8px;
+    background:rgba(34,129,224,.12); border:1px solid rgba(34,129,224,.45); color:#5aa5f0;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background-color .15s, border-color .15s, color .15s, transform .12s; }
 
-.cfg-edit-name-btn svg { width:14px; height:14px; }
+.cfg-edit-name-btn svg { width:16px; height:16px; }
 
-.cfg-edit-name-btn:active { color:var(--blue-2); }
+.cfg-edit-name-btn:hover { background:rgba(34,129,224,.22); border-color:#2281e0; color:#fff; }
+
+.cfg-edit-name-btn:active { transform:scale(.95); }
 
 /* flex:1 + min-width:0: sin esto un nombre largo no se achica dentro de .cfg-name-row
      (los flex items no bajan de su ancho de contenido por defecto) y en una pantalla

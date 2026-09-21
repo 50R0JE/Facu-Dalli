@@ -41,6 +41,13 @@ body:not(#_) {
   }
   :is(.co-back, .co-logout, .co-copy-btn, .load-def, .clear, .reset-routine, .logout-btn, .qbtn) { min-height: 38px; }
   :is(.co-gear, .top-btn) { width: 38px; height: 38px; }
+  /* Eran links de texto (padding casi 0): con borde quedaban como una pastilla apretada */
+  :is(.cal-edit, .water-goal) {
+    display: block; min-height: 38px; padding: 8px 16px; line-height: 1.2;
+    font-size: var(--text-meta); color: var(--btn-txt-dim);
+  }
+  .cal-edit { margin: 0 auto 22px; }
+  .water-goal { margin: 12px auto 0; }
 
   /* ---------- Selección: chips / tabs / toggles ---------- */
   :is(.tab, .cmode, .seg button, .ex-chip, .rest-opt, .fb-n, .sc-opt, .preset, .co-daytab, .ap-day) {
