@@ -26,6 +26,8 @@
 
 .brand { display: flex; align-items: center; gap: 11px; }
 
+.brand-logo { height: 34px; width: auto; display: block; }
+
 .brand-ic { width: 40px; height: 40px; border-radius: 4px; overflow: hidden;
     display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-lg); }
 

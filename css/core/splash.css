@@ -1,0 +1,72 @@
+/* css/core/splash.css — intro que se ve antes de que se muestre cualquier
+   pantalla real (login, app o panel de coach). Vive fuera del flujo normal:
+   position:fixed + z-index alto, se autodestruye a los pocos segundos. */
+
+body.is-booting { overflow: hidden; }
+
+#splash {
+  --core-blue: #1E6BFF;
+  --core-grad: linear-gradient(180deg,
+    #123A8C 0%,
+    #0C2660 22%,
+    #071640 45%,
+    #030A20 72%,
+    #000000 100%);
+  position: fixed; inset: 0;
+  height: 100vh;      /* fallback */
+  height: 100svh;     /* altura estable aunque se esconda la barra del navegador */
+  z-index: 9999;
+  background: var(--core-grad);
+  display: grid; place-items: center;
+  animation: splash-out .5s ease 3.1s forwards;
+}
+
+/* Ruido casi invisible: rompe las bandas horizontales que deja
+   un degradado largo en pantallas de 8 bits. */
+#splash::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.core-logo {
+  position: relative; z-index: 1;
+  width: clamp(140px, 32vw, 200px); height: auto;
+  animation: core-exit .6s cubic-bezier(.4,0,.6,1) 2.9s forwards;
+}
+
+.core-logo .half {
+  stroke-dasharray: 376; stroke-dashoffset: 376;
+  animation: core-draw .9s cubic-bezier(.45,0,.2,1) .1s forwards,
+             core-dim .3s linear 1s forwards,
+             core-undim .25s linear 2.75s forwards;
+}
+.core-logo .run {
+  stroke-dasharray: 120 632; opacity: 0;
+  filter: drop-shadow(0 0 6px var(--core-blue));
+  animation: core-run .85s linear 1.05s 2,
+             core-runfade 1.7s linear 1.05s forwards;
+}
+.core-logo .ink {
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: core-ink .5s cubic-bezier(.5,0,.25,1) forwards;
+}
+.core-logo .ink-1 { animation-delay: .40s; }
+.core-logo .ink-2 { animation-delay: .52s; }
+.core-logo .ink-3 { animation-delay: .64s; }
+.core-logo .ink-4 { animation-delay: .76s; }
+
+@keyframes core-draw { to { stroke-dashoffset: 0; } }
+@keyframes core-ink { to { stroke-dashoffset: 0; } }
+@keyframes core-dim { to { opacity: .22; } }
+@keyframes core-undim { to { opacity: 1; } }
+@keyframes core-run { to { stroke-dashoffset: -752; } }
+@keyframes core-runfade { 0% { opacity: 0; } 7% { opacity: 1; } 93% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes core-exit { to { transform: translateY(-80px); opacity: 0; } }
+@keyframes splash-out { to { opacity: 0; visibility: hidden; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .core-logo .half, .core-logo .ink { animation: none; stroke-dashoffset: 0; }
+  .core-logo .run { display: none; }
+  .core-logo { animation: core-exit .4s linear 1s forwards; }
+  #splash { animation: splash-out .3s linear 1.2s forwards; }
+}
