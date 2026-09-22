@@ -6,9 +6,9 @@ import { state } from '../core/state.js';
 
 import { save } from '../core/storage.js';
 
-import { cloudInsertSession } from '../core/supabase.js';
+import { cloudInsertSession, newId } from '../core/supabase.js';
 
-import { esc, fmtDate, mondayOf, today, uid } from '../core/utils.js';
+import { esc, fmtDate, mondayOf, today } from '../core/utils.js';
 
 import { renderApp } from '../main.js';
 
@@ -42,10 +42,12 @@ export function saveSession(){
   });
   if(!exs.length){ alert("Cargá kg o reps en al menos una serie antes de guardar el entreno."); return; }
   CheckinState.newPRs=detectPRs(exs, state.sessions); // contra el historial ANTES de sumar esta sesión
-  const _ns={id:uid(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
+  const _ns={id:newId(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
   state.sessions.push(_ns);
   save();
-  try{ cloudInsertSession(_ns); }catch(e){}
+  cloudInsertSession(_ns).then(ok=>{
+    if(!ok) alert("Tu entreno se guardó en este dispositivo pero todavía no llegó a tu cuenta (sin conexión). Queda pendiente y se envía solo cuando vuelva internet; tu coach lo ve recién entonces.");
+  });
   CheckinState.fbSession=_ns.id; CheckinState.fbForm={};
   renderApp();
 }

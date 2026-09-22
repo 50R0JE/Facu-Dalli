@@ -8,13 +8,13 @@ body.is-booting { overflow: hidden; }
   --core-blue: #1E6BFF;
   --core-grad: linear-gradient(180deg,
     #123A8C 0%,
-    #0C2660 22%,
-    #071640 45%,
-    #030A20 72%,
-    #000000 100%);
+    #0C2660 16%,
+    #071640 34%,
+    #030A20 56%,
+    #000000 82%);
+  /* Sin height fija: en iOS 100svh es más corto que la pantalla real y deja
+     una franja abajo donde se ve el contenido de atrás. inset:0 cubre todo. */
   position: fixed; inset: 0;
-  height: 100vh;      /* fallback */
-  height: 100svh;     /* altura estable aunque se esconda la barra del navegador */
   z-index: 9999;
   background: var(--core-grad);
   display: grid; place-items: center;
