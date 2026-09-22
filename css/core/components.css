@@ -373,7 +373,7 @@
     background:
       radial-gradient(900px circle at 18% -8%, rgba(51,123,196,.16), transparent 55%),
       radial-gradient(700px circle at 100% 100%, rgba(46,120,184,.10), transparent 50%),
-      linear-gradient(160deg, #101419 0%, #0b0e12 55%, #07080a 100%);
+      linear-gradient(180deg, #123A8C 0%, #0C2660 16%, #071640 34%, #030A20 56%, #000000 82%);
     --card: #0d141b; --card-2: #0a0f14; --border: rgba(127,175,224,.22);
     --txt: #eaf4ff; --txt-2: #a9c1d9; --txt-3: #7f9fbf; --glow: rgba(51,123,196,.22);
   }
