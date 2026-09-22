@@ -75,8 +75,16 @@ export function ensureSb(){
 // cloudBoot() ya llama a ensureSb() apenas termina de cargar todo el árbol de
 // módulos, momento en el que "State" ya está inicializado sin problema.
 
-export async function afterLogin(){
-  try { const r=await State.sb.auth.getUser(); State.cloudUser=r.data.user; } catch(e){}
+export async function afterLogin(sessionUser){
+  // getUser() revalida el token pegándole a la red. Si no hay conexión esa llamada
+  // falla y ANTES dejábamos State.cloudUser en null: como flushOutbox()/pendingCount()
+  // filtran la cola por el id de usuario, un cloudUser null "escondía" lo pendiente
+  // (mostraba "Se guarda solo en este dispositivo" con la cola intacta pero invisible)
+  // y loadCloud() cortaba de raíz. getSession() ya trae el usuario sin pegarle a la
+  // red (lee la sesión guardada en el dispositivo), así que arrancamos con ESE y solo
+  // lo reemplazamos por la versión fresca del servidor si getUser() llega a responder.
+  State.cloudUser = sessionUser || State.cloudUser || null;
+  try { const r=await State.sb.auth.getUser(); if(r.data.user) State.cloudUser=r.data.user; } catch(e){}
   // Primero se envía lo que quedó pendiente de otra sesión (sin conexión, app cerrada):
   // loadCloud() reemplaza entrenos/registros locales por los de la nube.
   try { await flushOutbox(); } catch(e){ console.error("flushOutbox",e); }
@@ -84,8 +92,12 @@ export async function afterLogin(){
   try{
     const pc=localStorage.getItem("jfit_pending_code");
     if(pc && State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id){
+      // Se saca del localStorage pase lo que pase (código inválido o válido), no solo si
+      // funcionó: si no, un código viejo o mal tipeado queda dando vueltas en el dispositivo
+      // y se lo intenta aplicar a la cuenta de OTRA persona que después inicie sesión ahí.
+      localStorage.removeItem("jfit_pending_code");
       const r2=await State.sb.rpc("join_coach",{code:pc});
-      if(r2.data===true){ localStorage.removeItem("jfit_pending_code"); const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); }
+      if(r2.data===true){ const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); }
     }
   }catch(e){ console.error("pending code",e); }
   hideLogin();
@@ -357,7 +369,7 @@ export async function cloudBoot(){
   if(!State.sb){ renderApp(); if(window.coreEnter) window.coreEnter(); return; }
   try{
     const sess=await State.sb.auth.getSession();
-    if(sess.data.session){ await afterLogin(); }
+    if(sess.data.session){ await afterLogin(sess.data.session.user); }
     else { showLogin("","in"); }
   }catch(e){ renderApp(); }
   finally{ if(window.coreEnter) window.coreEnter(); }

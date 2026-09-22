@@ -4,9 +4,9 @@ import { auIcoEye, auIcoEyeOff, checkSvg } from './core/icons.js';
 
 import { State, state } from './core/state.js';
 
-import { migrateNames, save } from './core/storage.js';
+import { KEY, migrateNames, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, sbOk } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, pendingCount, sbOk } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, tabRipple, today, uid } from './core/utils.js';
 
@@ -322,7 +322,19 @@ document.body.addEventListener("click", async e=>{
   const a=b.dataset.auth;
   if(a==="to-signup"){ showLogin("","up"); return; }
   if(a==="to-login"){ showLogin("","in"); return; }
-  if(a==="logout"){ try{ await State.sb.auth.signOut(); }catch(e){} location.reload(); return; }
+  if(a==="logout"){
+    // El logout de antes no borraba nada de localStorage: si en el mismo dispositivo
+    // después iniciaba sesión OTRA persona, heredaba el diario de comidas, hábitos, agua,
+    // pesos y demás de quien usó la app antes. Y si esa cuenta nueva no tenía rutina en la
+    // nube, loadCloud() le subía como "su" rutina la que había quedado puesta acá, con los
+    // kg y reps de la persona anterior.
+    const n=State.cloudUser?pendingCount():0;
+    if(n>0 && !confirm("Tenés "+n+" registro"+(n>1?"s":"")+" sin sincronizar todavía en este dispositivo. Si cerrás sesión ahora podrías perderlo"+(n>1?"s":"")+". ¿Cerrar sesión igual?")) return;
+    try{ await State.sb.auth.signOut(); }catch(e){}
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    location.reload();
+    return;
+  }
   if(a==="join"){ const code=((document.getElementById("joinCode")||{}).value||"").trim(); if(!code){ alert("Poné el código de tu coach."); return; } try{ const r=await State.sb.rpc("join_coach",{code:code}); if(r.data===true){ const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); alert("¡Listo! Te vinculaste con tu coach."); renderApp(); } else { alert("Código inválido. Revisalo con tu coach."); } }catch(err){ alert("No se pudo vincular: "+((err&&err.message)||err)); } return; }
   if(a==="do-login"||a==="do-signup"){
     const mode = a==="do-signup"?"up":"in";
@@ -356,7 +368,7 @@ document.body.addEventListener("click", async e=>{
       }
       const sess=await State.sb.auth.getSession();
       if(!sess.data.session){ if(window.coreCancel) window.coreCancel(); showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
-      await afterLogin();
+      await afterLogin(sess.data.session.user);
       if(window.coreEnter) window.coreEnter();
     }catch(err){ if(window.coreCancel) window.coreCancel(); showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code, role:role}); }
     return;
