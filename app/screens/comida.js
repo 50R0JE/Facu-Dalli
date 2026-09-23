@@ -1,5 +1,7 @@
 import { FOODS, RC } from '../core/data.js';
 
+import { cookVariant } from '../core/foods.js';
+
 import { flameSvg, searchSvg, xSvg } from '../core/icons.js';
 
 import { state } from '../core/state.js';
@@ -15,6 +17,10 @@ export const ComidaState = {
   creatingFood: false,
 
   selectedFood: null,
+
+  // Cómo pesó el cliente el alimento elegido: "crudo" o "cocido" (solo si el alimento
+  // tiene esa opción, ver food.cook en core/foods.js).
+  cookState: null,
 
   editEntry: null,
 
@@ -98,12 +104,15 @@ export function diaryTotals(){ return state.diary.reduce((a,e)=>({kcal:a.kcal+e.
 export function renderResults(q){
   const nq = norm(q);
   if(!nq) return '<div class="cal-hint">Escribí para buscar un alimento</div>';
-  const all = FOODS.concat(state.foods||[]);
-  lastResults = all.filter(f=>norm(f.name).includes(nq)).slice(0,30);
+  const all = (state.foods||[]).concat(FOODS);
+  // Primero los que empiezan con lo buscado, después los que tienen una palabra que
+  // empieza así y al final el resto ("pan" → Pan francés antes que Sartén de pan…).
+  const rank = f => { const n=norm(f.name); return n.startsWith(nq) ? 0 : (n.includes(" "+nq) ? 1 : 2); };
+  lastResults = all.filter(f=>norm(f.name).includes(nq)).sort((a,b)=>rank(a)-rank(b)).slice(0,40);
   if(!lastResults.length) return '<div class="cal-hint">Sin resultados. Probá crear el alimento 👇</div>';
   return lastResults.map((f,i)=>`<div class="food-row" data-action="food-pick" data-idx="${i}">
-    <div class="food-name">${esc(f.name)}</div>
-    <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}</span></div>
+    <div class="food-name">${esc(f.name)}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}</div>
+    <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}${f.cook?" "+f.cook.base:""}</span></div>
   </div>`).join("");
 }
 
@@ -225,4 +234,32 @@ export function renderComida(){
     ${diary}
     ${planBanner}
     ${planFull}`;
+}
+
+// ---- Crudo / cocido ----
+const COOK_PREF_KEY = "gize_cook_pref";
+function cookPrefs(){ try{ return JSON.parse(localStorage.getItem(COOK_PREF_KEY)||"{}")||{}; }catch(e){ return {}; } }
+
+// Estado con el que se abre un alimento: el último que eligió el cliente para ese
+// alimento (la mayoría pesa siempre igual) o, si nunca eligió, el de los valores base.
+export function defaultCookState(food){
+  if(!food || !food.cook) return null;
+  const p = cookPrefs()[food.name];
+  return (p === "crudo" || p === "cocido") ? p : food.cook.base;
+}
+
+export function rememberCookState(food, st){
+  if(!food || !food.cook || !st) return;
+  try{ const p = cookPrefs(); p[food.name] = st; localStorage.setItem(COOK_PREF_KEY, JSON.stringify(p)); }catch(e){}
+}
+
+// Porción sugerida en ese estado: 80 g de arroz crudo ≈ 210 g cocido.
+export function cookPortion(food, st){
+  if(!food || !food.cook || !st || st === food.cook.base) return food ? food.portion : 0;
+  return Math.round(st === "cocido" ? food.portion * food.cook.factor : food.portion / food.cook.factor);
+}
+
+// El alimento elegido con los valores del estado en que lo pesó el cliente.
+export function selectedFoodValues(){
+  return cookVariant(ComidaState.selectedFood, ComidaState.cookState);
 }

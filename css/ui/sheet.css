@@ -10,3 +10,11 @@
 .sheet-preview { color: var(--blue-2); font-size: var(--text-body); font-variant-numeric: tabular-nums; margin-bottom: 18px; }
 
 .sheet-btns { display: flex; gap: 10px; }
+
+/* Crudo / cocido: cómo pesó el cliente el alimento (solo en los que aplica). */
+.sheet-cook { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:-4px 0 14px; }
+.sheet-cook-lbl { font-size:var(--text-meta); color:var(--txt-3); font-weight:600; }
+.sheet-cook .seg { display:flex; gap:6px; }
+.sheet-cook .seg button { min-width:84px; padding:8px 12px; }
+.food-cook { display:inline-block; margin-left:8px; font-size:10px; font-weight:600; color:var(--txt-3); border:1px solid var(--gize-border);
+    border-radius:var(--gize-radius-pill); padding:1px 7px; vertical-align:2px; letter-spacing:.02em; }
