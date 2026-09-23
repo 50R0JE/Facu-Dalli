@@ -1,6 +1,6 @@
 // GIZE service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v41";
+const CACHE = "core-v42";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
@@ -47,4 +47,32 @@ self.addEventListener("fetch", e => {
       })
       .catch(() => caches.match(req).then(r => r || (isSbLib ? Response.error() : caches.match("./index.html"))))
   );
+});
+
+// ---- Notificaciones push (mensajes del coach) ----
+// Las manda supabase/functions/notificar-cliente con { title, body, tag, url }.
+// Se muestran aunque la app esté cerrada, con el ícono de GIZE.
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data ? e.data.text() : "" }; }
+  const title = d.title || "Tu coach";
+  e.waitUntil(self.registration.showNotification(title, {
+    body: d.body || "",
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    tag: d.tag || "coach",
+    renotify: true,
+    vibrate: [80, 40, 80],
+    data: { url: d.url || "./" }
+  }));
+});
+
+// Tocar la notificación abre la app (o la trae al frente si ya estaba abierta).
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const target = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope).href;
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+    for (const c of list) { if (c.url.startsWith(self.registration.scope) && "focus" in c) return c.focus(); }
+    return self.clients.openWindow ? self.clients.openWindow(target) : null;
+  }));
 });

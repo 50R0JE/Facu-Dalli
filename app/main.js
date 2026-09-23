@@ -1,5 +1,6 @@
 import { DEFAULT, PPL_DAYS } from './core/data.js';
 
+import { pushLogout } from './core/push.js';
 import { auIcoEye, auIcoEyeOff, checkSvg } from './core/icons.js';
 
 import { State, state } from './core/state.js';
@@ -374,6 +375,7 @@ document.body.addEventListener("click", async e=>{
     // kg y reps de la persona anterior.
     const n=State.cloudUser?pendingCount():0;
     if(n>0 && !confirm("Tenés "+n+" registro"+(n>1?"s":"")+" sin sincronizar todavía en este dispositivo. Si cerrás sesión ahora podrías perderlo"+(n>1?"s":"")+". ¿Cerrar sesión igual?")) return;
+    try{ await pushLogout(); }catch(e){} // antes del signOut: borrar el dispositivo necesita la sesión
     try{ await State.sb.auth.signOut(); }catch(e){}
     try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); }catch(e){}
     location.reload();

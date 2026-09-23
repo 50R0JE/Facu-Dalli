@@ -18,6 +18,8 @@ import { renderSessionItem } from '../../ui/sessiondetail.js';
 
 import { avatarHtml } from '../../core/avatar.js';
 
+import { renderCoachNotify } from './notificar.js';
+
 // Título de sección con la ruedita que abre el editor de preguntas en esa pestaña.
 function secHead(title, kind){
   return '<div class="co-sec co-sec-row"><span>'+title+'</span><button class="co-sec-gear" data-coach="q-open" data-k="'+kind+'" title="Editar preguntas" aria-label="Editar preguntas de '+title.toLowerCase()+'">'+gearSvg+'</button></div>';
@@ -120,7 +122,8 @@ export function renderCoach(){
       } else if(tab==="plan"){
         panel=renderCoachPlan(d);
       } else {
-        panel='<div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+
+        panel=renderCoachNotify(d)+
+               '<div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+
                '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div>'+
              '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
              secHead("Seguimiento diario","daily")+renderCoachDaily(d)+
