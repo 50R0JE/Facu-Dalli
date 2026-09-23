@@ -6,7 +6,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, pendingCount, sbOk } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, tabRipple, today, uid } from './core/utils.js';
 
@@ -187,7 +187,7 @@ document.body.addEventListener("click", async e => {
   if (a === "portion-add") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const f = ComidaState.selectedFood; if(!f){ return; } const fc = g/100;
-    state.diary.push({ id:uid(), name:f.name, grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
+    state.diary.push({ id:newId(), name:f.name, grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
     save(); closeSheet(()=>{ ComidaState.selectedFood=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
@@ -226,6 +226,8 @@ document.body.addEventListener("click", async e => {
     const kg = parseFloat(String(d.kg||"").replace(",","."));
     const rec = Object.assign({}, state.daily[today()]||{}, d);
     state.daily[today()] = rec;
+    // Un solo número de pasos por día: lo que se anota acá es el mismo contador de Hábitos.
+    const st = parseInt(rec.steps); if(st>=0) state.steps = st;
     if(kg>0){ const exw=state.weights.find(w=>w.date===today()); if(exw) exw.kg=kg; else state.weights.push({id:uid(), date:today(), kg:kg}); }
     CheckinState.dailyForm=null; save();
     const synced = await cloudSaveDaily(today(), rec);
@@ -331,7 +333,7 @@ document.body.addEventListener("click", async e=>{
     const n=State.cloudUser?pendingCount():0;
     if(n>0 && !confirm("Tenés "+n+" registro"+(n>1?"s":"")+" sin sincronizar todavía en este dispositivo. Si cerrás sesión ahora podrías perderlo"+(n>1?"s":"")+". ¿Cerrar sesión igual?")) return;
     try{ await State.sb.auth.signOut(); }catch(e){}
-    try{ localStorage.removeItem(KEY); }catch(e){}
+    try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); }catch(e){}
     location.reload();
     return;
   }

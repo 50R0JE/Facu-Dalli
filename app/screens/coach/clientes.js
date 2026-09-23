@@ -6,6 +6,8 @@ import { State } from '../../core/state.js';
 
 import { migrateNames } from '../../core/storage.js';
 
+import { signedUrls } from '../../core/supabase.js';
+
 import { esc, fmtDate, mondayOf, today } from '../../core/utils.js';
 
 import { renderCoach } from './index.js';
@@ -18,6 +20,8 @@ import { renderWChart } from '../progreso.js';
 
 export async function loadCoachClients(){
   try{
+    // Lista de clientes y código de invitación salen juntos.
+    const icP=Promise.resolve(State.sb.rpc("my_invite_code")).catch(()=>({data:null}));
     let r=await State.sb.from("profiles").select("id, full_name, email").eq("coach_id",State.cloudUser.id).order("full_name");
     if(r.error){
       // Supabase no tira excepción cuando una query falla (devuelve {data:null, error})
@@ -30,7 +34,7 @@ export async function loadCoachClients(){
       if(r.error) console.error("coachClients",r.error);
     }
     CoachState.coachClients=r.data||[];
-    const ic=await State.sb.rpc("my_invite_code"); CoachState.coachInvite=ic.data||null;
+    const ic=await icP; CoachState.coachInvite=ic.data||null;
   }catch(e){ console.error("coachClients",e); }
   loadCoachStats(); loadTpls();
 }
@@ -111,20 +115,26 @@ export function coachExerciseLog(sessions,name){ const out=[]; (sessions||[]).sl
 export async function openClient(id){
   CoachState.coachSel=id; CoachState.coachData={loading:true}; CoachState.coachDayFilter=null; CoachState.coachEditDay=0; renderCoach();
   try{
-    const ws=await State.sb.from("body_weights").select("*").eq("client_id",id).order("measured_on");
-    const ss=await State.sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at");
-    const rt=await State.sb.from("routines").select("days").eq("client_id",id).maybeSingle();
+    // Todas las lecturas del cliente salen juntas (antes iban de a una).
+    const sb=State.sb;
+    const [ws, ss, rt, dl, ck, ci, bl, np, ph] = await Promise.all([
+      sb.from("body_weights").select("*").eq("client_id",id).order("measured_on"),
+      sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at"),
+      sb.from("routines").select("days").eq("client_id",id).maybeSingle(),
+      sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false}),
+      sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false}),
+      sb.from("client_info").select("*").eq("client_id",id).maybeSingle(),
+      sb.from("blocks").select("*").eq("client_id",id).eq("active",true).order("start_date",{ascending:false}).limit(1),
+      sb.from("nutrition").select("*").eq("client_id",id).maybeSingle(),
+      sb.from("checkin_photos").select("*").eq("client_id",id).order("created_at",{ascending:false})
+    ]);
     const weights=(ws.data||[]).map(w=>({date:w.measured_on, kg:Number(w.kg)}));
     const sessions=(ss.data||[]).map(se=>{ const byEx={}; (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); }); return {date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))}; });
     const routine=(rt.data&&Array.isArray(rt.data.days))?JSON.parse(JSON.stringify(rt.data.days)):[];
     migrateNames(routine);
-    const dl=await State.sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false});
-    const ck=await State.sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false});
-    const ci=await State.sb.from("client_info").select("*").eq("client_id",id).maybeSingle();
-    const bl=await State.sb.from("blocks").select("*").eq("client_id",id).eq("active",true).order("start_date",{ascending:false}).limit(1);
-    const np=await State.sb.from("nutrition").select("*").eq("client_id",id).maybeSingle();
-    const ph=await State.sb.from("checkin_photos").select("*").eq("client_id",id).order("created_at",{ascending:false});
-    const photos=[]; for(const p of (ph.data||[])){ const u=await State.sb.storage.from("checkins").createSignedUrl(p.path,3600); photos.push({id:p.id, taken_on:p.taken_on, url:(u.data&&u.data.signedUrl)||""}); }
+    const phRows=ph.data||[];
+    const urls=await signedUrls(phRows.map(p=>p.path));
+    const photos=phRows.map(p=>({id:p.id, taken_on:p.taken_on, url:urls[p.path]||""}));
     const c=CoachState.coachClients.find(x=>x.id===id);
     CoachState.coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos};
     CoachState.coachPlanForm=null; CoachState.coachInfoForm=null; CoachState.coachBlockForm=null;

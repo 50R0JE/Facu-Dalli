@@ -1,6 +1,6 @@
 // Core service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v16";
+const CACHE = "core-v17";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
@@ -21,8 +21,11 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  // Nunca cachear la API (Supabase, Open Food Facts): siempre red.
-  if (url.origin !== self.location.origin) return;
+  // Nunca cachear la API (Supabase, Open Food Facts): siempre red. La excepción es la
+  // librería de Supabase del CDN: sin ella en caché, abrir la app sin internet dejaba
+  // la app "sin cuenta" y lo que se cargaba ahí nunca entraba a la cola de envío.
+  const isSbLib = url.origin === "https://cdn.jsdelivr.net" && url.pathname.startsWith("/npm/@supabase/supabase-js");
+  if (url.origin !== self.location.origin && !isSbLib) return;
 
   e.respondWith(
     fetch(req)
@@ -31,6 +34,6 @@ self.addEventListener("fetch", e => {
         caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
         return res;
       })
-      .catch(() => caches.match(req).then(r => r || caches.match("./index.html")))
+      .catch(() => caches.match(req).then(r => r || (isSbLib ? Response.error() : caches.match("./index.html"))))
   );
 });

@@ -2,10 +2,12 @@ import { auIcoEye, auIcoLock, auIcoMail, auIcoTicket, auIcoUser } from '../core/
 
 import { hideSilkBg, startAuthParticles, stopAuthParticles } from '../ui/background.js';
 
+import { esc } from '../core/utils.js';
+
 export function showLogin(msg, mode, vals){
   mode = mode || "in"; vals = vals || {};
   const isUp = mode==="up";
-  const eq = v => String(v==null?"":v).replace(/"/g,"&quot;");
+  const eq = v => esc(v==null?"":v);
   const host=document.getElementById("authHost"); if(!host) return;
   host.style.display="flex";
   hideSilkBg();
@@ -38,7 +40,7 @@ export function showLogin(msg, mode, vals){
       field("auEmail", auIcoMail, "", "Email (ej: nombre@gmail.com)", "email", "username", vals.email)+
       field("auPass", auIcoLock, "pass", "Contraseña (mínimo 6)", "password", isUp?"new-password":"current-password", "")+
       (isUp&&role==="client"?field("auCode", auIcoTicket, "", "Código de tu coach (opcional)", "text", "off", vals.code):"")+
-      (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+msg+'</div>':'')+
+      (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+esc(msg)+'</div>':'')+
       '<button class="auth-btn" data-auth="'+(isUp?"do-signup":"do-login")+'" style="animation-delay:'+nextDelay()+'">'+(isUp?"Crear cuenta":"Ingresar")+'</button>'+
       '<div class="auth-switch" data-auth="'+(isUp?"to-login":"to-signup")+'" role="button" tabindex="0" style="animation-delay:'+nextDelay()+'">'+(isUp?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
     '</div>';
