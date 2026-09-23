@@ -167,7 +167,7 @@
 
 .done svg { width: var(--icon-xl); height: var(--icon-xl); }
 
-.done.on { background: var(--green); border-color: var(--green); color: var(--gize-bg); box-shadow: var(--glow-md); }
+.done.on { background: var(--gize-success); border-color: var(--gize-success); color: var(--gize-bg); box-shadow: none; }
 
 .foot { text-align: center; font-size: var(--text-meta); color: var(--txt-3); margin-top: 24px; }
 
@@ -178,7 +178,7 @@
 
 .title-accent { width: 44px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--gize-blue-deep), var(--gize-blue)); box-shadow: var(--glow-sm); margin: 9px 0 2px; }
 
-.hb-check.on { background: var(--green); border-color: var(--green); box-shadow: var(--glow-md); }
+.hb-check.on { background: var(--gize-success); border-color: var(--gize-success); color: var(--gize-bg); box-shadow: none; }
 
 @media (prefers-reduced-motion: reduce) { .done:active, .hb-item:active .hb-check { transform: none; } }
 
