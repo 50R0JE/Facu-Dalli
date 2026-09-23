@@ -7,9 +7,12 @@ import { State } from '../core/state.js';
 import { KEY } from '../core/storage.js';
 import { loadCloud } from '../core/supabase.js';
 import { esc } from '../core/utils.js';
+import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
 import { renderApp } from '../main.js';
 import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg } from '../core/icons.js';
+
+const cameraSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 
 function cfgRoleLabel(p) { return (p && p.role === "coach") ? "Coach" : "Cliente"; }
 
@@ -76,10 +79,16 @@ export function renderConfig() {
   const account = logged
     ? '<div class="card cfg-card">' +
         '<div class="cfg-row">' +
-          '<div class="cfg-avatar">' + esc(initial) + '</div>' +
+          // Tocando la foto (o las iniciales) se elige una nueva: galería o cámara.
+          '<label class="cfg-avatar-pick" title="Cambiar foto de perfil">' +
+            avatarHtml(profile && profile.avatar_path, initial, 'cfg-avatar') +
+            '<span class="avatar-cam" aria-hidden="true">' + cameraSvg + '</span>' +
+            '<input type="file" accept="image/*" data-action="avatar-pick" aria-label="Cambiar foto de perfil" hidden>' +
+          '</label>' +
           '<div class="cfg-who">' + whoInner + '</div>' +
           (!editingName && profile ? '<div class="cfg-badge">' + esc(cfgRoleLabel(profile)) + '</div>' : '') +
         '</div>' +
+        (profile && profile.avatar_path && avatarUrl(profile.avatar_path) ? '<button class="cfg-photo-rm" data-action="avatar-remove">Quitar foto de perfil</button>' : '') +
         '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>' +
       '</div>'
     : '<div class="card cfg-card">' +

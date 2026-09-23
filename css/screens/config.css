@@ -151,3 +151,18 @@
 .cfg-name-edit-actions { display:flex; gap:8px; }
 
 .cfg-name-save-btn, .cfg-name-cancel-btn { margin-top:0; width:auto; flex:1; }
+
+/* ===== Foto de perfil ===== */
+.cfg-avatar-pick { position:relative; flex-shrink:0; cursor:pointer; border-radius:50%; }
+.cfg-avatar-pick:focus-within { outline:2px solid var(--gize-blue); outline-offset:3px; }
+.cfg-avatar.has-photo, .co-avatar.has-photo { padding:0; overflow:hidden; background:var(--gize-surface-2); }
+.cfg-avatar.has-photo img, .co-avatar.has-photo img { width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
+.avatar-cam { position:absolute; right:-2px; bottom:-2px; width:22px; height:22px; border-radius:50%; background:var(--gize-text); color:var(--gize-bg);
+    display:flex; align-items:center; justify-content:center; border:2px solid var(--gize-surface); }
+.avatar-cam svg { width:12px; height:12px; }
+.cfg-photo-rm, .cs-photo-rm { background:none; border:0; padding:0; font:600 var(--text-meta) var(--gize-font); color:var(--txt-3);
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer; align-self:flex-start; }
+.cfg-photo-rm:hover, .cs-photo-rm:hover { color:var(--gize-danger); }
+.cs-photo-btn { display:inline-flex; align-items:center; cursor:pointer; }
+body.avatar-busy { cursor:progress; }
+body.avatar-busy .cfg-avatar-pick, body.avatar-busy .cs-photo-btn { opacity:.5; pointer-events:none; }

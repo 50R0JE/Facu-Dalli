@@ -1,5 +1,7 @@
 import { DAILY_COLUMNS } from './questions.js';
 
+import { resolveAvatars } from './avatar.js';
+
 import { loadCoachQuestions } from '../screens/coach/preguntas.js';
 
 import { State, state } from './state.js';
@@ -178,6 +180,10 @@ export async function loadCloud(){
     const pr=sbOk(pr0);
     State.cloudProfile=pr.data||null;
     saveCachedProfile(State.cloudProfile);
+    // Link de la foto de perfil propia (no frena el arranque; redibuja Ajustes al llegar).
+    if(State.cloudProfile && State.cloudProfile.avatar_path){
+      resolveAvatars([State.cloudProfile.avatar_path]).then(ok=>{ if(ok && State.view==="config") renderApp(); }).catch(()=>{});
+    }
     const rt=sbOk(rt0);
     if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
       // Con coach, la rutina manda el coach: se toma la de la nube y solo se conserva lo
