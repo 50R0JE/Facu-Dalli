@@ -11,12 +11,13 @@
 <title>Facundo Dalli · Core</title>
   <meta name="theme-color" content="#000000">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Core">
   <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" href="icon-192.png">
+  <link rel="icon" href="brand/logo/gize-icono-negro.svg" type="image/svg+xml">
+  <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -48,33 +49,10 @@
 </head>
 <body class="is-booting">
   <template id="splashTpl">
-    <div id="splash">
-      <svg class="core-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CORE">
-        <defs>
-          <mask id="core-ink">
-            <g transform="translate(60.5,26.4) scale(1.15) skewX(-12)"
-               fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
-              <path class="ink ink-1" pathLength="1" d="M44,9H8V51H44"/>
-              <path class="ink ink-2" pathLength="1" transform="translate(52)" d="M8,8H36V52H8Z"/>
-              <path class="ink ink-3" pathLength="1" transform="translate(0,68)" d="M8,52V8H36V24M14,34H36V52"/>
-              <path class="ink ink-4" pathLength="1" transform="translate(52,68)" d="M44,9H8V51H44M8,30H38"/>
-            </g>
-          </mask>
-        </defs>
-
-        <path class="half" d="M100,6H194V194H100" fill="none" stroke="#1E6BFF" stroke-width="3"/>
-        <path class="half" d="M100,6H6V194H100" fill="none" stroke="#1E6BFF" stroke-width="3"/>
-        <path class="run" d="M6,6H194V194H6Z" fill="none" stroke="#1E6BFF" stroke-width="3" stroke-linecap="round"/>
-
-        <g mask="url(#core-ink)">
-          <g transform="translate(60.5,26.4) scale(1.15) skewX(-12)" fill-rule="evenodd" fill="#1E6BFF">
-            <path d="M8,0H44V18H16V42H44V60H8L0,52V8Z"/>
-            <path transform="translate(52)" d="M8,0H36L44,8V52L36,60H8L0,52V8Z M16,16V44H28V16Z"/>
-            <path transform="translate(0,68)" d="M0,0H36L44,8V26L38,32L44,38V60H28V42H16V60H0Z M16,14V26H28V14Z"/>
-            <path transform="translate(52,68)" d="M8,0H44V14H16V23H38V37H16V46H44V60H8L0,52V8Z"/>
-          </g>
-        </g>
-      </svg>
+    <div id="splash" role="status">
+      <img class="splash-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE">
+      <div class="gize-bar" aria-hidden="true"><i></i></div>
+      <p class="splash-txt">Preparando tu entrenamiento</p>
     </div>
   </template>
   <div id="splashHost"></div>
@@ -86,7 +64,7 @@
   <div id="fbHost"></div>
   <div class="topbar">
     <div class="brand">
-      <img class="brand-logo" src="logo-horizontal.jpg" alt="Core">
+      <img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE">
     </div>
     <div class="client-tag" id="brandTag" style="display:none">
       <div class="client-name" id="brandName"></div>
@@ -127,7 +105,7 @@
 
 <script>
 (function () {
-  var TOTAL_MS = 3700; // duración completa de la animación
+  var TOTAL_MS = 2600; // duración completa: barra de 2,1 s + salida
   var MAX_MS = 8000;   // techo de seguridad si la app nunca avisa que está lista
   var tpl = document.getElementById('splashTpl');
   var host = document.getElementById('splashHost');
@@ -160,7 +138,7 @@
   // La app llama a esto cuando ya armó la pantalla real (login, app de cliente
   // o panel de coach) que corresponde al splash activo. No corta la animación
   // antes de que termine sola: el panel de coach hace varios viajes a Supabase
-  // antes de estar listo y puede tardar más que los 3.7s de la animación.
+  // antes de estar listo y puede tardar más que los 2.6s de la animación.
   window.coreEnter = function () {
     var state = current; if (!state) return;
     if (reduced()) { finish(state); return; }

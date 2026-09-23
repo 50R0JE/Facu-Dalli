@@ -32,8 +32,8 @@ export function showLogin(msg, mode, vals){
   host.innerHTML =
     '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
     '<div class="auth-card" role="region" aria-label="'+(isUp?"Crear cuenta":"Iniciar sesión")+'">'+
-      '<div class="auth-brand-ic" aria-hidden="true"><img src="logo.png" alt="Core"></div>'+
-      '<div class="auth-logo">Core</div>'+
+      '<div class="auth-brand-ic" aria-hidden="true"><img src="brand/logo/gize-monograma.svg" alt=""></div>'+
+      '<div class="auth-logo"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>'+
       '<div class="auth-sub">Tu planilla de entrenamiento</div>'+
       roleField+
       (isUp?field("auName", auIcoUser, "", "Tu nombre y apellido", "text", "name", vals.name):"")+
