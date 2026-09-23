@@ -104,6 +104,10 @@ body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-ed
      ser un overlay: se renderiza en el flujo normal del documento, superpuesto con
      el contenido del panel debajo en vez de centrado en pantalla. */
 body.silk-coach .cp-modal, body.silk-coach .cp-ccard { position: fixed; }
+/* Mismo empate con overflow: la familia les pone overflow:hidden (para recortar el
+     contenido a las esquinas) y eso anulaba el overflow-y:auto de los modales — el
+     editor de preguntas, más alto que la pantalla, no se podía scrollear. */
+body.silk-coach .cp-modal, body.silk-coach .cp-ccard { overflow-x: hidden; overflow-y: auto; }
 
 /* pestañas/estados activos mantienen el verde de marca */
 body.silk-coach .co-tab.on, body.silk-coach .co-daytab.on {
