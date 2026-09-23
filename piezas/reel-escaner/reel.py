@@ -4,7 +4,6 @@ import sys, os, math, subprocess
 from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "reel-atleta"))
-sys.path.insert(0, os.path.join(HERE, "..", "reel-video-ejercicio"))
 import reel as R
 import importlib.util
 _s = importlib.util.spec_from_file_location("reel2", os.path.join(HERE, "..", "reel-video-ejercicio", "reel.py"))
