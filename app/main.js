@@ -29,7 +29,7 @@ import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, render
 
 import { CoachState } from './screens/coach/state.js';
 
-import { ComidaState, animateCalRing, calcTarget, entryBase, lastResults, previewStr, renderComida, renderResults } from './screens/comida.js';
+import { ComidaState, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, previewStr, rememberCookState, renderComida, renderResults, selectedFoodValues } from './screens/comida.js';
 
 import { EntrenoState, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
@@ -102,7 +102,7 @@ document.body.addEventListener("input", async e => {
   }
   if (a === "food-search") { ComidaState.foodQuery = t.value; const r=document.getElementById("foodResults"); if(r) r.innerHTML = renderResults(ComidaState.foodQuery); return; }
   if (a === "ex-search") { EntrenoState.exQuery = t.value; const l=document.getElementById("exList"); if(l) l.innerHTML = renderExList(); return; }
-  if (a === "portion-grams") { const base = ComidaState.selectedFood ? ComidaState.selectedFood : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); } return; }
+  if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); } return; }
   if (a === "cf-field") { ComidaState.foodForm[t.dataset.field] = t.value; return; }
   if (a === "cal-field") { ComidaState.calForm[t.dataset.field] = t.value; return; }
   if (a === "wkg-field") { ProgresoState.weightForm.kg = t.value; return; }
@@ -186,13 +186,25 @@ document.body.addEventListener("click", async e => {
     state.foods.push({ name:ComidaState.foodForm.name.trim(), kcal:+ComidaState.foodForm.kcal||0, p:+ComidaState.foodForm.p||0, c:+ComidaState.foodForm.c||0, f:+ComidaState.foodForm.f||0, portion:100, unit:ComidaState.foodForm.unit||"g" });
     ComidaState.creatingFood=false; ComidaState.foodQuery=ComidaState.foodForm.name.trim(); save(); renderApp(); return;
   }
-  if (a === "food-pick") { SheetState.sheetGen++; ComidaState.selectedFood = lastResults[parseInt(el.dataset.idx)]; renderApp(); return; }
-  if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; renderApp(); }); return; }
+  if (a === "food-pick") { SheetState.sheetGen++; ComidaState.selectedFood = lastResults[parseInt(el.dataset.idx)]; ComidaState.cookState = defaultCookState(ComidaState.selectedFood); ComidaState.sheetGrams = null; renderApp(); return; }
+  // Crudo / cocido: si el cliente no tocó los gramos se pasa a la porción sugerida en el
+  // otro estado; si ya escribió cuánto pesó, se respeta ese número.
+  if (a === "portion-cook") {
+    const f = ComidaState.selectedFood; if(!f || !f.cook) return;
+    const inp = document.getElementById("portionGrams"); const cur = inp ? inp.value : "";
+    const wasDefault = String(cur) === String(cookPortion(f, ComidaState.cookState));
+    ComidaState.cookState = el.dataset.val;
+    ComidaState.sheetGrams = wasDefault ? null : cur;
+    renderApp(); return;
+  }
+  if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; renderApp(); }); return; }
   if (a === "portion-add") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
-    const f = ComidaState.selectedFood; if(!f){ return; } const fc = g/100;
-    state.diary.push({ id:newId(), name:f.name, grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
-    save(); closeSheet(()=>{ ComidaState.selectedFood=null; renderApp(); }); return;
+    const f0 = ComidaState.selectedFood; if(!f0){ return; } const fc = g/100;
+    // Con crudo/cocido se guardan los valores del estado elegido y queda en el nombre.
+    const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
+    state.diary.push({ id:newId(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
+    save(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }

@@ -1,6 +1,6 @@
 import { esc } from '../core/utils.js';
 
-import { ComidaState, entryBase, previewStr } from '../screens/comida.js';
+import { ComidaState, cookPortion, entryBase, previewStr, selectedFoodValues } from '../screens/comida.js';
 
 export const SheetState = {
 
@@ -10,13 +10,18 @@ export const SheetState = {
 
 export function renderSheet(){
   let title, grams, base, isEdit;
-  if (ComidaState.selectedFood){ title=ComidaState.selectedFood.name; grams=ComidaState.selectedFood.portion; base=ComidaState.selectedFood; isEdit=false; }
+  const sf = ComidaState.selectedFood;
+  if (sf){ title=sf.name; grams=ComidaState.sheetGrams!=null ? ComidaState.sheetGrams : cookPortion(sf, ComidaState.cookState); base=selectedFoodValues(); isEdit=false; }
   else if (ComidaState.editEntry){ title=ComidaState.editEntry.name; grams=ComidaState.editEntry.grams; base=entryBase(ComidaState.editEntry); isEdit=true; }
   else return "";
   return `
     <div class="sheet-bg" data-action="portion-cancel"></div>
     <div class="sheet">
       <div class="sheet-title">${esc(title)}</div>
+      ${sf && sf.cook ? `<div class="sheet-cook" role="radiogroup" aria-label="¿Cómo lo pesaste?">
+        <span class="sheet-cook-lbl">¿Cómo lo pesaste?</span>
+        <div class="seg">${["crudo","cocido"].map(st=>`<button class="${ComidaState.cookState===st?'on':''}" role="radio" aria-checked="${ComidaState.cookState===st}" data-action="portion-cook" data-val="${st}">${st==="crudo"?"Crudo":"Cocido"}</button>`).join("")}</div>
+      </div>` : ""}
       <div class="sheet-row">
         <input id="portionGrams" class="sheet-input" type="text" inputmode="numeric" value="${grams}" data-action="portion-grams">
         <span class="sheet-unit">${base.unit==="ml"?"ml":"gramos"}</span>
