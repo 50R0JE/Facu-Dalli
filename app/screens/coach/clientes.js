@@ -134,8 +134,10 @@ export async function openClient(id){
     const urls=await signedUrls(phRows.map(p=>p.path));
     const photos=phRows.map(p=>({id:p.id, taken_on:p.taken_on, url:urls[p.path]||""}));
     const c=CoachState.coachClients.find(x=>x.id===id);
-    CoachState.coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos};
+    CoachState.coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", avatar:(c&&c.avatar_path)||null, weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos};
     CoachState.coachPlanForm=null; CoachState.coachInfoForm=null; CoachState.coachBlockForm=null;
+    // La foto casi siempre ya tiene link desde la lista; si venció o todavía no llegó, se pide y se redibuja.
+    if(CoachState.coachData.avatar) resolveAvatars([CoachState.coachData.avatar]).then(ok=>{ if(ok&&CoachState.coachSel===id) renderCoach(); }).catch(()=>{});
     CoachState.coachExpandedEx=new Set(); CoachState.coachExMenu=null; CoachState.coachPlanRestOpen=null;
   }catch(e){ CoachState.coachData={error:true}; console.error("openClient",e); }
   renderCoach();
