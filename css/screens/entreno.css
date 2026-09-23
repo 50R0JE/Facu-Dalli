@@ -135,9 +135,13 @@
 /* --- Descanso editable (usuario sin coach): botón + lápiz y editor debajo --- */
 .rest-row { display:flex; gap:8px; align-items:stretch; margin-top:10px; }
 .rest-row .rest-btn-full { margin-top:0; flex:1; min-width:0; }
-.rest-edit { flex-shrink:0; width:46px; display:inline-flex; align-items:center; justify-content:center; background:var(--btn-fill, var(--card-2)); border:1px solid var(--btn-line, var(--border)); border-radius:var(--btn-r, 10px); color:var(--gize-text-2); cursor:pointer; }
-.rest-edit svg { width:var(--icon-sm); height:var(--icon-sm); }
-.rest-edit:hover, .rest-edit.on { color:var(--gize-text); border-color:color-mix(in srgb, var(--gize-blue) 55%, transparent); }
+/* El tiempo al costado de "Iniciar descanso" es el que se toca para ajustarlo: una
+   pastilla tranquila (sin borde de color) con el tiempo y una flechita. */
+.rest-edit { flex-shrink:0; display:inline-flex; align-items:center; gap:4px; padding:0 10px 0 14px; background:transparent; border:1px solid var(--gize-border); border-radius:999px; color:var(--gize-text); font:600 var(--text-body) var(--gize-font); font-variant-numeric:tabular-nums; cursor:pointer; transition:border-color .15s, background-color .15s; }
+.rest-edit svg { width:14px; height:14px; color:var(--gize-text-2); transition:transform .2s; }
+.rest-edit:hover { border-color:var(--btn-line-hi, #3a404c); }
+.rest-edit.on { background:var(--gize-surface-2); }
+.rest-edit.on svg { transform:rotate(180deg); }
 .rest-editor { margin-top:10px; padding:14px; border:1px solid var(--gize-border); border-radius:12px; background:var(--gize-surface-2); display:flex; flex-direction:column; gap:12px; }
 .re-title { font-size:var(--text-meta); color:var(--gize-text-2); font-weight:600; text-align:center; }
 .re-adj { display:flex; align-items:center; justify-content:center; gap:14px; }
@@ -147,3 +151,6 @@
 .re-presets { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; }
 .re-presets .rest-opt { min-height:36px; font-weight:600; font-variant-numeric:tabular-nums; }
 .re-done { align-self:center; min-height:36px; padding:0 22px; border-radius:999px; background:var(--gize-blue); color:#fff; border:0; font-weight:700; cursor:pointer; }
+.re-hint { font-size:var(--text-meta); color:var(--gize-text-2); text-align:center; line-height:1.4; }
+.re-reset { align-self:center; background:none; border:0; color:var(--gize-blue); font-weight:600; font-size:var(--text-meta); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+@media (prefers-reduced-motion: reduce) { .rest-edit svg { transition:none; } }

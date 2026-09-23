@@ -38,17 +38,28 @@ const REST_PRESETS = [45, 60, 90, 120, 150, 180, 240, 300];
 export const REST_DEFAULT = 120;
 export function restLabel(sec){ const m=Math.floor(sec/60), x=sec%60; return m+":"+String(x).padStart(2,"0"); }
 
-function restRow(ex){
+// Clave de la preferencia propia (cliente con coach): el nombre del ejercicio, así sigue
+// valiendo aunque el coach vuelva a mandar la rutina (los ids cambian, el nombre no).
+export function restKey(ex){ return String(ex.name||"").trim().toLowerCase(); }
+
+// Descanso que corre para este ejercicio: con coach, el propio si lo cambió, si no el del
+// coach; sin coach, el del ejercicio. 2:00 si no hay ninguno.
+export function effectiveRest(ex){
+  const pref = routineLocked() ? (state.restPrefs||{})[restKey(ex)] : 0;
+  if (pref) return { sec: pref, label: restLabel(pref), own: true };
   const sec = parseRest(ex.rest) || REST_DEFAULT;
-  if(routineLocked()){
-    // Con coach: el descanso que puso el coach o, si no puso ninguno, 2:00 (antes el
-    // botón directamente no aparecía y el cliente no tenía cómo iniciar el descanso).
-    return `<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest||restLabel(sec))}</span></button>`;
-  }
+  return { sec, label: ex.rest || restLabel(sec), own: false };
+}
+
+function restRow(ex){
+  const r = effectiveRest(ex), sec = r.sec;
   const open = EntrenoState.restEditEx === ex.id;
-  const main = `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest||restLabel(sec))}</span></button>`+
-    `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${ex.id}" title="Cambiar tiempo de descanso" aria-label="Cambiar tiempo de descanso" aria-expanded="${open}">${pencilSvg}</button></div>`;
+  // El tiempo al costado es el que se toca para ajustarlo (antes un lápiz).
+  const main = `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span></button>`+
+    `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${ex.id}" title="Ajustar descanso" aria-label="Ajustar descanso, ahora ${esc(r.label)}" aria-expanded="${open}"><span class="rest-edit-t">${esc(r.label)}</span>${chevronDownSvg}</button></div>`;
   if(!open) return main;
+  const locked = routineLocked();
+  const coachTxt = ex.rest ? esc(ex.rest) : "2:00";
   return main + `<div class="rest-editor">
       <div class="re-title">Descanso de este ejercicio</div>
       <div class="re-adj">
@@ -57,6 +68,7 @@ function restRow(ex){
         <button class="re-step" data-action="rest-adj" data-ex="${ex.id}" data-d="15" aria-label="Sumar 15 segundos">+15s</button>
       </div>
       <div class="re-presets">${REST_PRESETS.map(p=>`<button class="rest-opt${p===sec?' on':''}" data-action="rest-preset" data-ex="${ex.id}" data-sec="${p}">${restLabel(p)}</button>`).join("")}</div>
+      ${locked ? (r.own ? `<button class="re-reset" data-action="rest-reset" data-ex="${ex.id}">Usar el de tu coach (${coachTxt})</button>` : `<div class="re-hint">Tu coach puso ${coachTxt}. Si lo cambiás, queda solo para vos.</div>`) : ''}
       <button class="re-done" data-action="rest-edit" data-ex="${ex.id}">Listo</button>
     </div>`;
 }
