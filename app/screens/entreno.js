@@ -39,10 +39,12 @@ export const REST_DEFAULT = 120;
 export function restLabel(sec){ const m=Math.floor(sec/60), x=sec%60; return m+":"+String(x).padStart(2,"0"); }
 
 function restRow(ex){
-  if(routineLocked()){
-    return ex.rest?`<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${parseRest(ex.rest)}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest)}</span></button>`:'';
-  }
   const sec = parseRest(ex.rest) || REST_DEFAULT;
+  if(routineLocked()){
+    // Con coach: el descanso que puso el coach o, si no puso ninguno, 2:00 (antes el
+    // botón directamente no aparecía y el cliente no tenía cómo iniciar el descanso).
+    return `<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest||restLabel(sec))}</span></button>`;
+  }
   const open = EntrenoState.restEditEx === ex.id;
   const main = `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest||restLabel(sec))}</span></button>`+
     `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${ex.id}" title="Cambiar tiempo de descanso" aria-label="Cambiar tiempo de descanso" aria-expanded="${open}">${pencilSvg}</button></div>`;
