@@ -24,7 +24,7 @@ export async function loadClientNotify(id){
   try{
     const [dv, ms] = await Promise.all([
       State.sb.rpc("client_push_devices", { p_client: id }),
-      State.sb.from("coach_messages").select("id, body, delivered, created_at").eq("client_id", id).order("created_at", { ascending: false }).limit(10)
+      State.sb.from("coach_messages").select("id, body, delivered, created_at").eq("client_id", id).order("created_at", { ascending: false }).limit(20)
     ]);
     if(dv.error || ms.error) out.setupMissing = true;
     else { out.devices = typeof dv.data === "number" ? dv.data : 0; out.msgs = ms.data || []; }
@@ -46,12 +46,23 @@ function statusLine(n, name){
   return '<div class="nt-status warn"><span>' + esc(name) + ' todavía no activó las notificaciones. Pedile que entre a <b>Configuración → Notificaciones</b> y las prenda. Mientras tanto el mensaje queda guardado pero no le suena en el celular.</span></div>';
 }
 
+// El historial muestra 2 mensajes y el resto se ve scrolleando. La altura se mide después
+// de dibujar (cada mensaje puede ocupar 1 o varias líneas), hasta el final del segundo (.nt-list es position:relative: offsetTop es relativo a ella).
+function fitList(){
+  const l = document.getElementById("ntList"); if(!l) return;
+  const it = l.children;
+  if(it.length <= 2){ l.style.maxHeight = ""; l.classList.remove("scrolls"); return; }
+  l.style.maxHeight = (it[1].offsetTop + it[1].offsetHeight) + "px";
+  l.classList.add("scrolls");
+}
+
 export function renderCoachNotify(d){
+  requestAnimationFrame(fitList);
   const n = d.notify || { devices: null, msgs: [] };
   const first = String(d.name || "el cliente").split(" ")[0];
   const draft = CoachState.notifDraft || "";
   const sending = !!CoachState.notifSending;
-  const msgs = (n.msgs || []).slice(0, 5).map(m =>
+  const msgs = (n.msgs || []).map(m =>
     '<div class="nt-msg"><div class="nt-msg-body">' + esc(m.body) + '</div>' +
     '<div class="nt-msg-meta">' + when(m.created_at) + ' · ' + (m.delivered > 0 ? '<span class="ok">Entregado ✓</span>' : '<span class="warn">No le llegó al celular</span>') + '</div></div>').join("");
   return '<div class="co-panel nt-panel"><div class="co-sec">Notificación al cliente</div>' +
@@ -59,7 +70,7 @@ export function renderCoachNotify(d){
     '<textarea class="co-note nt-text" rows="3" maxlength="' + MAX + '" data-coach="nt-text" placeholder="Escribile a ' + esc(first) + '… (ej: ¡Hoy toca pierna, a romperla!)"' + (n.setupMissing ? ' disabled' : '') + '>' + esc(draft) + '</textarea>' +
     '<div class="nt-row"><span class="nt-count" id="ntCount">' + draft.length + '/' + MAX + '</span>' +
     '<button class="nt-send" data-coach="nt-send"' + (sending || n.setupMissing ? ' disabled' : '') + '>' + (sending ? 'Enviando…' : 'Enviar ahora') + '</button></div>' +
-    (msgs ? '<div class="nt-hist"><div class="nt-hist-t">Últimos mensajes</div>' + msgs + '</div>' : '') +
+    (msgs ? '<div class="nt-hist"><div class="nt-hist-t">Últimos mensajes</div><div class="nt-list" id="ntList">' + msgs + '</div></div>' : '') +
   '</div>';
 }
 
