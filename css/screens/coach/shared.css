@@ -114,3 +114,31 @@ select.co-select { cursor:pointer; }
     .co-bottom { display:grid; grid-template-columns: 1fr 1fr; gap:24px; align-items:start; }
     .co-bottom .co-panel { min-width:0; margin-bottom:0; }
   }
+
+/* ===== Editor de preguntas para los clientes (app/screens/coach/preguntas.js) ===== */
+.cs-q-btn { width:100%; text-align:left; }
+.cp-ccard.cq-card { width:min(620px, 94vw); }
+.cq-back { background:none; border:0; color:var(--txt-2); font-size:22px; line-height:1; cursor:pointer; padding:0 8px 0 0; }
+.cq-tabs { display:flex; gap:6px; margin:4px 0 10px; }
+.cq-tab { flex:1; padding:9px 10px; border-radius:10px; border:1px solid var(--gize-border); background:transparent;
+    color:var(--txt-2); font:600 var(--text-body) var(--gize-font); cursor:pointer; }
+.cq-tab.on { border-color:var(--gize-blue); color:var(--gize-text); background:color-mix(in srgb, var(--gize-blue) 14%, transparent); }
+.cq-hint { font-size:var(--text-meta); color:var(--txt-3); margin-bottom:12px; line-height:1.45; }
+.cq-warn { font-size:var(--text-meta); color:var(--gize-warning); background:var(--gize-warning-bg); border:1px solid color-mix(in srgb, var(--gize-warning) 35%, transparent);
+    border-radius:8px; padding:9px 11px; margin-bottom:12px; line-height:1.45; }
+.cq-item { background:var(--gize-surface-2); border:1px solid var(--gize-border); border-radius:10px; padding:10px; margin-bottom:8px; }
+.cq-top { display:flex; gap:8px; align-items:flex-start; }
+.cq-n { flex-shrink:0; width:22px; height:22px; margin-top:8px; border-radius:6px; border:1px solid var(--gize-border);
+    font:600 11px var(--font-mono); color:var(--txt-2); display:flex; align-items:center; justify-content:center; }
+.cq-label { flex:1; min-width:0; resize:vertical; font-family:var(--gize-font); line-height:1.4; }
+.cq-row { display:flex; gap:6px; align-items:center; margin:8px 0 0 30px; }
+.cq-type { flex:1; min-width:0; }
+.cq-btn { flex-shrink:0; width:34px; height:34px; border-radius:8px; border:1px solid var(--gize-border); background:transparent;
+    color:var(--txt-2); cursor:pointer; font-size:14px; }
+.cq-btn:disabled { opacity:.35; cursor:default; }
+.cq-btn.del:hover { color:var(--gize-danger); border-color:color-mix(in srgb, var(--gize-danger) 45%, transparent); }
+.cq-opts { display:block; width:calc(100% - 30px); margin:8px 0 0 30px; }
+.cq-add { width:100%; margin-top:4px; }
+.cq-reset { margin-top:8px; }
+/* Encabezados del registro diario: ahora son los textos de las preguntas del coach. */
+.co-tbl th { max-width:140px; white-space:normal; line-height:1.25; vertical-align:bottom; }
