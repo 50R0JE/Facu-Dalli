@@ -36,6 +36,10 @@ export const State = {
 
   brandName: "",
 
+  // Preguntas propias del coach logueado (panel del coach). Las del coach de un cliente
+  // van en state.coachQ, que se guarda en el dispositivo para usarlas sin conexión.
+  coachQ: null,
+
 };
 
 export let state;

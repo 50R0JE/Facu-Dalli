@@ -30,6 +30,10 @@ export function renderCoachSettings(){
       '<input class="co-note" data-coach="settings-name" value="'+esc(draft)+'">'+
       '<button class="co-save-rt" data-coach="settings-name-save">Guardar nombre</button>'+
     '</div>'+
+    '<div class="cs-field">'+
+      '<label>Preguntas para tus clientes</label>'+
+      '<button class="cp-copt cs-q-btn" data-coach="q-open">Editar preguntas del registro diario y del check-in</button>'+
+    '</div>'+
     '<button class="logout-btn" data-auth="logout">Cerrar sesión</button>'+
   '</div>';
 }

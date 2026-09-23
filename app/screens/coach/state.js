@@ -49,6 +49,12 @@ export const CoachState = {
 
   coachSettingsOpen: false,
 
+  // Editor de preguntas (ver preguntas.js): copia de trabajo mientras está abierto, y el
+  // error de la última lectura de coach_questions (tabla sin crear, sin conexión…).
+  coachQEdit: null,
+
+  coachQError: null,
+
   coachNameForm: null,
 
   // ids de ejercicios expandidos en el editor de rutina — por defecto todo colapsado

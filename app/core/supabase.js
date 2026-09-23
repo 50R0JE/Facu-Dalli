@@ -1,3 +1,7 @@
+import { DAILY_COLUMNS } from './questions.js';
+
+import { loadCoachQuestions } from '../screens/coach/preguntas.js';
+
 import { State, state } from './state.js';
 
 import { migrateNames, save } from './storage.js';
@@ -132,7 +136,7 @@ export async function afterLogin(sessionUser){
     else { const cn=await coachNameP; State.brandName=cn.data||""; }
   }catch(e){ State.brandName=""; }
   applyBrand();
-  if (State.cloudProfile && State.cloudProfile.role==="coach"){ await loadCoachClients(); renderCoach(); }
+  if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); }
   else { renderApp(); }
 }
 
@@ -147,7 +151,7 @@ export async function loadCloud(){
     // Todas las lecturas salen juntas (antes iban de a una y el arranque sumaba ~12 idas
     // y vueltas a Supabase); después se aplican en el mismo orden de siempre.
     const uid=State.cloudUser.id, sb=State.sb;
-    const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp] = await Promise.all([
+    const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp, cq] = await Promise.all([
       sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
       sb.from("routines").select("days").eq("client_id",uid).maybeSingle(),
       sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on"),
@@ -160,6 +164,10 @@ export async function loadCloud(){
       sb.from("nutrition").select("*").eq("client_id",uid).maybeSingle(),
       sb.from("food_entries").select("*").eq("client_id",uid).eq("log_date",today()).order("pos"),
       sb.from("client_prefs").select("*").eq("client_id",uid).maybeSingle(),
+      // Preguntas de mi coach (la política de la tabla solo deja ver la fila del coach
+      // propio). Si la tabla todavía no existe en la base, da error y se ignora: quedan
+      // las predeterminadas.
+      sb.from("coach_questions").select("daily, checkin").maybeSingle(),
       loadMyPhotos()
     ]);
     const pr=sbOk(pr0);
@@ -183,7 +191,10 @@ export async function loadCloud(){
     if(!ss.error && Array.isArray(ss.data)){
       state.sessions=ss.data.map(se=>Object.assign(sessionFromRow(se), {id:se.id, cloudId:se.id}));
     }
-    if(!dl.error && Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]={steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}; }); }
+    // Las respuestas a preguntas propias del coach vienen en "answers"; las de siempre, en
+    // sus columnas (que mandan si aparecen en los dos lados).
+    if(!dl.error && Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]=Object.assign({}, r.answers||{}, {steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}); }); }
+    if(!cq.error) state.coachQ = cq.data ? {daily:cq.data.daily||null, checkin:cq.data.checkin||null} : null;
     if(!ck.error && Array.isArray(ck.data)){ state.checkins={}; ck.data.forEach(r=>{ const o=Object.assign({}, r.answers||{}); if(r.adherence) o.adherence=r.adherence; state.checkins[r.week_start]=o; }); }
     if(!ci.error) state.info = ci.data || null;
     if(!bl.error) state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;
@@ -415,7 +426,19 @@ async function sendItem(it){
     // Los pasos también los escribe el contador de Hábitos: si el registro los dejó vacíos
     // no se mandan, para no borrar lo que ya contó.
     if(parseInt(rec.steps)>=0) row.steps=parseInt(rec.steps);
-    sbOk(await sb.from("daily_logs").upsert(row,{onConflict:"client_id,log_date"}));
+    // Preguntas propias del coach (sin columna fija) → daily_logs.answers, con la "foto"
+    // de sus textos. Solo se manda si hay alguna: con las predeterminadas no cambia nada.
+    const extra={};
+    Object.keys(rec).forEach(k=>{ if(DAILY_COLUMNS.indexOf(k)<0 && k!=="steps" && k!=="kg" && k!=="_q" && rec[k]!=null && rec[k]!=="") extra[k]=rec[k]; });
+    if(Object.keys(extra).length) row.answers=Object.assign(extra, {_q:rec._q||{}});
+    const r=await sb.from("daily_logs").upsert(row,{onConflict:"client_id,log_date"});
+    // Base sin la columna "answers" (falta correr supabase/preguntas-coach.sql): se guarda
+    // igual todo lo demás en vez de trabar el registro del día en la cola para siempre.
+    if(r.error && row.answers && (r.error.code==="PGRST204" || r.error.code==="42703")){
+      console.warn("daily_logs.answers no existe todavía; se guardan solo las columnas fijas", r.error);
+      delete row.answers;
+      sbOk(await sb.from("daily_logs").upsert(row,{onConflict:"client_id,log_date"}));
+    } else sbOk(r);
   } else if(it.k==="day"){
     // Solo las columnas del día: el upsert no toca comentario, sueño, etc. del registro.
     sbOk(await sb.from("daily_logs").upsert({client_id:uid, log_date:p.dt, water_ml:p.water, steps:p.steps, habits_done:p.habits},{onConflict:"client_id,log_date"}));
