@@ -82,7 +82,7 @@
 
 .bar { flex: 1; height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
 
-.bar > div { height: 100%; background: linear-gradient(90deg, var(--gize-blue-deep), var(--gize-blue)); box-shadow: var(--glow-sm); transition: width .25s; }
+.bar > div { height: 100%; background: var(--gize-rgb-line); box-shadow: none; transition: width .25s; }
 
 .count { font-size: var(--text-body); color: var(--txt-2); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 
@@ -139,17 +139,15 @@
 
 .set { display: flex; align-items: center; gap: var(--space-8); margin-bottom: var(--space-8); }
 
-.idx { width: 24px; height: 24px; border-radius: 4px; background: color-mix(in srgb, var(--gize-blue) 16%, transparent); border: 1px solid color-mix(in srgb, var(--gize-blue) 40%, transparent); color: var(--gize-text); font-size: var(--text-meta); font-family: var(--font-mono); font-weight: 700;
+.idx { width: 24px; height: 24px; border-radius: 4px; background: var(--gize-surface-2); border: 1px solid var(--gize-border); color: var(--gize-text); font-size: var(--text-meta); font-family: var(--font-mono); font-weight: 700;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
 .field { display: flex; align-items: center; gap: var(--space-4); }
 
-/* Antes usaban var(--card-2)/var(--border): dentro de una .card (que redefine --card-2 casi
-     igual al fondo general en modo silk) el input se fundía con la caja que lo contiene y
-     el valor quedaba difícil de leer a simple vista. Un relleno/borde celeste fijo (no atado
-     al scope de --card-2) asegura que la caja del dato siempre resalte sobre cualquier fondo
-     oscuro, con el número en blanco puro y en negrita como el peso/reps más importante de la fila. */
-.field input { background: color-mix(in srgb, var(--gize-blue) 14%, transparent); border: 1px solid color-mix(in srgb, var(--gize-blue) 35%, transparent); border-radius: 4px; padding: var(--space-10) var(--space-8); text-align: right;
+/* Relleno --gize-surface-2 y borde blanco al 14 % fijos (no atados al scope de --card-2):
+     la caja del dato resalta sobre la tarjeta sin teñirla de azul. El azul queda para el
+     foco, que es su uso funcional. */
+.field input { background: var(--gize-surface-2); border: 1px solid rgba(255,255,255,.14); border-radius: 4px; padding: var(--space-10) var(--space-8); text-align: right;
     font-variant-numeric: tabular-nums; color: var(--gize-text); font-weight: 700; font-size: var(--text-set-value); }
 
 .field input:focus { outline: none; border-color: var(--blue); box-shadow: var(--glow-sm), var(--focus-ring); }
@@ -176,7 +174,7 @@
 
 .hb-title { font-size: 25px; font-weight: 700; letter-spacing: -0.01em; color: var(--txt); }
 
-.title-accent { width: 44px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--gize-blue-deep), var(--gize-blue)); box-shadow: var(--glow-sm); margin: 9px 0 2px; }
+.title-accent { width: 44px; height: 3px; border-radius: 2px; background: var(--gize-rgb-line); box-shadow: none; margin: 9px 0 2px; }
 
 .hb-check.on { background: var(--gize-success); border-color: var(--gize-success); color: var(--gize-bg); box-shadow: none; }
 
@@ -207,7 +205,7 @@
 
 .ring-track { fill: none; stroke: var(--card-2); stroke-width: 10; }
 
-.ring-fill { fill: none; stroke: var(--blue); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer), stroke .5s ease; }
+.ring-fill { fill: none; stroke: url(#calRingGrad); stroke-width: 10; stroke-linecap: round; filter: drop-shadow(0 0 6px var(--glow)); transition: stroke-dashoffset .4s var(--ease-drawer), stroke .5s ease; }
 
 .ring-fill.over { stroke: var(--ring-over); animation: ringOverPulse 2.6s ease-in-out infinite; }
 

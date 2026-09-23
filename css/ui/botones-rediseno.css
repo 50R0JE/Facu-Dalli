@@ -72,8 +72,8 @@ body:not(#_) {
   .tab { padding: 10px 16px; overflow: visible; }
 
   /* ---------- 1) PRINCIPALES: blanco de marca (como .gize-btn) ----------
-     "Guardar ficha / Guardar rutina" (coach) y "Guardar sesión" (entreno) son LA acción
-     de su pantalla: llevan además el anillo RGB girando (regla 1 de brand/BRAND.md, uno
+     "Guardar ficha / Guardar rutina" (coach), "Guardar sesión" (entreno) e "Iniciar"
+     (cardio, .ctrl.primary) son LA acción de su pantalla: llevan además el anillo RGB girando (regla 1 de brand/BRAND.md, uno
      por pantalla). El resto de principales va blanco sin anillo, porque en algunas
      pantallas hay varios a la vez (check-in) y el anillo dejaría de señalar algo. */
   /* .ctrl.primary va aparte de la lista: dentro de :is() su peso (dos clases) se le
@@ -91,7 +91,7 @@ body:not(#_) {
     &:hover { filter: brightness(.94); transform: none; }
     &:active { transform: scale(.985); filter: none; }
   }
-  :is(.save-session, .co-save-rt) {
+  .ctrl.primary, :is(.save-session, .co-save-rt) {
     background: linear-gradient(#fff, #fff) padding-box,
       conic-gradient(from var(--gize-angle), var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4), var(--gize-r1)) border-box;
     animation: gize-spin 5s linear infinite;
@@ -138,7 +138,7 @@ body:not(#_) {
   .done.on, .hb-check.on { background: var(--gize-success); border-color: var(--gize-success); color: var(--gize-bg); box-shadow: none; }
 
   /* Botón de descanso en la card */
-  .rest-btn-full { border-radius: var(--btn-r); background: var(--acc-tint); border-color: var(--acc); color: var(--gize-text); }
+  .rest-btn-full { border-radius: var(--btn-r); background: var(--btn-fill); border-color: var(--btn-line); color: var(--gize-text); }
 
   /* ---------- Navegación inferior ---------- */
   .nav-item { position: relative; border-radius: var(--btn-r); color: var(--btn-txt-dim); font-weight: 600; }

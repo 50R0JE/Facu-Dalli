@@ -192,6 +192,7 @@ export function renderComida(){
   return `
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
+        <defs><linearGradient id="calRingGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--gize-r1)"/><stop offset=".35" style="stop-color:var(--gize-r2)"/><stop offset=".7" style="stop-color:var(--gize-r3)"/><stop offset="1" style="stop-color:var(--gize-r4)"/></linearGradient></defs>
         <circle class="ring-track" cx="60" cy="60" r="52"></circle>
         <circle id="calRing" class="ring-fill${over?' over':''}" cx="60" cy="60" r="52" style="stroke-dasharray:${RC};stroke-dashoffset:${RC*(1-pct)}"></circle>
       </svg>

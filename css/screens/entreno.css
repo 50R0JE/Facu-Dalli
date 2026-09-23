@@ -71,11 +71,12 @@
 
 .ins-ex:hover, .ins-ex:active { opacity:1; border-color:var(--blue); color:var(--blue); }
 
-.coach-banner { background:var(--card-2); border:1px solid var(--blue); border-left-width:3px; border-radius:4px; padding:10px 12px; margin-bottom:12px; font-size: var(--text-meta); color:var(--blue-2); font-weight:600; }
+.coach-banner { background:var(--card-2); border:1px solid var(--blue); border-left-width:3px; border-radius:4px; padding:10px 12px; margin-bottom:12px; font-size: var(--text-meta); color:var(--gize-text); font-weight:600; }
 
-.ex-note { background:var(--card-2); border-left:2px solid var(--blue); border-radius:3px; padding:9px 10px; margin:4px 0 10px; font-size: var(--text-meta); color:var(--txt-2); line-height:1.45; }
+/* filete vertical de 2 px con la gama RGB (BRAND.md: "filetes de 2 px") */
+.ex-note { background:linear-gradient(180deg, var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4)) left / 2px 100% no-repeat, var(--card-2); border-left:0; padding-left:12px !important; border-radius:3px; padding:9px 10px; margin:4px 0 10px; font-size: var(--text-meta); color:var(--txt-2); line-height:1.45; }
 
-.ex-note-t { display:block; font-size:9px; color:var(--blue-2); text-transform:uppercase; letter-spacing:.1em; margin-bottom:3px; font-weight:700; }
+.ex-note-t { display:block; font-size:9px; color:var(--gize-text-2); text-transform:uppercase; letter-spacing:.1em; margin-bottom:3px; font-weight:700; }
 
 .daynotes { background:var(--card); border:1px solid var(--blue); border-radius:4px; padding:var(--space-14); margin-top:var(--space-16); }
 

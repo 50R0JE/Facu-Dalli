@@ -42,7 +42,7 @@
 
 .cardio-rx { background:var(--card); border:1px solid var(--blue); border-left:3px solid var(--blue); border-radius:4px; padding:var(--space-14); margin-bottom:var(--space-16); }
 
-.cardio-rx-h { font-size: var(--text-meta); color:var(--blue-2); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:8px; }
+.cardio-rx-h { font-size: var(--text-meta); color:var(--gize-text); text-transform:uppercase; letter-spacing:.06em; font-weight:800; margin-bottom:8px; }
 
 .cardio-rx-txt { font-size: var(--text-body); color:var(--txt); line-height:1.5; margin-bottom:6px; }
 
