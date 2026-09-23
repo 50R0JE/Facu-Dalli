@@ -78,7 +78,10 @@ export async function uploadMyAvatar(file){
   const path = uid + "/" + Date.now() + ".jpg"; // nombre nuevo: evita que se vea la foto vieja cacheada
   const up = await State.sb.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg", upsert: false });
   if (up.error) return "No se pudo subir la foto: " + (up.error.message || up.error) + setupHint(up.error);
-  const pr = await State.sb.from("profiles").update({ avatar_path: path }).eq("id", uid);
+  // .select() para confirmar que se guardó: con RLS, un UPDATE que ninguna política
+  // permite no da error, cambia 0 filas. Sin esto el usuario veía su foto (se muestra
+  // apenas se sube) pero no quedaba en su perfil y el coach nunca la veía.
+  const pr = await saveAvatarPath(path);
   if (pr.error){
     State.sb.storage.from(BUCKET).remove([path]).catch(() => {});
     return "No se pudo guardar la foto en tu perfil: " + (pr.error.message || pr.error) + setupHint(pr.error);
@@ -92,15 +95,26 @@ export async function uploadMyAvatar(file){
 export async function removeMyAvatar(){
   if (!State.sb || !State.cloudUser || !State.cloudProfile || !State.cloudProfile.avatar_path) return "";
   const old = State.cloudProfile.avatar_path;
-  const pr = await State.sb.from("profiles").update({ avatar_path: null }).eq("id", State.cloudUser.id);
+  const pr = await saveAvatarPath(null);
   if (pr.error) return "No se pudo quitar la foto: " + (pr.error.message || pr.error);
   State.cloudProfile.avatar_path = null;
   State.sb.storage.from(BUCKET).remove([old]).catch(() => {});
   return "";
 }
 
+// Guarda la ruta en el perfil propio. Primero con la función set_my_avatar (solo toca
+// avatar_path del propio usuario, ver supabase/foto-perfil.sql); si la base todavía no
+// la tiene, con un UPDATE directo, confirmando con .select() que realmente cambió la fila.
+async function saveAvatarPath(path){
+  const rpc = await State.sb.rpc("set_my_avatar", { p_path: path });
+  if (!rpc.error) return { error: null };
+  const pr = await State.sb.from("profiles").update({ avatar_path: path }).eq("id", State.cloudUser.id).select("id");
+  if (!pr.error && (!pr.data || !pr.data.length)) pr.error = { message: "la base no permitió actualizar tu perfil" };
+  return pr;
+}
+
 function setupHint(err){
   const m = String((err && (err.message || err.error)) || "").toLowerCase();
-  return /bucket|avatar_path|column|not found|policy|row-level/.test(m)
+  return /bucket|avatar_path|column|not found|policy|row-level|permiti/.test(m)
     ? "\n\nSi es la primera vez, falta correr supabase/foto-perfil.sql en Supabase." : "";
 }
