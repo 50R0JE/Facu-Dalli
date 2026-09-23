@@ -62,10 +62,9 @@
 
 .mc-optbody { font-size: var(--text-body); color:var(--txt); line-height:1.5; }
 
-/* colores rotativos de opciones */
-.mc-optrow.c-xl { border-left-color:var(--green); }
-
-.mc-optrow.c-xl .mc-optlabel { color:var(--green); }
+/* Opciones A/B/C…: mismo borde neutro para todas (el de .mc-optrow); la letra en
+   azul hace la jerarquía. El color marca estado, no identidad (brand/BRAND.md). */
+.mc-optrow.c-xl .mc-optlabel { color:var(--gize-blue); }
 
 .mc-optitems { margin:0; padding-left:18px; list-style:disc; }
 

@@ -210,31 +210,13 @@
 
 .opt-item-head { display:flex; gap:6px; margin-bottom:6px; }
 
-.opt-label { flex:1; color:var(--txt-2); font-weight:700; }
+.opt-label { flex:1; color:var(--gize-blue); font-weight:700; }
 
-.opt-item.oc-0 { border-left:3px solid var(--gize-blue); }
-
-.opt-item.oc-0 .opt-label { color:var(--gize-blue); }
-
-.opt-item.oc-1 { border-left:3px solid var(--gize-blue-deep); }
-
-.opt-item.oc-1 .opt-label { color:var(--gize-blue-deep); }
-
-.opt-item.oc-2 { border-left:3px solid #d2d6d8; }
-
-.opt-item.oc-2 .opt-label { color:#d2d6d8; }
-
-.opt-item.oc-3 { border-left:3px solid var(--gize-blue-deep); }
-
-.opt-item.oc-3 .opt-label { color:var(--gize-blue-deep); }
-
-.opt-item.oc-4 { border-left:3px solid #a4a8a5; }
-
-.opt-item.oc-4 .opt-label { color:#a4a8a5; }
-
-.opt-item.oc-5 { border-left:3px solid #747877; }
-
-.opt-item.oc-5 .opt-label { color:#a4a8a5; }
+/* Opciones A/B/C…: todas con el mismo borde neutro. Se diferencian por la letra
+   (en azul), no por color: el color marca estado, no identidad (brand/BRAND.md).
+   La que se está editando lleva borde azul y resplandor suave. */
+.opt-item:focus-within, body.silk-coach .opt-item:focus-within {
+    border-color:var(--gize-blue); box-shadow:0 0 0 3px color-mix(in srgb, var(--gize-blue) 18%, transparent); }
 
 .opt-body { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:4px; padding:9px 10px; color:var(--txt); font-size: var(--text-body); font-family:inherit; resize:vertical; }
 

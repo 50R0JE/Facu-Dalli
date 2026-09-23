@@ -72,7 +72,7 @@ export function optionsEditor(p){
   const arr=(p.options||[]);
   const blocks=arr.map((sec,i)=>{
     const opts=(sec.opts||[]).map((o,j)=>
-      '<div class="opt-item oc-'+(j%6)+'">'+
+      '<div class="opt-item">'+
         '<div class="opt-item-head">'+
           '<input class="ml-in opt-label" data-coach="pl-optlabel" data-i="'+i+'" data-j="'+j+'" value="'+esc(o.label||"")+'" placeholder="">'+
           '<button class="ml-del" data-coach="pl-optdel" data-i="'+i+'" data-j="'+j+'" title="Quitar opción">\u2715</button>'+
