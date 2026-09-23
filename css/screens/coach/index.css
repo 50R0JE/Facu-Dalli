@@ -123,6 +123,11 @@
 .co-avatar { flex-shrink:0; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--gize-text); font-family:var(--font-mono);
     background:var(--gize-surface-2); border:1px solid var(--gize-border); } /* neutro: el color marca estado, no identidad */
 
+/* Ficha del cliente: foto (o iniciales) al lado del nombre. Dos clases para ganarle al .co-avatar de 32px. */
+.co-client-head { display:flex; align-items:center; gap:14px; margin-bottom:4px; }
+.co-client-head .co-client-name { margin-bottom:0; min-width:0; overflow-wrap:anywhere; }
+.co-avatar.co-avatar-client { width:64px; height:64px; font-size:20px; }
+
 .co-cname { font-size:var(--text-emphasis); color:var(--txt); font-weight:600; }
 
 .co-td-email { font-size:var(--text-meta); color:var(--txt-2); margin:0 0 4px 42px; }
