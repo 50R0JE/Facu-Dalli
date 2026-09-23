@@ -243,8 +243,8 @@ export function renderApplyPicker(){
   el.innerHTML='<div class="cp-bg" data-coach="ap-cancel"></div><div class="cp-ccard">'+markup+'</div>';
 }
 
-// Un color estable por grupo muscular (swatch de la card de ejercicio) \u2014 mismo esquema de
-// "hashear a una paleta fija" que coachAvatarColor() para los avatares de cliente.
+// Un color estable por grupo muscular (swatch de la card de ejercicio): hashea el nombre
+// del grupo a una paleta fija.
 const EX_SWATCH_COLORS=["var(--blue)","var(--purple)","var(--pink)","var(--cyan)","var(--green-2)"];
 function exSwatchColor(ex){
   const mus=ex.mus||muscleOf(ex.name)||"otros";

@@ -122,6 +122,7 @@ export function silkResize(){
   silkCanvasEl.style.width = w+"px"; silkCanvasEl.style.height = h+"px";
   silkCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   silkParticles = silkMakeParticles(w, h);
+  if(silkReducedMotion() && silkRafId==null) silkLoop(); // el canvas se borra al redimensionar: redibuja el cuadro quieto
 }
 
 export function silkLoop(){
@@ -130,7 +131,7 @@ export function silkLoop(){
   if(!silkCtx || !silkCanvasEl || !silkNoise) return;
   const w = silkCanvasEl.clientWidth || window.innerWidth;
   const h = silkCanvasEl.clientHeight || window.innerHeight;
-  const speedFactor = silkReducedMotion() ? 0.12 : 1; // reduced motion: movimiento muy reducido, no estático
+  const reduced = silkReducedMotion(); // reduced motion: se dibuja un solo cuadro y queda quieto
   silkCtx.clearRect(0, 0, w, h);
   for(const p of silkParticles){
     p.life += 1;
@@ -138,12 +139,13 @@ export function silkLoop(){
     const op = Math.sin((p.life/p.maxLife)*Math.PI)*0.55;
     const n = silkNoise.simplex3(p.x*0.0025, p.y*0.0025, Date.now()*0.00008);
     const angle = n*Math.PI*4;
-    p.x += Math.cos(angle)*0.55*speedFactor; p.y += Math.sin(angle)*0.55*speedFactor;
+    if(!reduced){ p.x += Math.cos(angle)*0.55; p.y += Math.sin(angle)*0.55; }
     if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
     silkCtx.globalAlpha = Math.max(0,op*PARTICLE_ALPHA); silkCtx.fillStyle = silkGamut[p.c];
     silkCtx.beginPath(); silkCtx.arc(p.x,p.y,p.size,0,Math.PI*2); silkCtx.fill();
   }
   silkCtx.globalAlpha = 1;
+  if(reduced){ cancelAnimationFrame(silkRafId); silkRafId = null; }
 }
 
 export function silkOnVisibilityChange(){
