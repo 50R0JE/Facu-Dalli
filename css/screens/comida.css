@@ -85,3 +85,35 @@
 .plan-macros span { font-size: var(--text-meta); color:var(--txt-2); }
 
 .plan-macros b { color:var(--txt); font-size:16px; font-weight:800; margin-right:2px; font-variant-numeric:tabular-nums; }
+
+/* ===== Búsqueda con escáner y productos de marca (Open Food Facts) ===== */
+.food-search-row { display:flex; gap:8px; align-items:stretch; }
+.food-search-row .cal-search { flex:1; min-width:0; }
+.scan-btn { flex-shrink:0; width:48px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:var(--gize-surface-2);
+    color:var(--gize-text); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.scan-btn svg { width:22px; height:22px; }
+.scan-btn:hover { border-color:var(--gize-blue); }
+.off-head { display:flex; align-items:baseline; justify-content:space-between; margin:14px 2px 8px; font-size:var(--text-meta);
+    font-weight:700; color:var(--txt-2); text-transform:uppercase; letter-spacing:.06em; }
+.off-head span { text-transform:none; letter-spacing:0; font-weight:500; color:var(--txt-3); }
+
+/* Escáner a pantalla completa */
+body.scan-open { overflow:hidden; }
+.scan-wrap { position:fixed; inset:0; z-index:400; background:#000; display:flex; flex-direction:column;
+    padding:calc(12px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom)); gap:12px; }
+.scan-top { display:flex; align-items:center; justify-content:space-between; color:var(--gize-text); font:600 var(--text-emphasis) var(--gize-font); }
+.scan-x { width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.2); background:transparent; color:#fff; font-size:16px; cursor:pointer; }
+.scan-view { position:relative; flex:1; min-height:0; border-radius:16px; overflow:hidden; background:#0b0d11; }
+.scan-view video { width:100%; height:100%; object-fit:cover; display:block; }
+.scan-frame { position:absolute; left:8%; right:8%; top:32%; bottom:32%; border-radius:14px; padding:2px; pointer-events:none;
+    background:var(--gize-rgb-ring);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* La línea va aparte del marco: la máscara del marco (que deja solo el borde) la taparía. */
+.scan-line { position:absolute; left:12%; right:12%; top:50%; height:2px; background:var(--gize-danger); box-shadow:0 0 12px var(--gize-danger);
+    pointer-events:none; animation:scanLine 1.6s ease-in-out infinite alternate; }
+@keyframes scanLine { from { transform:translateY(-40px); } to { transform:translateY(40px); } }
+@media (prefers-reduced-motion: reduce) { .scan-line { animation:none; } }
+.scan-msg { text-align:center; color:var(--txt-2); font-size:var(--text-body); min-height:20px; }
+.scan-manual { display:flex; gap:8px; }
+.scan-manual .form-input { flex:1; min-width:0; }

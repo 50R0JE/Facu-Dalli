@@ -29,7 +29,7 @@ import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, render
 
 import { CoachState } from './screens/coach/state.js';
 
-import { ComidaState, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, previewStr, rememberCookState, renderComida, renderResults, selectedFoodValues } from './screens/comida.js';
+import { ComidaState, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
 
 import { EntrenoState, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
@@ -48,6 +48,10 @@ import { initScrollReveal, setupExerciseFocus } from './ui/scrollfocus.js';
 import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet } from './ui/sheet.js';
 import { clientQuestions, questionSnapshot } from './core/questions.js';
 import { renderConfig } from './screens/config.js';
+
+import { productByCode, searchOFF } from './core/off.js';
+
+import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
 
 export function renderApp(){
   setTimeout(renderFeedback,0);
@@ -100,7 +104,7 @@ document.body.addEventListener("input", async e => {
     CardioState.tmTarget = Math.min(3600000, Math.max(1000, (mm*60+ss)*1000)); CardioState.tmRemainingMs = CardioState.tmTarget;
     const disp=document.getElementById("tmTime"); if(disp) disp.textContent = fmt(CardioState.tmTarget); return;
   }
-  if (a === "food-search") { ComidaState.foodQuery = t.value; const r=document.getElementById("foodResults"); if(r) r.innerHTML = renderResults(ComidaState.foodQuery); return; }
+  if (a === "food-search") { ComidaState.foodQuery = t.value; scheduleOffSearch(t.value); const r=document.getElementById("foodResults"); if(r) r.innerHTML = renderResults(ComidaState.foodQuery); return; }
   if (a === "ex-search") { EntrenoState.exQuery = t.value; const l=document.getElementById("exList"); if(l) l.innerHTML = renderExList(); return; }
   if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); } return; }
   if (a === "cf-field") { ComidaState.foodForm[t.dataset.field] = t.value; return; }
@@ -186,6 +190,10 @@ document.body.addEventListener("click", async e => {
     state.foods.push({ name:ComidaState.foodForm.name.trim(), kcal:+ComidaState.foodForm.kcal||0, p:+ComidaState.foodForm.p||0, c:+ComidaState.foodForm.c||0, f:+ComidaState.foodForm.f||0, portion:100, unit:ComidaState.foodForm.unit||"g" });
     ComidaState.creatingFood=false; ComidaState.foodQuery=ComidaState.foodForm.name.trim(); save(); renderApp(); return;
   }
+  if (a === "off-pick") { SheetState.sheetGen++; ComidaState.selectedFood = offResults[parseInt(el.dataset.idx)]; ComidaState.cookState = null; ComidaState.sheetGrams = null; renderApp(); return; }
+  if (a === "scan-open") { openScanner(onScannedCode); return; }
+  if (a === "scan-close") { closeScanner(); return; }
+  if (a === "scan-manual") { scannerManualCode(); return; }
   if (a === "food-pick") { SheetState.sheetGen++; ComidaState.selectedFood = lastResults[parseInt(el.dataset.idx)]; ComidaState.cookState = defaultCookState(ComidaState.selectedFood); ComidaState.sheetGrams = null; renderApp(); return; }
   // Crudo / cocido: si el cliente no tocó los gramos se pasa a la porción sugerida en el
   // otro estado; si ya escribió cuánto pesó, se respeta ese número.
@@ -203,6 +211,7 @@ document.body.addEventListener("click", async e => {
     const f0 = ComidaState.selectedFood; if(!f0){ return; } const fc = g/100;
     // Con crudo/cocido se guardan los valores del estado elegido y queda en el nombre.
     const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
+    rememberOffProduct(f0);
     state.diary.push({ id:newId(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
     save(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; renderApp(); }); return;
   }
@@ -682,3 +691,50 @@ if (migrateNames(state.days)) save();
 cloudBoot();
 
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(()=>{}); }); }
+
+// ---- Productos de marca (Open Food Facts) ----
+// Búsqueda con espera de 450 ms desde la última tecla y cancelando la anterior: así no
+// se pide nada por cada letra ni llega tarde una respuesta vieja.
+let offTimer = null, offCtrl = null;
+function paintOff(){ const box=document.getElementById("offResults"); if(box) box.innerHTML = renderOffResults(); }
+function scheduleOffSearch(q){
+  clearTimeout(offTimer); if(offCtrl){ offCtrl.abort(); offCtrl=null; }
+  const qq = String(q||"").trim();
+  if(qq.length < 3){ ComidaState.off = null; return; }
+  ComidaState.off = { q: qq, status: "loading", items: [] };
+  offTimer = setTimeout(async () => {
+    const ctrl = offCtrl = new AbortController();
+    try{
+      const items = await searchOFF(qq, ctrl.signal);
+      if(ctrl.signal.aborted || !ComidaState.off || ComidaState.off.q !== qq) return;
+      ComidaState.off = { q: qq, status: "done", items: items };
+    }catch(e){
+      if(ctrl.signal.aborted) return;
+      ComidaState.off = { q: qq, status: "error", items: [] };
+    }
+    paintOff();
+  }, 450);
+}
+
+// Producto de marca agregado al diario → queda guardado en el dispositivo para
+// encontrarlo al toque la próxima vez (máximo 150, el más reciente primero).
+function rememberOffProduct(f){
+  if(!f || f.src !== "OFF") return;
+  state.offRecent = [f].concat((state.offRecent||[]).filter(x => !(x.code && x.code === f.code) && x.name !== f.name)).slice(0, 150);
+}
+
+// Código leído por el escáner (o escrito a mano).
+async function onScannedCode(code){
+  const known = (state.offRecent||[]).find(f => f.code === code);
+  if(known){ ComidaState.selectedFood = known; ComidaState.cookState = null; ComidaState.sheetGrams = null; SheetState.sheetGen++; renderApp(); return; }
+  let food = null;
+  try{ food = await productByCode(code); }
+  catch(e){ alert("No se pudo buscar el producto (¿sin conexión?). Probá de nuevo o cargalo a mano."); return; }
+  if(!food){
+    if(confirm("No encontramos el código " + code + " en Open Food Facts.\n\n¿Querés crear el alimento a mano con los datos de la etiqueta?")){
+      ComidaState.foodForm = {name:"",kcal:"",p:"",c:"",f:"",unit:"g"}; ComidaState.creatingFood = true; renderApp();
+    }
+    return;
+  }
+  ComidaState.selectedFood = food; ComidaState.cookState = null; ComidaState.sheetGrams = null; SheetState.sheetGen++; renderApp();
+}
