@@ -42,3 +42,21 @@ create policy "avatar: ver propia, coach y clientes" on storage.objects
   );
 
 notify pgrst, 'reload schema';
+
+-- 5) Guardar la ruta de la foto en el propio perfil sin depender de las políticas de
+--    UPDATE de profiles (que pueden no permitirlo, y un UPDATE bloqueado por RLS no da
+--    error: cambia 0 filas). La función solo toca avatar_path de la fila del propio
+--    usuario, así que no abre la puerta a cambiar otros datos (rol, coach, etc.).
+create or replace function public.set_my_avatar(p_path text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.profiles set avatar_path = p_path where id = auth.uid();
+$$;
+
+revoke all on function public.set_my_avatar(text) from public;
+grant execute on function public.set_my_avatar(text) to authenticated;
+
+notify pgrst, 'reload schema';

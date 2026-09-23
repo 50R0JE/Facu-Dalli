@@ -16,7 +16,7 @@ import { CardioState, renderCardio } from './screens/cardio.js';
 
 import { CheckinState, renderFeedback, saveSession } from './screens/checkin.js';
 
-import { openClient } from './screens/coach/clientes.js';
+import { loadCoachClients, openClient } from './screens/coach/clientes.js';
 
 import { renderCoach } from './screens/coach/index.js';
 
@@ -462,7 +462,7 @@ document.body.addEventListener("click", async e => {
     return;
   }
   if(a==="open"){ CoachState.coachClientTab="ficha"; openClient(b.dataset.id); return; }
-  if(a==="back"){ CoachState.coachSel=null; CoachState.coachData=null; renderCoach(); return; }
+  if(a==="back"){ CoachState.coachSel=null; CoachState.coachData=null; renderCoach(); refreshCoachClients(); return; }
   if(a==="refresh"){ if(CoachState.coachSel) openClient(CoachState.coachSel); return; }
   if(a==="open-settings"){ CoachState.coachNameForm=null; CoachState.coachSettingsOpen=true; renderCoachSettings(); return; }
   if(a==="settings-cancel"){ closeSheet(()=>{ CoachState.coachSettingsOpen=false; CoachState.coachNameForm=null; renderCoachSettings(); }, {host:"#coachSheetHost", card:".cp-ccard", duration:150}); return; }
@@ -759,3 +759,14 @@ async function onScannedCode(code){
   }
   ComidaState.selectedFood = food; ComidaState.cookState = null; ComidaState.sheetGrams = null; SheetState.sheetGen++; renderApp();
 }
+
+// Lista de clientes del coach al día: se vuelve a pedir al volver a la app (y al salir de
+// un cliente). Antes se cargaba solo al entrar, así que la foto que un cliente subía con
+// el panel del coach abierto no aparecía hasta cerrar y abrir la app.
+let coachListAt = 0;
+function refreshCoachClients(){
+  if(!State.cloudProfile || State.cloudProfile.role!=="coach" || Date.now()-coachListAt < 15000) return;
+  coachListAt = Date.now();
+  loadCoachClients().then(()=>{ if(!CoachState.coachSel) renderCoach(); }).catch(()=>{});
+}
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") refreshCoachClients(); });
