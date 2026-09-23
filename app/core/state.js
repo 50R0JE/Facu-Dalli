@@ -93,6 +93,8 @@ if (typeof state.waterGoal === "undefined") state.waterGoal = 3000;
 if (typeof state.waterDate === "undefined") state.waterDate = today();
 
 if (typeof state.restDefault === "undefined") state.restDefault = 120;
+// Descanso elegido por el cliente con coach para cada ejercicio (por nombre), en segundos.
+if (!state.restPrefs || typeof state.restPrefs !== "object") state.restPrefs = {};
 
 if (!Array.isArray(state.sessions)) state.sessions = [];
 

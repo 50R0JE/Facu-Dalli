@@ -6,7 +6,21 @@ import { save } from '../core/storage.js';
 
 import { beep, initAudio } from './audio.js';
 
-export let rest = {active:false,total:0,remaining:0,id:null};
+// El descanso se cuenta con la hora de fin (endAt), no restando 1 por segundo: con la
+// app en segundo plano o la pantalla bloqueada el navegador frena los setInterval y el
+// contador se atrasaba. Así, al volver se ve lo que queda de verdad (o que ya terminó).
+// Se guarda en el dispositivo para seguir aunque la app se cierre y se vuelva a abrir.
+export let rest = {active:false,total:0,remaining:0,id:null,endAt:0,doneUntil:0};
+const REST_KEY = "gize_rest_timer";
+
+function persist(){
+  try{
+    if(rest.active) localStorage.setItem(REST_KEY, JSON.stringify({endAt:rest.endAt, total:rest.total}));
+    else localStorage.removeItem(REST_KEY);
+  }catch(e){}
+}
+
+function leftSec(){ return Math.max(0, Math.ceil((rest.endAt - Date.now())/1000)); }
 
 export function parseRest(txt){
   if(!txt) return 0;
@@ -22,19 +36,62 @@ export function parseRest(txt){
 
 export function restFmt(s){ const m=Math.floor(s/60), x=s%60; return m+":"+String(x).padStart(2,"0"); }
 
-export function startRest(sec){ sec = sec || state.restDefault || 120; state.restDefault = sec; initAudio(); rest.active=true; rest.total=sec; rest.remaining=sec; if(rest.id) clearInterval(rest.id); rest.id=setInterval(restTick,1000); renderRestBar(); save(); }
+export function startRest(sec){
+  sec = sec || state.restDefault || 120; state.restDefault = sec; initAudio();
+  rest.active=true; rest.total=sec; rest.endAt=Date.now()+sec*1000; rest.remaining=sec;
+  if(rest.id) clearInterval(rest.id); rest.id=setInterval(restTick,250);
+  persist(); renderRestBar(); save();
+}
 
-export function restTick(){ if(!rest.active) return; rest.remaining--; if(rest.remaining<=0) restFinish(); else updateRestBar(); }
+export function restTick(){
+  if(!rest.active) return;
+  const r=leftSec();
+  if(r!==rest.remaining){ rest.remaining=r; updateRestBar(); }
+  if(r<=0) restFinish();
+}
 
-export function restFinish(){ rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } try{ beep(); }catch(e){} renderRestBar(true); setTimeout(()=>{ if(!rest.active) renderRestBar(); }, 6000); }
+export function restFinish(){
+  rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } persist();
+  try{ beep(); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
+  // Si la app quedó en segundo plano pero todavía corre, avisa con una notificación
+  // (solo si ya se dieron permisos de notificaciones en Configuración).
+  try{
+    if(document.hidden && typeof Notification!=="undefined" && Notification.permission==="granted" && navigator.serviceWorker)
+      navigator.serviceWorker.ready.then(r=>r.showNotification("¡Descanso terminado! 💪",{body:"Volvé a la próxima serie.",icon:"./icon-192.png",badge:"./icon-192.png",tag:"rest-done",renotify:true,vibrate:[200,100,200]})).catch(()=>{});
+  }catch(e){}
+  showDone();
+}
 
-export function stopRest(){ rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } renderRestBar(); }
+// El aviso de terminado queda 6 s (aunque la app se re-dibuje en el medio).
+function showDone(){ rest.doneUntil=Date.now()+6000; renderRestBar(true); setTimeout(()=>{ if(!rest.active) renderRestBar(); }, 6100); }
+
+export function stopRest(){ rest.doneUntil=0; rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } persist(); renderRestBar(); }
+
+// Al abrir la app: si había un descanso en curso, sigue desde donde va; si terminó hace
+// poco (menos de 1 minuto), muestra el aviso de terminado.
+export function resumeRest(){
+  let saved=null; try{ saved=JSON.parse(localStorage.getItem(REST_KEY)||"null"); }catch(e){}
+  if(!saved || !saved.endAt) return;
+  const now=Date.now();
+  if(saved.endAt>now){
+    rest.active=true; rest.total=saved.total||Math.ceil((saved.endAt-now)/1000); rest.endAt=saved.endAt; rest.remaining=leftSec();
+    if(rest.id) clearInterval(rest.id); rest.id=setInterval(restTick,250);
+    renderRestBar();
+  } else {
+    try{ localStorage.removeItem(REST_KEY); }catch(e){}
+    if(now-saved.endAt<60000) showDone();
+  }
+}
+
+// Al volver a la app, actualizar en el acto (sin esperar al próximo tick).
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && rest.active) restTick(); });
 
 export function updateRestBar(){ const t=document.getElementById("restTime"); if(t) t.textContent=restFmt(rest.remaining); const b=document.getElementById("restProg"); if(b&&rest.total) b.style.transform="scaleX("+Math.max(0,Math.min(1,1-rest.remaining/rest.total))+")"; }
 
 export function renderRestBar(finished){
   const el=document.getElementById("restBar"); if(!el) return;
-  if(finished){ el.style.display="block"; el.innerHTML='<div class="rest-inner rest-done"><span class="rest-msg">¡Descanso terminado! 💪</span><button class="rest-x" data-action="rest-stop">Cerrar</button></div>'; return; }
+  if(!rest.active && (finished || rest.doneUntil>Date.now())){ el.style.display="block"; el.innerHTML='<div class="rest-inner rest-done"><span class="rest-msg">¡Descanso terminado! 💪</span><button class="rest-x" data-action="rest-stop">Cerrar</button></div>'; return; }
   if(rest.active){
     el.style.display="block";
     el.innerHTML='<div class="rest-inner"><span class="rest-lbl2">Descanso</span><span id="restTime" class="rest-time">'+restFmt(rest.remaining)+'</span><button class="rest-x" data-action="rest-stop" title="Saltar">'+xSvg+'</button><div class="rest-prog-track"><div id="restProg" class="rest-prog" style="transform:scaleX('+Math.max(0,Math.min(1,1-rest.remaining/rest.total))+')"></div></div></div>';
