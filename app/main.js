@@ -49,6 +49,8 @@ import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet } from '.
 import { clientQuestions, questionSnapshot } from './core/questions.js';
 import { renderConfig } from './screens/config.js';
 
+import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
+
 import { productByCode, searchOFF } from './core/off.js';
 
 import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
@@ -137,6 +139,17 @@ document.body.addEventListener("change", async e => {
   if (a === "daily-kg" || a === "daily-steps" || a === "daily-text") { CheckinState.dailyForm = CheckinState.dailyForm || Object.assign({}, state.daily[today()]||{}); CheckinState.dailyForm[a==="daily-kg"?"kg":(a==="daily-steps"?"steps":t.dataset.k)] = t.value; return; }
   if (a === "ci-set") { CheckinState.checkinForm = CheckinState.checkinForm || JSON.parse(JSON.stringify(state.checkins[mondayOf(today())]||{})); CheckinState.checkinForm[t.dataset.k] = t.value; return; }
   if (a === "load-ex") { EntrenoState.loadEx = t.value; renderApp(); return; }
+  // Foto de perfil (Ajustes del cliente y Configuración del coach).
+  if (a === "avatar-pick") {
+    const file=t.files&&t.files[0]; t.value=""; if(!file) return;
+    document.body.classList.add("avatar-busy");
+    const err=await uploadMyAvatar(file);
+    document.body.classList.remove("avatar-busy");
+    if(err){ alert(err); return; }
+    if(CoachState.coachSettingsOpen) renderCoachSettings(); else renderApp();
+    if(State.cloudProfile && State.cloudProfile.role==="coach") renderCoach();
+    return;
+  }
   if (a === "photo-pick") { const file=t.files&&t.files[0]; if(file){ try{ await cloudUploadPhoto(file); }catch(err){ alert("No se pudo subir la foto: "+((err&&err.message)||err)); } } t.value=""; return; }
 });
 
@@ -420,6 +433,14 @@ document.body.addEventListener("input", async e => {
   const el=e.target.closest('[data-cp="search"]'); if(!el) return;
   CoachState.coachPQ=el.value; renderCoachPicker();
   const si=document.querySelector(".cp-search"); if(si){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
+});
+
+document.body.addEventListener("click", async e => {
+  const b=e.target.closest('[data-action="avatar-remove"]'); if(!b) return;
+  if(!confirm("¿Quitar tu foto de perfil? Vas a volver a mostrar tus iniciales.")) return;
+  const err=await removeMyAvatar(); if(err){ alert(err); return; }
+  if(CoachState.coachSettingsOpen) renderCoachSettings(); else renderApp();
+  if(State.cloudProfile && State.cloudProfile.role==="coach") renderCoach();
 });
 
 document.body.addEventListener("click", async e => {

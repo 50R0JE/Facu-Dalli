@@ -8,6 +8,8 @@ import { migrateNames } from '../../core/storage.js';
 
 import { sessionFromRow, signedUrls } from '../../core/supabase.js';
 
+import { resolveAvatars } from '../../core/avatar.js';
+
 import { esc, fmtDate, mondayOf, today } from '../../core/utils.js';
 
 import { renderCoach } from './index.js';
@@ -22,7 +24,9 @@ export async function loadCoachClients(){
   try{
     // Lista de clientes y código de invitación salen juntos.
     const icP=Promise.resolve(State.sb.rpc("my_invite_code")).catch(()=>({data:null}));
-    let r=await State.sb.from("profiles").select("id, full_name, email").eq("coach_id",State.cloudUser.id).order("full_name");
+    let r=await State.sb.from("profiles").select("id, full_name, email, avatar_path").eq("coach_id",State.cloudUser.id).order("full_name");
+    // Sin la columna de la foto (falta supabase/foto-perfil.sql) se pide como antes.
+    if(r.error) r=await State.sb.from("profiles").select("id, full_name, email").eq("coach_id",State.cloudUser.id).order("full_name");
     if(r.error){
       // Supabase no tira excepción cuando una query falla (devuelve {data:null, error})
       // — si "email" no existe como columna en profiles, o RLS no la deja leer, r.data
@@ -34,6 +38,9 @@ export async function loadCoachClients(){
       if(r.error) console.error("coachClients",r.error);
     }
     CoachState.coachClients=r.data||[];
+    // Fotos de los clientes y la propia: se piden los links y se redibuja cuando llegan.
+    const paths=CoachState.coachClients.map(c=>c.avatar_path).concat([State.cloudProfile&&State.cloudProfile.avatar_path]);
+    resolveAvatars(paths).then(ok=>{ if(ok) renderCoach(); }).catch(()=>{});
     const ic=await icP; CoachState.coachInvite=ic.data||null;
   }catch(e){ console.error("coachClients",e); }
   loadCoachStats(); loadTpls();

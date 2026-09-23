@@ -16,6 +16,8 @@ import { showSilkBg } from '../../ui/background.js';
 
 import { renderSessionItem } from '../../ui/sessiondetail.js';
 
+import { avatarHtml } from '../../core/avatar.js';
+
 // Título de sección con la ruedita que abre el editor de preguntas en esa pestaña.
 function secHead(title, kind){
   return '<div class="co-sec co-sec-row"><span>'+title+'</span><button class="co-sec-gear" data-coach="q-open" data-k="'+kind+'" title="Editar preguntas" aria-label="Editar preguntas de '+title.toLowerCase()+'">'+gearSvg+'</button></div>';
@@ -60,7 +62,7 @@ export function renderCoach(){
         const act=coachActivity(st.lastSess);
         const statusLine=act.has ? '<div class="co-act-status"><span class="co-dot'+(act.active?' on':'')+'"></span>'+act.statusLabel+'</div>' : "";
         return '<div class="co-trow" data-coach="open" data-id="'+c.id+'">'+
-            '<div class="co-td co-td-name"><span class="co-avatar">'+esc(coachInitials(c.full_name))+'</span><span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
+            '<div class="co-td co-td-name">'+avatarHtml(c.avatar_path, coachInitials(c.full_name), 'co-avatar')+'<span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
             '<div class="co-td co-td-email'+(c.email?'':' co-empty')+'">'+esc(c.email||"Sin email")+'</div>'+
             '<div class="co-td co-td-activity"><div class="co-act-date">'+esc(act.label)+'</div>'+statusLine+'</div>'+
             '<div class="co-td co-td-actions"><span class="co-arrow">›</span></div>'+

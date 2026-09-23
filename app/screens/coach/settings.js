@@ -6,6 +6,8 @@ import { State } from '../../core/state.js';
 
 import { esc } from '../../core/utils.js';
 
+import { avatarHtml, avatarUrl } from '../../core/avatar.js';
+
 import { coachInitials } from './clientes.js';
 
 import { CoachState } from './state.js';
@@ -19,10 +21,12 @@ export function renderCoachSettings(){
   host.innerHTML='<div class="cp-bg" data-coach="settings-cancel"></div><div class="cp-ccard">'+
     '<div class="cp-head"><div class="cp-title">Configuración</div><button class="cp-x" data-coach="settings-cancel">✕</button></div>'+
     '<div class="cs-avatar-row">'+
-      '<span class="co-avatar cs-avatar-big">'+esc(coachInitials(name))+'</span>'+
+      avatarHtml(State.cloudProfile&&State.cloudProfile.avatar_path, coachInitials(name), 'co-avatar cs-avatar-big')+
       '<div class="cs-avatar-col">'+
-        '<button class="cp-copt cs-photo-btn" disabled>Cambiar foto de perfil</button>'+
-        '<div class="cs-hint">Todavía no disponible</div>'+
+        '<label class="cp-copt cs-photo-btn">Cambiar foto de perfil<input type="file" accept="image/*" data-action="avatar-pick" hidden></label>'+
+        (State.cloudProfile&&State.cloudProfile.avatar_path&&avatarUrl(State.cloudProfile.avatar_path)
+          ? '<button class="cs-photo-rm" data-action="avatar-remove">Quitar foto</button>'
+          : '<div class="cs-hint">La ven tus clientes</div>')+
       '</div>'+
     '</div>'+
     '<div class="cs-field">'+
