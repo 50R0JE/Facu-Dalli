@@ -77,8 +77,16 @@ export function renderCoachCheckins(d){
     '<div class="ck-card"><div class="ck-head">Semana del '+fmtDate(c.week_start)+' '+adh+'</div>'+(qs.length?qaList(qs):'<div class="cal-hint">Sin respuestas.</div>')+'</div>';
 }
 
+// Fotos de progreso agrupadas por día: con el tiempo se juntan muchas, así que se elige
+// una fecha en el selector (igual que día / semana / entreno) en vez de mostrarlas todas.
 export function renderCoachPhotos(d){
   const ph=(d.photos||[]);
   if(!ph.length) return '<div class="cal-hint">El cliente todav\u00eda no subi\u00f3 fotos.</div>';
-  return '<div class="ph-grid big">'+ph.map(p=>'<a class="ph-thumb" href="'+p.url+'" target="_blank"><img src="'+p.url+'"><span class="ph-date">'+fmtDate(p.taken_on)+'</span></a>').join("")+'</div>';
+  const byDate={};
+  ph.forEach(p=>{ const k=p.taken_on||""; (byDate[k]=byDate[k]||[]).push(p); });
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  const sel=dates.indexOf(CoachState.coachPhotoSel)>=0 ? CoachState.coachPhotoSel : "";
+  const pick=picker("photo-pick-date", dates.map(k=>{ const n=byDate[k].length; return {v:k, t:(k?dayLabel(k):"Sin fecha")+" \u00b7 "+n+(n===1?" foto":" fotos")}; }), sel, "Fecha");
+  if(!sel) return pick;
+  return pick+'<div class="ph-grid big">'+byDate[sel].map(p=>'<a class="ph-thumb" href="'+p.url+'" target="_blank"><img src="'+p.url+'"><span class="ph-date">'+fmtDate(p.taken_on)+'</span></a>').join("")+'</div>';
 }
