@@ -1,13 +1,13 @@
 {
-  "name": "Core",
-  "short_name": "Core",
+  "name": "GIZE",
+  "short_name": "GIZE",
   "description": "Tu rutina, tu progreso.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1a1d1a",
-  "theme_color": "#1a1d1a",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "icon-192.png",
