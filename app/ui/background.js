@@ -17,6 +17,16 @@ export function auCreateNoise(){
 
 export let authParticlesHandle = null;
 
+// Gama RGB de la marca (brand/tokens.css): cada partícula toma uno de los cuatro
+// colores, alternados, para que el fondo hable el mismo idioma que el splash.
+const GIZE_GAMUT_VARS=["--gize-r1","--gize-r2","--gize-r3","--gize-r4"];
+const GIZE_GAMUT_FALLBACK=["#2FA0FF","#A65CFF","#FF3DAE","#25E8C8"];
+export function gizeGamut(){
+  const cs=getComputedStyle(document.documentElement);
+  return GIZE_GAMUT_VARS.map((v,i)=>cs.getPropertyValue(v).trim()||GIZE_GAMUT_FALLBACK[i]);
+}
+const PARTICLE_ALPHA=0.5; // opacidad baja: el fondo acompaña, no compite con el contenido
+
 export function stopAuthParticles(){ if(authParticlesHandle){ try{ authParticlesHandle.stop(); }catch(e){} authParticlesHandle=null; } }
 
 export function startAuthParticles(canvas){
@@ -35,7 +45,8 @@ export function startAuthParticles(canvas){
   const w0=window.innerWidth;
   const count = w0<560 ? 90 : (w0<1000 ? 170 : 260); // menos partículas en mobile: rendimiento
   const noise = auCreateNoise();
-  const particles = Array.from({length:count}, ()=>({
+  const gamut = gizeGamut();
+  const particles = Array.from({length:count}, (_,i)=>({ c:i%4,
     x:Math.random()*canvas.clientWidth, y:Math.random()*canvas.clientHeight,
     size:Math.random()*1.6+0.6, life:Math.random()*100, maxLife:140+Math.random()*90
   }));
@@ -52,9 +63,10 @@ export function startAuthParticles(canvas){
       const angle=n*Math.PI*4;
       p.x+=Math.cos(angle)*0.55; p.y+=Math.sin(angle)*0.55;
       if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
-      ctx.fillStyle="rgba(150,224,181,"+Math.max(0,op*0.6).toFixed(3)+")";
+      ctx.globalAlpha=Math.max(0,op*PARTICLE_ALPHA); ctx.fillStyle=gamut[p.c];
       ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
     }
+    ctx.globalAlpha=1;
     raf=requestAnimationFrame(frame);
   }
   if(!reduceMotion) frame(); // respeta prefers-reduced-motion: sin loop, queda solo el fondo estático
@@ -70,6 +82,7 @@ export let silkCanvasEl = null;
 export let silkRafId = null;
 
 export let silkParticles = [];
+let silkGamut = GIZE_GAMUT_FALLBACK;
 
 export let silkNoise = null;
 
@@ -81,7 +94,8 @@ export function silkReducedMotion(){ return !!(window.matchMedia && window.match
 
 export function silkMakeParticles(w, h){
   const count = w<560 ? 90 : (w<1000 ? 170 : 260); // misma escala adaptativa que el login
-  return Array.from({length:count}, () => ({
+  silkGamut = gizeGamut();
+  return Array.from({length:count}, (_,i) => ({ c: i%4,
     x: Math.random()*w, y: Math.random()*h,
     size: Math.random()*1.6+0.6, life: Math.random()*100, maxLife: 140+Math.random()*90
   }));
@@ -126,9 +140,10 @@ export function silkLoop(){
     const angle = n*Math.PI*4;
     p.x += Math.cos(angle)*0.55*speedFactor; p.y += Math.sin(angle)*0.55*speedFactor;
     if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
-    silkCtx.fillStyle = "rgba(150,224,181,"+Math.max(0,op*0.6).toFixed(3)+")";
+    silkCtx.globalAlpha = Math.max(0,op*PARTICLE_ALPHA); silkCtx.fillStyle = silkGamut[p.c];
     silkCtx.beginPath(); silkCtx.arc(p.x,p.y,p.size,0,Math.PI*2); silkCtx.fill();
   }
+  silkCtx.globalAlpha = 1;
 }
 
 export function silkOnVisibilityChange(){
