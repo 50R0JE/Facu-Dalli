@@ -19,6 +19,8 @@
 // 2,5 · fideos secos 2,3 · lentejas 2,6 · garbanzos 2,1 · porotos 2,2–2,4 · quinoa 2,75 ·
 // polenta 5 · burgol 3,9 · carne vacuna y cerdo 0,72 · pollo 0,73 · pescado 0,8 · papa 0,87.
 
+import { EXTRA_SECTIONS } from './foods-extra.js';
+
 const C_VAC = 0.72, C_POLLO = 0.73, C_PESC = 0.8, C_PAPA = 0.87;
 
 export const FOOD_SECTIONS = [
@@ -524,6 +526,13 @@ export const FOOD_SECTIONS = [
   ["Bowl de pollo con arroz", 129, 10, 12.9, 3.4, 350],
 ]],
 ];
+
+// La ampliación (./foods-extra.js) se suma a la categoría del mismo nombre o, si es
+// nueva, se agrega al final.
+EXTRA_SECTIONS.forEach(([cat, rows]) => {
+  const sec = FOOD_SECTIONS.find(s => s[0] === cat);
+  if (sec) sec[1].push(...rows); else FOOD_SECTIONS.push([cat, rows]);
+});
 
 // Lista plana con la categoría de cada alimento.
 export const FOODS = [];
