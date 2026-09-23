@@ -13,6 +13,12 @@
 
 .w-form { display: flex; gap: 8px; margin-bottom: 18px; }
 
+/* El input de fecha tiene un ancho mínimo propio: sin min-width:0 no se achica y empuja
+   el botón "Guardar" fuera de la pantalla en celulares angostos. */
+.w-form #wDate { min-width: 0; }
+
+.w-form .form-save { flex-shrink: 0; }
+
 .w-list-head { font-size: var(--text-meta); color: var(--txt-2); margin-bottom: 10px; font-weight: 600; }
 
 .w-item { display: flex; align-items: center; gap: var(--space-12); background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-12) var(--space-14); margin-bottom: var(--space-8); cursor: pointer; transition: var(--transition-tap); }
