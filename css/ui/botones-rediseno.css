@@ -21,7 +21,7 @@ body:not(#_) {
   --acc: var(--gize-blue);
   --acc-hi: color-mix(in srgb, var(--gize-blue) 80%, var(--gize-text));
   --acc-tint: color-mix(in srgb, var(--gize-blue) 16%, transparent);
-  --danger: #e0574b;
+  --danger: var(--gize-danger);
 
   /* ---------- 2) SECUNDARIOS: borde neutro marcado ---------- */
   :is(.co-back, .co-logout, .co-gear, .top-btn, .clear, .reset-routine, .logout-btn,
@@ -102,8 +102,8 @@ body:not(#_) {
   :is(.ins-ex, .co-rt-ins):hover { opacity: 1; border-color: var(--acc); color: var(--gize-text); }
 
   /* ---------- Destructivo ---------- */
-  .co-day-del { border: 1px solid rgba(224,87,75,.55); color: var(--danger); border-radius: var(--btn-r); background: transparent; }
-  .co-day-del:hover { background: rgba(224,87,75,.12); border-color: var(--danger); }
+  .co-day-del { border: 1px solid color-mix(in srgb, var(--gize-danger) 55%, transparent); color: var(--danger); border-radius: var(--btn-r); background: transparent; }
+  .co-day-del:hover { background: var(--gize-danger-bg); border-color: var(--danger); }
 
   /* ---------- Check de serie / hábito ---------- */
   .done, .hb-check { border-radius: var(--btn-r); border: 1px solid var(--btn-line-hi); background: transparent; }

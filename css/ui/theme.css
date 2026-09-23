@@ -93,7 +93,7 @@ body.silk-coach .co-logout:hover, body.silk-coach .co-back:hover { border-color:
 body.silk-coach .co-add-day, body.silk-coach .co-copy-btn, body.silk-coach .co-rt-add {
     color: var(--gize-blue); border-color: color-mix(in srgb, var(--gize-blue) 42%, transparent); }
 
-body.silk-coach .co-day-del { color: #ff9b8f; border-color: rgba(255,155,143,.4); }
+body.silk-coach .co-day-del { color: var(--gize-danger); border-color: color-mix(in srgb, var(--gize-danger) 40%, transparent); }
 
 /* --- Cajas del coach con el mismo tratamiento "Meteors" ---
      Misma consolidación vía :is() + nesting que el bloque del cliente arriba: una sola
@@ -144,7 +144,7 @@ body.silk-coach .co-note, body.silk-coach .co-search, body.silk-coach .co-daynam
 
 body.silk-coach .co-note::placeholder, body.silk-coach .co-search::placeholder,
   body.silk-coach .co-dayname::placeholder, body.silk-coach .ml-in::placeholder,
-  body.silk-coach .opt-body::placeholder { color: rgba(169,193,217,.5); }
+  body.silk-coach .opt-body::placeholder { color: color-mix(in srgb, var(--gize-text-2) 50%, transparent); }
 
 body.silk-coach .co-note:focus, body.silk-coach .co-search:focus, body.silk-coach .co-dayname:focus,
   body.silk-coach .ml-in:focus, body.silk-coach .opt-body:focus {

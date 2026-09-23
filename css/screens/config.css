@@ -57,7 +57,7 @@
 .cfg-ok { background:none; border:none; padding:0; font:inherit; cursor:pointer;
     color:var(--blue-2); font-weight:700; font-size:var(--text-meta); transition:color .15s ease; }
 
-.cfg-ok:hover { color:#e08a80; }
+.cfg-ok:hover { color:var(--gize-danger); }
 
 .cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
 
@@ -65,7 +65,7 @@
 
 .cfg-about img { height:14px; width:auto; display:block; opacity:.55; }
 
-.cfg-danger { border-color:rgba(192,57,43,.35) !important; color:#e08a80 !important; }
+.cfg-danger { border-color:color-mix(in srgb, var(--gize-danger) 35%, transparent) !important; color:var(--gize-danger) !important; }
 
 /* Fix: .card trae opacity:.45/scale:.90 por defecto (pensado para el foco de
      scroll de Entreno, ver .ex-focused) y acá nunca se activa. Misma especificidad

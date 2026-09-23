@@ -56,11 +56,11 @@
 .auth-toggle-pass:focus-visible { outline:2px solid var(--green-2); outline-offset:2px; }
 
 .auth-msg {
-    font-size: var(--text-body); line-height:1.45; text-align:center; color:#ffb9ad; background:rgba(192,57,43,.14);
-    border:1px solid rgba(192,57,43,.32); border-radius:4px; padding:10px 12px; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards, authShake .4s ease .05s;
+    font-size: var(--text-body); line-height:1.45; text-align:center; color:var(--gize-danger); background:var(--gize-danger-bg);
+    border:1px solid color-mix(in srgb, var(--gize-danger) 32%, transparent); border-radius:4px; padding:10px 12px; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards, authShake .4s ease .05s;
   }
 
-.auth-msg.ok { color:#8be8b3; background:rgba(51,196,129,.14); border-color:rgba(51,196,129,.35); animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-msg.ok { color:var(--gize-success); background:var(--gize-success-bg); border-color:color-mix(in srgb, var(--gize-success) 35%, transparent); animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
 
 @media (max-width:380px) {
     .auth-card { padding:28px 20px 22px; max-width:100%; }

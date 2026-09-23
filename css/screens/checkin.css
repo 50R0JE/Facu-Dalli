@@ -10,7 +10,7 @@
 
 .mc-tbl { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
 
-.mc-tbl th { font-size:10px; color:var(--gize-text); background:var(--xl-head); text-transform:uppercase; font-weight:700; text-align:center; padding:7px 4px; }
+.mc-tbl th { font-size:10px; color:var(--gize-success); background:var(--xl-head); text-transform:uppercase; font-weight:700; text-align:center; padding:7px 4px; }
 
 .mc-tbl th:first-child { border-radius:4px 0 0 0; }
 
