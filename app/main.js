@@ -484,11 +484,11 @@ document.body.addEventListener("click", async e => {
       CoachState.coachApplyPicker={tplId:null, days:{}, mode:"replace", loading:true};
       renderApplyPicker();
       const mnt=document.getElementById("applyMount");
-      if(!mnt || !mnt.innerHTML){ alert("No se pudo abrir el selector (el modal no se montó). Avisale a Jero."); return; }
+      if(!mnt || !mnt.innerHTML){ console.error("rt-apply: #applyMount no se montó"); alert("No se pudo abrir el selector de plantillas. Recargá la página y volvé a intentar."); return; }
       await loadTpls();
       if(CoachState.coachApplyPicker){ CoachState.coachApplyPicker.loading=false; renderApplyPicker(); }
     }catch(err){
-      alert("Error al abrir el selector de rutinas:\n\n"+((err&&err.message)||err));
+      alert("No se pudo abrir el selector de plantillas. Revisá tu conexión y volvé a intentar.");
       console.error("rt-apply", err);
     }
     return;
