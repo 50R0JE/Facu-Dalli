@@ -24,7 +24,18 @@
   --gize-rgb-line:linear-gradient(90deg,var(--gize-r1),var(--gize-r2),var(--gize-r3),var(--gize-r4));
   --gize-rgb-ring:conic-gradient(from 0deg,var(--gize-r1),var(--gize-r2),var(--gize-r3),var(--gize-r4),var(--gize-r1));
 
+  /* semánticos */
+  --gize-danger:#FF4D4D;    /* errores, borrar, alertas */
+  --gize-success:#25E8C8;   /* completado, check, meta cumplida */
+  --gize-warning:#FFB020;   /* avisos, datos incompletos */
+
+  /* fondos suaves para celdas de tabla */
+  --gize-success-bg:rgba(37,232,200,.12);
+  --gize-danger-bg:rgba(255,77,77,.12);
+  --gize-warning-bg:rgba(255,176,32,.12);
+
   --gize-font:'Outfit',system-ui,-apple-system,sans-serif;
+  --gize-font-data:'JetBrains Mono',ui-monospace,monospace; /* números: tablas, cronómetros, pesos, macros */
   --gize-radius:20px;
   --gize-radius-pill:999px;
 }

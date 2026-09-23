@@ -10,6 +10,7 @@ este archivo, gana este archivo.
 | Uso | Tipografía | Licencia |
 |---|---|---|
 | Interfaz, textos, botones | **Outfit** (400/500/600/700) | SIL OFL 1.1 |
+| Datos: números en tablas, cronómetros, pesos y macros | **JetBrains Mono** (500–800) | SIL OFL 1.1 |
 | Logotipo | **Bigger Display**, ya convertida a curvas en `logo/*.svg` | Thunder Studio, gratis para uso comercial |
 
 ```html
@@ -17,6 +18,10 @@ este archivo, gana este archivo.
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 ```
+
+**Por qué una mono para los datos:** todos los dígitos ocupan lo mismo, así las columnas
+de kilos, repeticiones y macros quedan alineadas (con Outfit un 1 es más angosto que un 8
+y las tablas bailan). Además separa el dato del texto de interfaz. Variable: `--gize-font-data`.
 
 **Regla:** nunca cargar Bigger Display como webfont ni escribir "GIZE" con una fuente del sistema.
 El logo se usa siempre como SVG desde `logo/`.
@@ -33,6 +38,19 @@ El logo se usa siempre como SVG desde `logo/`.
 | `--gize-blue` | `#2FA0FF` | Punto de la G, foco, enlaces |
 | `--gize-blue-deep` | `#0072BB` | Azul Francia: impresos y fondos claros |
 | Gama RGB | `#2FA0FF` `#A65CFF` `#FF3DAE` `#25E8C8` | Auroras, filetes, anillo del botón |
+
+### Semánticos
+| Token | Hex | Uso |
+|---|---|---|
+| `--gize-danger` | `#FF4D4D` | Errores, borrar, alertas. Un rojo de error tiene que gritar, no combinar. |
+| `--gize-success` | `#25E8C8` | Completado, check, meta cumplida. Es el verde agua de la gama RGB. |
+| `--gize-warning` | `#FFB020` | Avisos, datos incompletos |
+| `--gize-*-bg` | mismo color al 12 % | Fondos suaves para celdas de tabla |
+
+**El color marca estado, no identidad.** No se le asigna un color a cada elemento de una
+lista (opciones A/B/C, comidas, etc.): el usuario busca un significado que no existe y se
+gastan colores que hacen falta para los estados. Se diferencian por jerarquía (letra en
+`--gize-blue`); el elegido lleva borde azul y resplandor suave.
 
 ## Logo
 - `logo/gize-monograma.svg` — la G sola. Ícono, avatar, favicon.
