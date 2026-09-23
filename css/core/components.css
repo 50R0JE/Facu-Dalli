@@ -370,10 +370,7 @@
 #authHost {
     display:none; position:fixed; inset:0; z-index:200; overflow:hidden;
     align-items:center; justify-content:center; padding:24px calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
-    background:
-      radial-gradient(900px circle at 18% -8%, color-mix(in srgb, var(--gize-blue) 16%, transparent), transparent 55%),
-      radial-gradient(700px circle at 100% 100%, color-mix(in srgb, var(--gize-blue) 10%, transparent), transparent 50%),
-      var(--gize-bg);
+    background: var(--gize-bg); /* el color lo pone la aurora (.auth-aurora), no un degradé azul */
     --card: var(--gize-surface); --card-2: var(--gize-surface-2); --border: var(--gize-border);
     --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2); --glow: color-mix(in srgb, var(--gize-blue) 22%, transparent);
   }

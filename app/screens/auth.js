@@ -30,6 +30,7 @@ export function showLogin(msg, mode, vals){
       '<input id="auRole" type="hidden" value="'+role+'">'+
     '</div>' : "";
   host.innerHTML =
+    '<div class="gize-aurora auth-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>'+
     '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
     '<div class="auth-card" role="region" aria-label="'+(isUp?"Crear cuenta":"Iniciar sesión")+'">'+
       '<div class="auth-brand-ic" aria-hidden="true"><img src="brand/logo/gize-monograma.svg" alt=""></div>'+
