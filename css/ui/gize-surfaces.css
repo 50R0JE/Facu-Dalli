@@ -48,3 +48,20 @@ body:not(#_) :is(
 @media (max-width: 899px) {
   body:not(#_) .co-table { border: 0; background: none; box-shadow: none; }
 }
+
+/* ---------- 3) Botones de arriba del panel del coach ----------
+   Volver, Actualizar, la ruedita, Preguntas y Salir: borde RGB quieto (como las cajas de
+   sección; lo único que gira sigue siendo el anillo de la acción principal) y Outfit. */
+body:not(#_) .co-head :is(.co-back, .co-logout, .co-gear) {
+  border: 1.5px solid transparent;
+  background: linear-gradient(var(--gize-surface), var(--gize-surface)) padding-box,
+    var(--gize-rgb-ring) border-box;
+  color: var(--gize-text);
+  font-family: var(--gize-font); font-weight: 600; letter-spacing: .01em;
+  box-shadow: 0 0 22px -12px color-mix(in srgb, var(--gize-r2) 55%, transparent);
+  &:hover {
+    background: linear-gradient(var(--gize-surface-2), var(--gize-surface-2)) padding-box,
+      var(--gize-rgb-ring) border-box;
+    box-shadow: 0 0 26px -10px color-mix(in srgb, var(--gize-r2) 70%, transparent);
+  }
+}

@@ -11,7 +11,9 @@
 
 .ex-collapsed-name { flex: 1; min-width: 0; font-weight: 700; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.ex-collapsed-best { flex-shrink: 0; font-family: var(--font-mono); font-size: var(--text-meta); color: var(--txt-2); font-variant-numeric: tabular-nums; }
+/* Mejor serie del ejercicio terminado (o "Completado"): Outfit en vez de la mono, más liviana a la vista. */
+.ex-collapsed-best { flex-shrink: 0; font-family: var(--gize-font); font-weight: 600; font-size: var(--text-meta); letter-spacing: .01em; color: var(--gize-text); font-variant-numeric: tabular-nums; }
+.ex-collapsed-best.is-done { color: var(--gize-success); }
 
 .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 
