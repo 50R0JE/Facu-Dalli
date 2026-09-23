@@ -6,7 +6,7 @@ import { State } from '../../core/state.js';
 
 import { esc } from '../../core/utils.js';
 
-import { coachAvatarColor, coachInitials } from './clientes.js';
+import { coachInitials } from './clientes.js';
 
 import { CoachState } from './state.js';
 
@@ -19,7 +19,7 @@ export function renderCoachSettings(){
   host.innerHTML='<div class="cp-bg" data-coach="settings-cancel"></div><div class="cp-ccard">'+
     '<div class="cp-head"><div class="cp-title">Configuración</div><button class="cp-x" data-coach="settings-cancel">✕</button></div>'+
     '<div class="cs-avatar-row">'+
-      '<span class="co-avatar cs-avatar-big" style="background:'+coachAvatarColor(id)+'">'+esc(coachInitials(name))+'</span>'+
+      '<span class="co-avatar cs-avatar-big">'+esc(coachInitials(name))+'</span>'+
       '<div class="cs-avatar-col">'+
         '<button class="cp-copt cs-photo-btn" disabled>Cambiar foto de perfil</button>'+
         '<div class="cs-hint">Todavía no disponible</div>'+

@@ -22,13 +22,8 @@
 
 .mc-tbl td.mc-meal { text-align:left; font-weight:700; border-left:3px solid transparent; padding-left:8px; }
 
-.mc-mrow.mr-0 td.mc-meal { border-left-color:var(--green); }
-
-.mc-mrow.mr-1 td.mc-meal { border-left-color:var(--purple); }
-
-.mc-mrow.mr-2 td.mc-meal { border-left-color:var(--pink); }
-
-.mc-mrow.mr-3 td.mc-meal { border-left-color:var(--cyan); }
+/* Las comidas no llevan un color cada una: el color marca estado, no identidad (brand/BRAND.md). */
+.mc-mrow td.mc-meal { border-left-color:var(--gize-border); }
 
 .mc-mrow:nth-child(even) td { background:var(--card-2); }
 

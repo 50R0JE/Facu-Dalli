@@ -59,21 +59,11 @@ export async function loadCoachStats(){
   }catch(e){ console.error("coachStats",e); }
 }
 
-// Colores rotados por id de cliente (no por nombre, que puede repetirse) para que cada
-// avatar de la lista tenga un color estable entre renders sin necesitar guardar nada.
-const CO_AVA_COLORS=["var(--blue)","var(--purple)","var(--pink)","var(--cyan)","var(--green-2)"];
-
 export function coachInitials(name){
   const parts=(name||"").trim().split(/\s+/).filter(Boolean);
   if(!parts.length) return "?";
   const a=parts[0].charAt(0), b=parts.length>1?parts[parts.length-1].charAt(0):"";
   return (a+b).toUpperCase();
-}
-
-export function coachAvatarColor(id){
-  const s=String(id||""); let h=0;
-  for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0;
-  return CO_AVA_COLORS[h%CO_AVA_COLORS.length];
 }
 
 // Última actividad de un cliente para la lista del coach: solo tenemos la fecha (no hora)
@@ -224,7 +214,8 @@ export function weeklyAvg(weights){
 const CI_AVAILABILITY=["2 d\u00edas / semana","3 d\u00edas / semana","4 d\u00edas / semana","5 d\u00edas / semana","6 d\u00edas / semana"];
 const CI_STAGE=["Volumen","D\u00e9ficit","Mantenimiento","Recomposici\u00f3n","Definici\u00f3n"];
 const CI_COMMITMENT=["Bajo","Medio","Alto"];
-const CI_COMMIT_COLOR={Bajo:"var(--green-2)", Medio:"var(--blue-2)", Alto:"var(--pink)"};
+// Compromiso = estado, así que va con los semánticos de la marca.
+const CI_COMMIT_COLOR={Bajo:"var(--gize-warning)", Medio:"var(--gize-blue)", Alto:"var(--gize-success)"};
 
 export function renderCoachInfo(d){
   const i = CoachState.coachInfoForm || d.info || {};

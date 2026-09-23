@@ -2,7 +2,7 @@ import { copySvg, downloadSvg, gearSvg, resetSvg } from '../../core/icons.js';
 
 import { esc, fmtDate } from '../../core/utils.js';
 
-import { coachActivity, coachAvatarColor, coachInitials, renderCoachInfo } from './clientes.js';
+import { coachActivity, coachInitials, renderCoachInfo } from './clientes.js';
 
 import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine } from './rutinas.js';
 
@@ -53,7 +53,7 @@ export function renderCoach(){
         const act=coachActivity(st.lastSess);
         const statusLine=act.has ? '<div class="co-act-status"><span class="co-dot'+(act.active?' on':'')+'"></span>'+act.statusLabel+'</div>' : "";
         return '<div class="co-trow" data-coach="open" data-id="'+c.id+'">'+
-            '<div class="co-td co-td-name"><span class="co-avatar" style="background:'+coachAvatarColor(c.id)+'">'+esc(coachInitials(c.full_name))+'</span><span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
+            '<div class="co-td co-td-name"><span class="co-avatar">'+esc(coachInitials(c.full_name))+'</span><span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
             '<div class="co-td co-td-email'+(c.email?'':' co-empty')+'">'+esc(c.email||"Sin email")+'</div>'+
             '<div class="co-td co-td-activity"><div class="co-act-date">'+esc(act.label)+'</div>'+statusLine+'</div>'+
             '<div class="co-td co-td-actions"><span class="co-arrow">›</span></div>'+
