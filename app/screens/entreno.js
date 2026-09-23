@@ -135,7 +135,7 @@ export function renderEntreno(){
       return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${ex.id}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
         <span class="ex-collapsed-name">${esc(ex.name)}</span>
-        <span class="ex-collapsed-best">${bestStr}</span>
+        <span class="ex-collapsed-best${best||bestReps>0?'':' is-done'}">${bestStr}</span>
       </div>`;
     }
     const sets = ex.sets.map((s,i) => `

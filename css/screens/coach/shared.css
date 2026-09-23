@@ -187,7 +187,7 @@ select.co-select { cursor:pointer; }
 .nt-send:disabled { opacity:.5; cursor:default; }
 .nt-send:not(:disabled):hover { filter:brightness(1.1); }
 .nt-hist { margin-top:16px; display:flex; flex-direction:column; gap:8px; }
-.nt-list { display:flex; flex-direction:column; gap:8px; position:relative; overflow-y:auto; overscroll-behavior:contain; }
+.nt-list { max-width:580px; display:flex; flex-direction:column; gap:8px; position:relative; overflow-y:auto; overscroll-behavior:contain; }
 .nt-list.scrolls { padding-right:6px; scrollbar-width:thin; scrollbar-color:var(--gize-border) transparent; }
 .nt-hist-t { font-size:var(--text-meta); color:var(--gize-text-2); font-weight:600; }
 .nt-msg { background:var(--gize-surface-2); border:1px solid var(--gize-border); border-radius:12px 12px 12px 4px; padding:9px 12px; max-width:560px; }
