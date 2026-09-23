@@ -5,17 +5,17 @@
 body.silk-on .day-name, body.silk-on .hb-title, body.silk-on .time-display,
   body.silk-on .ring-num, body.silk-on .w-now, body.silk-on .diary-head .t,
   body.silk-on .cal-empty-title, body.silk-on .macro-top b, body.silk-on .wordmark,
-  body.silk-on .client-name { color: #eaf4ff; }
+  body.silk-on .client-name { color: var(--gize-text); }
 
 body.silk-on .day-sub, body.silk-on .count, body.silk-on .empty, body.silk-on .ring-sub,
   body.silk-on .ring-lbl, body.silk-on .diary-head .s, body.silk-on .cal-empty-sub,
   body.silk-on .w-meta, body.silk-on .macro-top span, body.silk-on .foot,
-  body.silk-on .reset-routine, body.silk-on .client-sub { color: #a9c1d9; }
+  body.silk-on .reset-routine, body.silk-on .client-sub { color: var(--gize-text-2); }
 
 body.silk-on .clear, body.silk-on .cardio-tools-h, body.silk-on .ct-hint,
-  body.silk-on .load-def { color: #7f9fbf; }
+  body.silk-on .load-def { color: var(--gize-text-2); }
 
-body.silk-on .clear:active { color: #eaf4ff; }
+body.silk-on .clear:active { color: var(--gize-text); }
 
 body.silk-on .time-display.finished { color: var(--blue-2); }
 
@@ -23,11 +23,11 @@ body.silk-on .ring-num.over { color: var(--blue-2); }
 
 body.silk-on .day-name:focus, body.silk-on .day-sub:focus { color: var(--txt); }
 
-body.silk-on .reset-routine, body.silk-on .load-def, body.silk-on .clear { border-color: rgba(234,244,255,.28); }
+body.silk-on .reset-routine, body.silk-on .load-def, body.silk-on .clear { border-color: color-mix(in srgb, var(--gize-text) 28%, transparent); }
 
-body.silk-on .add-set, body.silk-on .cal-create { color: #7fafe0; border-color: rgba(127,175,224,.45); }
+body.silk-on .add-set, body.silk-on .cal-create { color: var(--gize-blue); border-color: color-mix(in srgb, var(--gize-blue) 45%, transparent); }
 
-body.silk-on .day-del { color: #7f9fbf; }
+body.silk-on .day-del { color: var(--gize-text-2); }
 
 /* --- Estilo "Meteors" para las cajas de contenido (Entreno/Hábitos/Cardio/Comida/Progreso) ---
      Cada caja pasa a fondo oscuro de marca con 2 estelas verdes cruzándola en diagonal (CSS puro,
@@ -43,15 +43,15 @@ body.silk-on .day-del { color: #7f9fbf; }
 body.silk-on :is(.card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .water-card,
     .vol-card, .fi-card, .mc-block, .cardio-rx, .plan-banner, .join-box, .daynotes,
     .daily-card, .ci-card, .sess-item, .hx-row) {
-    --card: #0d141b; --card-2: #0a0f14; --border: rgba(127,175,224,.22);
-    --txt: #eaf4ff; --txt-2: #a9c1d9; --txt-3: #7f9fbf; --glow: rgba(51,123,196,.22);
+    --card: var(--gize-surface); --card-2: var(--gize-surface-2); --border: var(--gize-border);
+    --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2); --glow: color-mix(in srgb, var(--gize-blue) 22%, transparent);
     --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
     position: relative; overflow: hidden; isolation: isolate;
-    background: linear-gradient(160deg, #0e141a 0%, #0a0f14 60%, #070a0d 100%);
+    background: linear-gradient(160deg, var(--gize-surface) 0%, var(--gize-surface-2) 60%, var(--gize-bg) 100%);
     &::before, &::after {
       content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
-      background: linear-gradient(90deg, #64a6e9, transparent);
-      box-shadow: 0 0 6px 1px rgba(100,166,233,.4), 0 0 0 1px rgba(255,255,255,.06);
+      background: linear-gradient(90deg, var(--gize-blue), transparent);
+      box-shadow: 0 0 6px 1px color-mix(in srgb, var(--gize-blue) 40%, transparent), 0 0 0 1px rgba(255,255,255,.06);
       transform: rotate(215deg); transform-origin: left center;
       opacity: 0; z-index: 0; pointer-events: none;
       animation: cardMeteor 11s linear infinite;
@@ -67,33 +67,33 @@ body.silk-on :is(.card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .wa
      búsqueda) — redefine únicamente las variables que su input ya usa, sin el resto
      del tratamiento de card de arriba (que le pondría un fondo/overflow que no le sirve). */
 body.silk-on .cal-search {
-    --card-2: #0a0f14; --border: rgba(127,175,224,.22); --txt: #eaf4ff; --txt-3: #7f9fbf;
+    --card-2: var(--gize-surface-2); --border: var(--gize-border); --txt: var(--gize-text); --txt-3: var(--gize-text-2);
   }
 
 /* --- Texto suelto del coach (sin card opaca detrás) --- */
 body.silk-coach .co-title, body.silk-coach .co-client-name,
   body.silk-coach .hb-title, body.silk-coach .co-brand .wordmark,
-  body.silk-coach .co-onboard-lead { color: #eaf4ff; }
+  body.silk-coach .co-onboard-lead { color: var(--gize-text); }
 
-body.silk-coach .co-brand-tag { color: #a9c1d9; }
+body.silk-coach .co-brand-tag { color: var(--gize-text-2); }
 
-body.silk-coach .co-brand-dash { color: #7f9fbf; }
+body.silk-coach .co-brand-dash { color: var(--gize-text-2); }
 
 body.silk-coach .co-sec, body.silk-coach .ci-f label, body.silk-coach .co-note-lbl,
   body.silk-coach .co-sub, body.silk-coach .cal-hint, body.silk-coach .ml-head,
-  body.silk-coach .pl-help, body.silk-coach .foot { color: #a9c1d9; }
+  body.silk-coach .pl-help, body.silk-coach .foot { color: var(--gize-text-2); }
 
-body.silk-coach .pl-sub, body.silk-coach .ml-tot { color: #7fafe0; }
+body.silk-coach .pl-sub, body.silk-coach .ml-tot { color: var(--gize-blue); }
 
 body.silk-coach .co-logout, body.silk-coach .co-back {
-    color: #cddeee; border-color: rgba(234,244,255,.28); background: rgba(255,255,255,.04); }
+    color: var(--gize-text); border-color: color-mix(in srgb, var(--gize-text) 28%, transparent); background: rgba(255,255,255,.04); }
 
-body.silk-coach .co-logout:hover, body.silk-coach .co-back:hover { border-color: rgba(127,175,224,.55); color: #eaf4ff; }
+body.silk-coach .co-logout:hover, body.silk-coach .co-back:hover { border-color: color-mix(in srgb, var(--gize-blue) 55%, transparent); color: var(--gize-text); }
 
 body.silk-coach .co-add-day, body.silk-coach .co-copy-btn, body.silk-coach .co-rt-add {
-    color: #7fafe0; border-color: rgba(127,175,224,.42); }
+    color: var(--gize-blue); border-color: color-mix(in srgb, var(--gize-blue) 42%, transparent); }
 
-body.silk-coach .co-day-del { color: #ff9b8f; border-color: rgba(255,155,143,.4); }
+body.silk-coach .co-day-del { color: var(--gize-danger); border-color: color-mix(in srgb, var(--gize-danger) 40%, transparent); }
 
 /* --- Cajas del coach con el mismo tratamiento "Meteors" ---
      Misma consolidación vía :is() + nesting que el bloque del cliente arriba: una sola
@@ -101,16 +101,16 @@ body.silk-coach .co-day-del { color: #ff9b8f; border-color: rgba(255,155,143,.4)
 body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-editor,
     .hx-row, .cp-ccard, .co-tab, .co-daytab, .ap-day, .cp-modal, .co-row, .co-slog,
     .ck-card, .sess-item) {
-    --card: #0d141b; --card-2: #0a0f14; --border: rgba(127,175,224,.22);
-    --txt: #eaf4ff; --txt-2: #a9c1d9; --txt-3: #7f9fbf; --glow: rgba(51,123,196,.22);
+    --card: var(--gize-surface); --card-2: var(--gize-surface-2); --border: var(--gize-border);
+    --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2); --glow: color-mix(in srgb, var(--gize-blue) 22%, transparent);
     position: relative; overflow: hidden; isolation: isolate;
-    background: linear-gradient(160deg, #0e141a 0%, #0a0f14 60%, #070a0d 100%);
-    border-color: rgba(127,175,224,.22); color: #eaf4ff;
+    background: linear-gradient(160deg, var(--gize-surface) 0%, var(--gize-surface-2) 60%, var(--gize-bg) 100%);
+    border-color: var(--gize-border); color: var(--gize-text);
     box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
     &::before, &::after {
       content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
-      background: linear-gradient(90deg, #64a6e9, transparent);
-      box-shadow: 0 0 6px 1px rgba(100,166,233,.4), 0 0 0 1px rgba(255,255,255,.06);
+      background: linear-gradient(90deg, var(--gize-blue), transparent);
+      box-shadow: 0 0 6px 1px color-mix(in srgb, var(--gize-blue) 40%, transparent), 0 0 0 1px rgba(255,255,255,.06);
       transform: rotate(215deg); transform-origin: left center;
       opacity: 0; z-index: 0; pointer-events: none;
       animation: cardMeteor 11s linear infinite;
@@ -133,32 +133,32 @@ body.silk-coach .cp-modal, body.silk-coach .cp-ccard { position: fixed; }
 
 /* pestañas/estados activos mantienen el verde de marca */
 body.silk-coach .co-tab.on, body.silk-coach .co-daytab.on {
-    background: var(--blue); border-color: var(--blue); color: #fff; }
+    background: var(--blue); border-color: var(--blue); color: var(--gize-text); }
 
-body.silk-coach .ap-day.on { border-color: rgba(127,175,224,.55); }
+body.silk-coach .ap-day.on { border-color: color-mix(in srgb, var(--gize-blue) 55%, transparent); }
 
 /* --- Campos/controles sueltos del coach (sin card detrás): mismo tratamiento oscuro --- */
 body.silk-coach .co-note, body.silk-coach .co-search, body.silk-coach .co-dayname,
   body.silk-coach .ml-in, body.silk-coach .opt-body, body.silk-coach .bw {
-    background: rgba(10,15,20,.72); border-color: rgba(127,175,224,.22); color: #eaf4ff; }
+    background: color-mix(in srgb, var(--gize-surface) 72%, transparent); border-color: var(--gize-border); color: var(--gize-text); }
 
 body.silk-coach .co-note::placeholder, body.silk-coach .co-search::placeholder,
   body.silk-coach .co-dayname::placeholder, body.silk-coach .ml-in::placeholder,
-  body.silk-coach .opt-body::placeholder { color: rgba(169,193,217,.5); }
+  body.silk-coach .opt-body::placeholder { color: color-mix(in srgb, var(--gize-text-2) 50%, transparent); }
 
 body.silk-coach .co-note:focus, body.silk-coach .co-search:focus, body.silk-coach .co-dayname:focus,
   body.silk-coach .ml-in:focus, body.silk-coach .opt-body:focus {
-    outline: none; border-color: rgba(127,175,224,.5); background: rgba(14,26,19,.9); }
+    outline: none; border-color: color-mix(in srgb, var(--gize-blue) 50%, transparent); background: rgba(14,26,19,.9); }
 
-body.silk-coach .bw.dl, body.silk-coach .bw.now { color: #fff; }
+body.silk-coach .bw.dl, body.silk-coach .bw.now { color: var(--gize-text); }
 
 body.silk-coach .co-exc-name, body.silk-coach .co-exc-btn {
-    background: rgba(10,15,20,.6); border-color: rgba(127,175,224,.20); color: #eaf4ff; }
+    background: color-mix(in srgb, var(--gize-surface) 60%, transparent); border-color: var(--gize-border); color: var(--gize-text); }
 
 /* .pl-help ya tiene su color cubierto arriba (lista de "texto suelto"); solo le
      faltaba el fondo, que no es parte de la familia "card" (sin meteors: es un
      cuadro de ayuda chico, no una card de contenido). */
-body.silk-coach .pl-help { background: rgba(10,15,20,.6); }
+body.silk-coach .pl-help { background: color-mix(in srgb, var(--gize-surface) 60%, transparent); }
 
 /* fecha nativa legible sobre oscuro */
 body.silk-coach input[type="date"] { color-scheme: dark; }
@@ -191,6 +191,6 @@ body.silk-coach #coachModeBadge { display: flex; }
      especificidad con la regla de la familia "Meteors" de arriba y ganarle por orden en
      la cascada — mismo criterio que ya usa el código para .cp-modal/.cp-ccard. */
 body.silk-coach .co-invite {
-    border-color: rgba(127,175,224,.4);
+    border-color: color-mix(in srgb, var(--gize-blue) 40%, transparent);
     box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03), var(--glow-sm);
   }

@@ -7,15 +7,17 @@
   }
 
 .auth-brand-ic {
-    width:52px; height:52px; margin:0 auto 2px; border-radius:4px; overflow:hidden;
+    width:52px; height:52px; margin:0 auto 2px;
     display:flex; align-items:center; justify-content:center;
-    box-shadow: var(--glow-lg);
     animation:authFadeUp var(--duration-rare) var(--ease-drawer) .05s both;
   }
 
-.auth-brand-ic img { width:100%; height:100%; object-fit:cover; }
+.auth-brand-ic img { width:100%; height:100%; display:block; }
 
-.auth-logo { font-family:"Orbitron",monospace; font-size:29px; font-weight:800; text-align:center; letter-spacing:.4px; color:var(--txt); animation:authFadeUp var(--duration-rare) var(--ease-drawer) .1s both; }
+/* La palabra GIZE va siempre como SVG (brand/BRAND.md), nunca escrita con una fuente. */
+.auth-logo { display:flex; justify-content:center; animation:authFadeUp var(--duration-rare) var(--ease-drawer) .1s both; }
+
+.auth-logo img { height:26px; width:auto; display:block; }
 
 .auth-sub { text-align:center; font-size:10.5px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.18em; margin-bottom:6px; animation:authFadeUp var(--duration-rare) var(--ease-drawer) .15s both; }
 
@@ -54,13 +56,13 @@
 .auth-toggle-pass:focus-visible { outline:2px solid var(--green-2); outline-offset:2px; }
 
 .auth-msg {
-    font-size: var(--text-body); line-height:1.45; text-align:center; color:#ffb9ad; background:rgba(192,57,43,.14);
-    border:1px solid rgba(192,57,43,.32); border-radius:4px; padding:10px 12px; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards, authShake .4s ease .05s;
+    font-size: var(--text-body); line-height:1.45; text-align:center; color:var(--gize-danger); background:var(--gize-danger-bg);
+    border:1px solid color-mix(in srgb, var(--gize-danger) 32%, transparent); border-radius:4px; padding:10px 12px; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards, authShake .4s ease .05s;
   }
 
-.auth-msg.ok { color:#8be8b3; background:rgba(51,196,129,.14); border-color:rgba(51,196,129,.35); animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-msg.ok { color:var(--gize-success); background:var(--gize-success-bg); border-color:color-mix(in srgb, var(--gize-success) 35%, transparent); animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
 
 @media (max-width:380px) {
     .auth-card { padding:28px 20px 22px; max-width:100%; }
-    .auth-logo { font-size:25px; }
+    .auth-logo img { height:22px; }
   }

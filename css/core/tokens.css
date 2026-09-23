@@ -2,22 +2,18 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 :root {
-    /* Paleta "estilo WHOOP" (prueba, ver App-gym.html) — fondo casi negro puro en vez del
-       verde Excel claro por defecto. Cambiados: bg/card/card-2/border/txt (pedido explícito),
-       más blue-2/green-2/glow porque son la sombra/shade derivada de blue/green y se usan
-       junto a ellos en todos lados (hover, "over", glow de botones activos) — dejarlos en el
-       verde Excel viejo se hubiera visto como dos marcas distintas conviviendo. red/purple/
-       pink/cyan/txt-2/txt-3/xl-head/xl-band NO tocados: son roles semánticos aparte (peligro,
-       categorías del plan de comidas), no la identidad de marca. Commit propio a propósito
-       para poder revertir solo esto. */
-    --bg: #060709; --card: #0e1115; --card-2: #14181c; --border: rgba(255,255,255,.09);
-    --txt: #f3f5f7; --txt-2: #565c61; --txt-3: #8a8f94;
-    --blue: #2281e0; --blue-2: #1766b5; --red: #c0392b;
-    --green: #2281e0; --green-2: #1766b5; --purple: #2e78b8; --pink: #c9662b; --cyan: #178a80;
-    --glow: rgba(34,129,224,.28);
-    --ring-over: #d43f3f; --glow-over: rgba(212,63,63,.30);
-    --xl-head: #217346; --xl-band: #185c37;
-    --font-mono: "JetBrains Mono", monospace;
+    /* Marca GIZE: los valores salen de brand/tokens.css (--gize-*, fuente de verdad en
+       brand/BRAND.md). Estos alias mantienen los nombres que ya usa el resto del CSS.
+       red/ring-over → --gize-danger; xl-* (tablas tipo Excel) → --gize-success;
+       purple/pink/cyan → gama RGB. Los números usan --gize-font-data (JetBrains Mono). */
+    --bg: var(--gize-bg); --card: var(--gize-surface); --card-2: var(--gize-surface-2); --border: var(--gize-border);
+    --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2);
+    --blue: var(--gize-blue); --blue-2: var(--gize-blue-deep); --red: var(--gize-danger);
+    --green: var(--gize-blue); --green-2: var(--gize-blue-deep); --purple: var(--gize-r2); --pink: var(--gize-r3); --cyan: var(--gize-r4);
+    --glow: color-mix(in srgb, var(--gize-blue) 28%, transparent);
+    --ring-over: var(--gize-danger); --glow-over: color-mix(in srgb, var(--gize-danger) 30%, transparent);
+    --xl-head: var(--gize-success-bg); --xl-band: var(--gize-success-bg);
+    --font-mono: var(--gize-font-data);
     --text-meta: 12px;      /* secundario: hints, timestamps, sub-labels, botones fantasma */
     --text-body: 14px;      /* primario: nombres, valores, inputs, botones estándar */
     --text-emphasis: 15px;  /* énfasis dentro de una fila: nombre destacado, CTA principal */
@@ -27,7 +23,7 @@
     --duration-frequent: .15s; /* se ve/cierra muchas veces por sesión: modales del coach */
     --duration-standard: .22s; /* el caso por defecto: bottom sheet de logueo */
     --duration-rare: .3s;      /* poco frecuente o primera vez: pantalla de login */
-    --focus-ring: 0 0 0 3px rgba(164,168,165,.12);
+    --focus-ring: 0 0 0 3px color-mix(in srgb, var(--gize-blue) 18%, transparent);
     --shadow-card: 0 1px 2px rgba(30,36,43,.06), 0 3px 8px rgba(30,36,43,.05);
     --glow-sm: 0 0 10px var(--glow);  /* acentos finos: barra de progreso, línea de título */
     --glow-md: 0 0 14px var(--glow);  /* estado seleccionado/activo: tab, chip, check, toggle */
@@ -52,10 +48,10 @@ input::placeholder, textarea::placeholder { color: var(--txt-3); opacity:.7; }
 
 html, body { background: var(--bg); background-attachment: fixed; color: var(--txt); }
 
-body { font-family: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; }
+body { font-family: var(--gize-font); min-height: 100vh; overflow-x: hidden; }
 
 body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: radial-gradient(720px circle at 50% -6%, rgba(33,74,115,.06), transparent 55%); }
+    background: radial-gradient(720px circle at 50% -6%, color-mix(in srgb, var(--gize-blue) 6%, transparent), transparent 55%); }
 
 @keyframes cardMeteor {
     0% { transform: rotate(215deg) translateX(0); opacity: 0; }

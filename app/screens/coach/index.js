@@ -2,7 +2,7 @@ import { copySvg, downloadSvg, gearSvg, resetSvg } from '../../core/icons.js';
 
 import { esc, fmtDate } from '../../core/utils.js';
 
-import { coachActivity, coachAvatarColor, coachInitials, renderCoachInfo } from './clientes.js';
+import { coachActivity, coachInitials, renderCoachInfo } from './clientes.js';
 
 import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine } from './rutinas.js';
 
@@ -53,7 +53,7 @@ export function renderCoach(){
         const act=coachActivity(st.lastSess);
         const statusLine=act.has ? '<div class="co-act-status"><span class="co-dot'+(act.active?' on':'')+'"></span>'+act.statusLabel+'</div>' : "";
         return '<div class="co-trow" data-coach="open" data-id="'+c.id+'">'+
-            '<div class="co-td co-td-name"><span class="co-avatar" style="background:'+coachAvatarColor(c.id)+'">'+esc(coachInitials(c.full_name))+'</span><span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
+            '<div class="co-td co-td-name"><span class="co-avatar">'+esc(coachInitials(c.full_name))+'</span><span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
             '<div class="co-td co-td-email'+(c.email?'':' co-empty')+'">'+esc(c.email||"Sin email")+'</div>'+
             '<div class="co-td co-td-activity"><div class="co-act-date">'+esc(act.label)+'</div>'+statusLine+'</div>'+
             '<div class="co-td co-td-actions"><span class="co-arrow">›</span></div>'+
@@ -70,7 +70,7 @@ export function renderCoach(){
       // Va como reemplazo del bloque entero (sin buscador ni grid), no como un item más.
       body=(!CoachState.coachSearch && !CoachState.coachClients.length) ? onboard : searchBox+list;
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><img class="brand-logo" src="logo-horizontal.jpg" alt="Core"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
   } else if(CoachState.coachTplEdit){
     const rt=CoachState.coachTplEdit.days||[];
     let ed="";

@@ -32,8 +32,8 @@ export function showLogin(msg, mode, vals){
   host.innerHTML =
     '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
     '<div class="auth-card" role="region" aria-label="'+(isUp?"Crear cuenta":"Iniciar sesión")+'">'+
-      '<div class="auth-brand-ic" aria-hidden="true"><img src="logo.png" alt="Core"></div>'+
-      '<div class="auth-logo">Core</div>'+
+      '<div class="auth-brand-ic" aria-hidden="true"><img src="brand/logo/gize-monograma.svg" alt=""></div>'+
+      '<div class="auth-logo"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>'+
       '<div class="auth-sub">Tu planilla de entrenamiento</div>'+
       roleField+
       (isUp?field("auName", auIcoUser, "", "Tu nombre y apellido", "text", "name", vals.name):"")+
@@ -41,7 +41,7 @@ export function showLogin(msg, mode, vals){
       field("auPass", auIcoLock, "pass", "Contraseña (mínimo 6)", "password", isUp?"new-password":"current-password", "")+
       (isUp&&role==="client"?field("auCode", auIcoTicket, "", "Código de tu coach (opcional)", "text", "off", vals.code):"")+
       (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+esc(msg)+'</div>':'')+
-      '<button class="auth-btn" data-auth="'+(isUp?"do-signup":"do-login")+'" style="animation-delay:'+nextDelay()+'">'+(isUp?"Crear cuenta":"Ingresar")+'</button>'+
+      '<button class="gize-btn auth-btn" data-auth="'+(isUp?"do-signup":"do-login")+'" style="animation-delay:'+nextDelay()+'">'+(isUp?"Crear cuenta":"Ingresar")+'</button>'+
       '<div class="auth-switch" data-auth="'+(isUp?"to-login":"to-signup")+'" role="button" tabindex="0" style="animation-delay:'+nextDelay()+'">'+(isUp?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
     '</div>';
   startAuthParticles(host.querySelector(".auth-particles"));

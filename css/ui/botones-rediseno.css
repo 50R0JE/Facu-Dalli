@@ -16,12 +16,12 @@ body:not(#_) {
   --btn-line-hi: rgba(255,255,255,.34);
   --btn-fill: rgba(255,255,255,.035);
   --btn-fill-hi: rgba(255,255,255,.08);
-  --btn-txt: #e6eaee;
-  --btn-txt-dim: #98a1a9;
-  --acc: #2281e0;
-  --acc-hi: #3b93ee;
-  --acc-tint: rgba(34,129,224,.16);
-  --danger: #e0574b;
+  --btn-txt: var(--gize-text);
+  --btn-txt-dim: var(--gize-text-2);
+  --acc: var(--gize-blue);
+  --acc-hi: color-mix(in srgb, var(--gize-blue) 80%, var(--gize-text));
+  --acc-tint: color-mix(in srgb, var(--gize-blue) 16%, transparent);
+  --danger: var(--gize-danger);
 
   /* ---------- 2) SECUNDARIOS: borde neutro marcado ---------- */
   :is(.co-back, .co-logout, .co-gear, .top-btn, .clear, .reset-routine, .logout-btn,
@@ -36,7 +36,7 @@ body:not(#_) {
     text-decoration: none;
     box-shadow: none;
     transition: background-color .15s, border-color .15s, color .15s, transform .12s;
-    &:hover { background: var(--btn-fill-hi); border-color: var(--btn-line-hi); color: #fff; }
+    &:hover { background: var(--btn-fill-hi); border-color: var(--btn-line-hi); color: var(--gize-text); }
     &:active { transform: scale(.98); }
   }
   :is(.co-back, .co-logout, .co-copy-btn, .load-def, .clear, .reset-routine, .logout-btn, .qbtn) { min-height: 38px; }
@@ -58,13 +58,13 @@ body:not(#_) {
     font-weight: 600;
     box-shadow: none;
     transition: background-color .15s, border-color .15s, color .15s;
-    &:hover { border-color: var(--btn-line-hi); color: #fff; }
+    &:hover { border-color: var(--btn-line-hi); color: var(--gize-text); }
   }
   :is(.tab.active, .cmode.active, .seg button.on, .ex-chip.on, .rest-opt.on, .fb-n.on,
       .sc-opt.on, .preset.on, .co-daytab.on, .ap-day.on, .ap-radio.on) {
     background: var(--acc-tint);
     border-color: var(--acc);
-    color: #fff;
+    color: var(--gize-text);
     box-shadow: none;
   }
   /* fuera glow que sigue al mouse + ripple de los tabs de día */
@@ -73,10 +73,10 @@ body:not(#_) {
 
   /* ---------- 1) PRINCIPALES: relleno azul sólido ---------- */
   :is(.ctrl.primary, .form-save, .save-session, .co-save-rt, .hb-add-btn, .co-rt-add,
-      .auth-btn, .bw.dl) {
+      .bw.dl) {
     background: var(--acc);
     border: 1px solid var(--acc);
-    color: #fff;
+    color: var(--gize-text);
     border-radius: var(--btn-r);
     font-weight: 600;
     letter-spacing: 0;
@@ -85,50 +85,50 @@ body:not(#_) {
     &:hover { background: var(--acc-hi); border-color: var(--acc-hi); transform: none; }
     &:active { transform: scale(.98); filter: none; }
   }
-  .auth-btn { background-image: none; }
 
   /* ---------- "Agregar": borde punteado más marcado ---------- */
   :is(.add-set, .cal-create, .co-add-day, .co-set-add, .pl-add, .cp-custom) {
     background: transparent;
     border: 1px dashed var(--btn-line-hi);
     border-radius: var(--btn-r);
-    color: #8ec1f5;
+    color: var(--gize-blue);
     font-weight: 600;
     opacity: 1;
-    &:hover { border-color: var(--acc); color: #fff; background: var(--acc-tint); }
+    &:hover { border-color: var(--acc); color: var(--gize-text); background: var(--acc-tint); }
   }
 
   /* botones "+" de insertar entre ejercicios: discretos a propósito */
   :is(.ins-ex, .co-rt-ins) { border-radius: var(--btn-r); border-color: var(--btn-line); opacity: .55; }
-  :is(.ins-ex, .co-rt-ins):hover { opacity: 1; border-color: var(--acc); color: #fff; }
+  :is(.ins-ex, .co-rt-ins):hover { opacity: 1; border-color: var(--acc); color: var(--gize-text); }
 
   /* ---------- Destructivo ---------- */
-  .co-day-del { border: 1px solid rgba(224,87,75,.55); color: var(--danger); border-radius: var(--btn-r); background: transparent; }
-  .co-day-del:hover { background: rgba(224,87,75,.12); border-color: var(--danger); }
+  .co-day-del { border: 1px solid color-mix(in srgb, var(--gize-danger) 55%, transparent); color: var(--danger); border-radius: var(--btn-r); background: transparent; }
+  .co-day-del:hover { background: var(--gize-danger-bg); border-color: var(--danger); }
 
   /* ---------- Check de serie / hábito ---------- */
   .done, .hb-check { border-radius: var(--btn-r); border: 1px solid var(--btn-line-hi); background: transparent; }
-  .done.on, .hb-check.on { background: var(--acc); border-color: var(--acc); color: #fff; box-shadow: none; }
+  /* Completado = --gize-success (brand/BRAND.md), con el ícono en negro para que se lea sobre el verde agua. */
+  .done.on, .hb-check.on { background: var(--gize-success); border-color: var(--gize-success); color: var(--gize-bg); box-shadow: none; }
 
   /* Botón de descanso en la card */
-  .rest-btn-full { border-radius: var(--btn-r); background: var(--acc-tint); border-color: var(--acc); color: #fff; }
+  .rest-btn-full { border-radius: var(--btn-r); background: var(--acc-tint); border-color: var(--acc); color: var(--gize-text); }
 
   /* ---------- Navegación inferior ---------- */
   .nav-item { position: relative; border-radius: var(--btn-r); color: var(--btn-txt-dim); font-weight: 600; }
-  .nav-item.active { color: #fff; background: transparent; }
+  .nav-item.active { color: var(--gize-text); background: transparent; }
   .nav-item.active svg { filter: none; }
   .nav-item.active::before {
     content: ""; position: absolute; top: -9px; left: 50%; width: 26px; height: 2px;
     transform: translateX(-50%); border-radius: 2px; background: var(--acc);
   }
-  .nav-item:hover { color: #fff; }
+  .nav-item:hover { color: var(--gize-text); }
 
   /* ---------- Tabs segmentados (Ficha / Rutina / Plan · Clientes / Mis rutinas) ---------- */
   .co-tabs {
     --n: 2; --i: 0;
     position: relative; display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 0;
     padding: 4px; margin: 6px 0 16px;
-    background: #0b0e11; border: 1px solid var(--btn-line); border-radius: 12px;
+    background: var(--gize-surface); border: 1px solid var(--btn-line); border-radius: 12px;
     &:has(> .co-tab:nth-child(3)) { --n: 3; }
     &:has(> .co-tab:nth-child(2).on) { --i: 1; }
     &:has(> .co-tab:nth-child(3).on) { --i: 2; }
@@ -154,11 +154,11 @@ body:not(#_) {
     background: transparent; border: 0; border-radius: 9px; box-shadow: none;
     color: var(--btn-txt-dim); font-weight: 600; font-size: 13px; padding: 11px 12px;
     &::before, &::after { display: none; }
-    &.on { background: transparent; color: #fff; }
-    &:hover { color: #fff; }
+    &.on { background: transparent; color: var(--gize-text); }
+    &:hover { color: var(--gize-text); }
     .co-tab-count { color: inherit; opacity: .7; font-weight: 600; }
   }
-  .co-tab.on .co-tab-count { color: #fff; opacity: .85; }
+  .co-tab.on .co-tab-count { color: var(--gize-text); opacity: .85; }
 
   /* Foco de teclado consistente en todos los botones */
   :is(button, [role="button"]):focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }

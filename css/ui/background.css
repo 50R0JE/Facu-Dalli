@@ -10,12 +10,7 @@
     opacity: 0; transition: opacity .3s ease;
     /* Mismo degradé vertical que el logo y el splash (css/core/splash.css):
        si difieren, al pasar del splash a la app se nota un salto de tono. */
-    background: linear-gradient(180deg,
-      #123A8C 0%,
-      #0C2660 16%,
-      #071640 34%,
-      #030A20 56%,
-      #000000 82%);
+    background: var(--gize-bg);
   }
 
 #silkCanvas.on { opacity: 1; }

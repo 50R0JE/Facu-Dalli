@@ -1,7 +1,7 @@
 /* css/screens/coach/shared.css */
 .co-grid { display:block; }
 
-.co-title { font-family:"Orbitron",monospace; font-size:20px; font-weight:800; color:var(--txt); }
+.co-title { font-family:var(--gize-font); font-size:20px; font-weight:800; color:var(--txt); }
 
 /* .co-copy-btn.co-invite-copy (dos clases) a propósito: .co-copy-btn se define más
      abajo en la hoja con display:inline-flex y misma especificidad que un .co-invite-copy
@@ -28,7 +28,7 @@
 
 .co-rt-del { background:none; border:none; color:var(--txt-3); font-size:16px; cursor:pointer; padding:4px 8px; }
 
-.co-save-rt { display:block; width:100%; margin-top:14px; background:var(--blue); color:#fff; border:none; font-size: var(--text-emphasis); font-weight:700; padding:14px; border-radius:4px; cursor:pointer; }
+.co-save-rt { display:block; width:100%; margin-top:14px; background:var(--blue); color:var(--gize-text); border:none; font-size: var(--text-emphasis); font-weight:700; padding:14px; border-radius:4px; cursor:pointer; }
 
 .co-add-day { display:block; margin-top:10px; background:none; border:1px dashed var(--border); color:var(--blue-2); padding:10px 14px; border-radius:4px; cursor:pointer; }
 
@@ -38,7 +38,7 @@
 
 .co-tbl th { text-align:left; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.06em; font-weight:700; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap; }
 
-.co-tbl td { font-size:12.5px; color:var(--txt); font-family:var(--font-mono); padding:7px 8px; border-bottom:1px solid #252525; white-space:nowrap; }
+.co-tbl td { font-size:12.5px; color:var(--txt); font-family:var(--font-mono); padding:7px 8px; border-bottom:1px solid var(--gize-border); white-space:nowrap; }
 
 .co-tbl tr:last-child td { border-bottom:none; }
 
