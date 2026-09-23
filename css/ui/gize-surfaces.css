@@ -1,0 +1,45 @@
+/* css/ui/gize-surfaces.css
+   Mismo lenguaje que el login, llevado a toda la app (cliente y panel del coach):
+   1. Fondo: la aurora de la marca detrás de todo, con la gama RGB.
+   2. Cajas de sección: borde con la gama RGB y un resplandor violeta suave.
+      Las cajas que se repiten en lista (ejercicios, filas, comidas, sesiones) van con
+      borde neutro: veinte bordes de colores en una misma pantalla dejan de decir algo.
+   Se carga al final, después de css/ui/botones-rediseno.css. */
+
+/* ---------- 1) Aurora de fondo ----------
+   Misma .gize-aurora de brand/tokens.css, pero fija a la pantalla y sin filter:blur:
+   cada mancha es un degradé radial (ya viene difuminado), así el celular no tiene que
+   re-desenfocar una capa enorme en cada cuadro. Solo se ve cuando está el fondo de la
+   app (body.silk-on) o el panel del coach (body.silk-coach). Con
+   prefers-reduced-motion queda quieta (lo resuelve tokens.css). */
+.app-aurora { position: fixed; inset: -20%; z-index: 0; filter: none; opacity: 0; transition: opacity .3s ease; }
+.app-aurora span { mix-blend-mode: screen; }
+.app-aurora span:nth-child(1) { background: radial-gradient(closest-side, var(--gize-r1), transparent); }
+.app-aurora span:nth-child(2) { background: radial-gradient(closest-side, var(--gize-r2), transparent); }
+.app-aurora span:nth-child(3) { background: radial-gradient(closest-side, var(--gize-r3), transparent); }
+.app-aurora span:nth-child(4) { background: radial-gradient(closest-side, var(--gize-r4), transparent); }
+body.silk-on .app-aurora, body.silk-coach .app-aurora { opacity: .2; }
+
+/* ---------- 2) Cajas de sección con borde RGB ----------
+   El borde se pinta con dos fondos (superficie en padding-box + gama en border-box) en
+   vez de un pseudo-elemento: estas cajas tienen overflow:hidden y un ::before/::after
+   quedaría recortado. Quieto a propósito: lo único que gira en cada pantalla es el
+   anillo de la acción principal. body:not(#_) empata el nivel de especificidad de la
+   capa de botones para ganarle a las reglas de :hover de la familia de cajas. */
+body:not(#_) :is(
+    /* coach */
+    .co-invite, .co-table, .co-day-card, .ci-card, .opt-sec, .week-editor, .ck-card,
+    /* cliente */
+    .daily-card, .water-card, .vol-card, .fi-card, .mc-block, .cardio-rx, .plan-banner,
+    .join-box, .daynotes, .w-chart) {
+  border: 1.5px solid transparent;
+  background: linear-gradient(var(--gize-surface), var(--gize-surface)) padding-box,
+    var(--gize-rgb-ring) border-box;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35),
+    0 0 44px -16px color-mix(in srgb, var(--gize-r2) 35%, transparent);
+}
+/* En celular .co-table es solo un contenedor de filas sueltas (cada fila es su propia
+   caja); el panel con borde existe desde 900px (ver css/screens/coach/index.css). */
+@media (max-width: 899px) {
+  body:not(#_) .co-table { border: 0; background: none; box-shadow: none; }
+}
