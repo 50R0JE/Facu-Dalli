@@ -1,0 +1,80 @@
+/* ============================================================
+   GIZE · tokens de marca
+   Tipografía de interfaz: Outfit (SIL OFL 1.1) vía Google Fonts
+   El logotipo NO usa fuente: son curvas en /logo/*.svg
+   ============================================================ */
+:root{
+  /* base */
+  --gize-bg:#000000;
+  --gize-surface:#0B0D11;
+  --gize-surface-2:#12151B;
+  --gize-border:#1C2029;
+  --gize-text:#FFFFFF;
+  --gize-text-2:#8F98A6;
+
+  /* marca */
+  --gize-blue:#2FA0FF;        /* punto de la G, foco, acción */
+  --gize-blue-deep:#0072BB;   /* azul Francia, piezas impresas y fondos claros */
+
+  /* gama RGB (landing, splash, acentos) */
+  --gize-r1:#2FA0FF;
+  --gize-r2:#A65CFF;
+  --gize-r3:#FF3DAE;
+  --gize-r4:#25E8C8;
+  --gize-rgb-line:linear-gradient(90deg,var(--gize-r1),var(--gize-r2),var(--gize-r3),var(--gize-r4));
+  --gize-rgb-ring:conic-gradient(from 0deg,var(--gize-r1),var(--gize-r2),var(--gize-r3),var(--gize-r4),var(--gize-r1));
+
+  --gize-font:'Outfit',system-ui,-apple-system,sans-serif;
+  --gize-radius:20px;
+  --gize-radius-pill:999px;
+}
+
+body{background:var(--gize-bg);color:var(--gize-text);font-family:var(--gize-font)}
+
+/* Botón principal: blanco con anillo RGB girando. Uno por pantalla. */
+.gize-btn{position:relative;border:0;border-radius:var(--gize-radius-pill);padding:16px 30px;
+  background:#fff;color:#000;font:700 16px var(--gize-font);cursor:pointer;isolation:isolate;
+  transition:transform .12s ease,box-shadow .25s ease}
+.gize-btn::before{content:"";position:absolute;inset:-2px;border-radius:inherit;z-index:-1;
+  background:var(--gize-rgb-ring);animation:gize-spin 5s linear infinite}
+.gize-btn:active{transform:scale(.985)}
+@keyframes gize-spin{to{transform:rotate(1turn)}}
+
+/* Botón secundario */
+.gize-btn-ghost{border:1px solid var(--gize-border);background:rgba(255,255,255,.03);color:#fff;
+  border-radius:var(--gize-radius-pill);padding:15px 28px;font:600 15px var(--gize-font);cursor:pointer}
+
+/* Tarjeta con filete RGB */
+.gize-card{position:relative;background:var(--gize-surface);border:1px solid var(--gize-border);
+  border-radius:var(--gize-radius);padding:24px;overflow:hidden}
+.gize-card::before{content:"";position:absolute;inset:0 0 auto;height:2px;background:var(--gize-rgb-line)}
+
+/* Campos */
+.gize-input{width:100%;background:var(--gize-surface-2);border:1px solid var(--gize-border);
+  border-radius:14px;padding:15px 16px;color:#fff;font:500 16px var(--gize-font)}
+.gize-input:focus{outline:0;border-color:var(--gize-blue);box-shadow:0 0 0 3px rgba(47,160,255,.18)}
+
+/* Aurora de fondo: 4 manchas desenfocadas que se mueven lento */
+.gize-aurora{position:absolute;inset:-20%;pointer-events:none;z-index:0;filter:blur(80px);opacity:.5}
+.gize-aurora span{position:absolute;width:70vmin;height:70vmin;border-radius:50%;mix-blend-mode:screen;
+  animation:gize-drift 20s ease-in-out infinite}
+.gize-aurora span:nth-child(1){background:var(--gize-r1);left:-8%;top:6%}
+.gize-aurora span:nth-child(2){background:var(--gize-r2);left:34%;top:-6%;animation-delay:-5s}
+.gize-aurora span:nth-child(3){background:var(--gize-r3);left:52%;top:30%;animation-delay:-11s}
+.gize-aurora span:nth-child(4){background:var(--gize-r4);left:6%;top:44%;animation-delay:-16s}
+@keyframes gize-drift{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  33%{transform:translate3d(8vw,5vh,0) scale(1.18)}
+  66%{transform:translate3d(-6vw,-4vh,0) scale(.88)}
+}
+
+/* Barra de carga del splash */
+.gize-bar{position:relative;height:4px;border-radius:99px;background:#15181F;overflow:hidden;width:min(240px,64%)}
+.gize-bar i{position:absolute;inset:0;border-radius:99px;transform-origin:left;transform:scaleX(0);
+  background:var(--gize-rgb-line);animation:gize-load 2.1s cubic-bezier(.5,.05,.2,1) forwards}
+@keyframes gize-load{0%{transform:scaleX(.02)}70%{transform:scaleX(.82)}100%{transform:scaleX(1)}}
+
+@media (prefers-reduced-motion:reduce){
+  .gize-btn::before,.gize-aurora span,.gize-bar i{animation:none}
+  .gize-bar i{transform:scaleX(1)}
+}
