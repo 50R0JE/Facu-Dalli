@@ -20,7 +20,21 @@ body.is-booting { overflow: hidden; }
 
 .splash-logo {
   display: block; width: clamp(180px, 52vw, 260px); height: auto;
-  animation: splash-in .5s cubic-bezier(.2,.7,.2,1) both;
+}
+
+/* Entrada del logo: el arco de la G se traza, el punto azul aparece con un
+   rebote chico y después entra la palabra. Termina a 1,5 s, antes que la barra. */
+.sl-arc {
+  stroke-dasharray: 1; stroke-dashoffset: 1; /* pathLength="1" en el SVG */
+  animation: sl-draw .9s cubic-bezier(.6,.05,.25,1) .1s forwards;
+}
+.sl-dot {
+  transform-box: fill-box; transform-origin: center; transform: scale(0);
+  animation: sl-pop .45s cubic-bezier(.3,1.6,.5,1) .85s forwards;
+}
+.sl-word {
+  opacity: 0;
+  animation: sl-word .5s ease 1s forwards;
 }
 
 .splash-txt {
@@ -28,10 +42,16 @@ body.is-booting { overflow: hidden; }
   animation: splash-in .5s cubic-bezier(.2,.7,.2,1) .15s both;
 }
 
+@keyframes sl-draw { to { stroke-dashoffset: 0; } }
+@keyframes sl-pop { to { transform: scale(1); } }
+@keyframes sl-word { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
 @keyframes splash-in { from { opacity: 0; transform: translateY(8px); } }
 @keyframes splash-out { to { opacity: 0; visibility: hidden; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-logo, .splash-txt { animation: none; }
+  .sl-arc, .sl-dot, .sl-word, .splash-txt { animation: none; }
+  .sl-arc { stroke-dashoffset: 0; }
+  .sl-dot { transform: none; }
+  .sl-word { opacity: 1; }
   #splash { animation: splash-out .3s linear 1.2s forwards; }
 }
