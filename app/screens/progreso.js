@@ -8,6 +8,8 @@ import { renderCheckin, renderDaily, renderInfo } from './checkin.js';
 
 import { EntrenoState } from './entreno.js';
 
+import { renderSessionItem } from '../ui/sessiondetail.js';
+
 export const ProgresoState = {
 
   weightForm: {date: today(), kg: ""},
@@ -103,12 +105,11 @@ export function renderCargas(){
 export function renderHistorial(){
   const sess=(state.sessions||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!sess.length) return "";
-  const items=sess.slice(0,20).map(se=>{
-    const names=(se.exercises||[]).map(e=>e.name).join(", ");
-    const ns=(se.exercises||[]).reduce((x,e)=>x+(e.sets||[]).length,0);
-    return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+' <span class="sess-n">('+ns+' series)</span></div><div class="sess-exs">'+esc(names)+'</div></div><button class="diary-rm" data-action="session-remove" data-id="'+se.id+'" title="Borrar">'+xSvg+'</button></div>';
-  }).join("");
-  return '<div class="hb-head" style="margin-top:28px"><div class="hb-title">Historial de entrenos</div><div class="title-accent"></div></div>'+items;
+  // Todos los entrenos (antes solo los últimos 20): cerrados ocupan una fila cada uno.
+  const items=sess.map(se=>renderSessionItem(se, {
+    removeBtn:'<button class="diary-rm" data-action="session-remove" data-id="'+se.id+'" title="Borrar entreno" aria-label="Borrar entreno">'+xSvg+'</button>'
+  })).join("");
+  return '<div class="hb-head" style="margin-top:28px"><div class="hb-title">Historial de entrenos</div><div class="title-accent"></div></div><div class="sess-hint">Tocá un entreno para ver los pesos y las series.</div>'+items;
 }
 
 export function lastSessionFor(exName){

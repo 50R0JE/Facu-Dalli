@@ -473,3 +473,47 @@
 .nav-item.active { color: var(--blue-2); }
 
 .nav-item.active svg { filter: drop-shadow(0 0 6px var(--glow)); }
+
+/* ===== Entreno del historial, abrible (app/ui/sessiondetail.js) =====
+     Cerrado es la misma fila de siempre (.sess-item); tocándola se despliega el detalle
+     con cada ejercicio y sus series. Los números van en --font-mono para que las
+     columnas de kg y reps queden alineadas. */
+.sess-hint { font-size: var(--text-meta); color: var(--txt-3); margin: -6px 0 10px; }
+.sess-item.sess-det-wrap { align-items: flex-start; }
+.sess-det { flex: 1; min-width: 0; }
+.sess-sum { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.sess-sum::-webkit-details-marker { display: none; }
+.sess-sum:focus-visible { outline: 2px solid var(--gize-blue); outline-offset: 4px; border-radius: 4px; }
+.sess-chev { flex-shrink: 0; width: 8px; height: 8px; border-right: 2px solid var(--txt-3); border-bottom: 2px solid var(--txt-3);
+    transform: rotate(45deg); margin: 0 4px 4px; transition: transform .2s ease; }
+.sess-det[open] .sess-chev { transform: rotate(225deg); margin-bottom: 0; }
+.sess-det[open] .sess-exs { white-space: normal; }
+.sess-det-wrap .diary-rm { margin-top: 2px; }
+.sess-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+.sd-tot { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.sd-tot > div { background: var(--card-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.sd-tot b { display: block; font-family: var(--font-mono); font-size: var(--text-emphasis); color: var(--txt); }
+.sd-tot span { font-size: 11px; color: var(--txt-3); }
+
+.sd-fb { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.sd-chip { font-size: var(--text-meta); color: var(--txt-2); background: var(--card-2); border: 1px solid var(--border);
+    border-radius: var(--gize-radius-pill); padding: 4px 10px; }
+.sd-chip b { color: var(--txt); font-family: var(--font-mono); }
+.sd-chip.warn { border-color: color-mix(in srgb, var(--gize-danger) 45%, transparent); }
+.sd-chip.warn b { color: var(--gize-danger); }
+
+.sd-ex { padding: 10px 0; border-top: 1px solid var(--border); }
+.sd-ex:first-of-type { border-top: 0; padding-top: 0; }
+.sd-ex-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.sd-ex-name { font-size: var(--text-body); font-weight: 700; color: var(--txt); }
+.sd-ex-meta { font-size: 11px; color: var(--txt-3); font-family: var(--font-mono); }
+.sd-set { display: grid; grid-template-columns: 22px 1fr 14px 1fr; align-items: baseline; gap: 6px; padding: 3px 0; max-width: 300px;
+    font-family: var(--font-mono); font-size: var(--text-body); color: var(--txt); }
+.sd-n { width: 20px; height: 20px; border-radius: 4px; background: var(--card-2); border: 1px solid var(--border);
+    font-size: 11px; color: var(--txt-2); display: flex; align-items: center; justify-content: center; align-self: center; }
+.sd-kg, .sd-reps { font-weight: 700; }
+.sd-kg { text-align: right; }
+.sd-x { color: var(--txt-3); text-align: center; }
+.sd-set small { font-size: 11px; font-weight: 500; color: var(--txt-3); margin-left: 3px; }
+@media (prefers-reduced-motion: reduce) { .sess-chev { transition: none; } }
