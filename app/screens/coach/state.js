@@ -62,6 +62,8 @@ export const CoachState = {
   coachCkSel: null,
 
   coachSessSel: null,
+  // Fecha elegida en el selector de fotos de progreso ("" = Ninguno).
+  coachPhotoSel: null,
 
   coachNameForm: null,
 
