@@ -56,6 +56,10 @@ state.days.forEach(d => { if (d.subtitle == null) d.subtitle = ""; });
 
 if (!Array.isArray(state.foods)) state.foods = [];
 
+// Productos de marca (Open Food Facts) que el cliente ya agregó alguna vez: se guardan en
+// el dispositivo para encontrarlos rápido y sin internet la próxima vez.
+if (!Array.isArray(state.offRecent)) state.offRecent = [];
+
 if (!Array.isArray(state.diary)) state.diary = [];
 
 if (!state.diaryDate) state.diaryDate = today();

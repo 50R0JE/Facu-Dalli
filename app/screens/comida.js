@@ -2,6 +2,8 @@ import { FOODS, RC } from '../core/data.js';
 
 import { cookVariant } from '../core/foods.js';
 
+const barcodeSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10 8v8M13 8v8M16 8v8"/></svg>';
+
 import { flameSvg, searchSvg, xSvg } from '../core/icons.js';
 
 import { state } from '../core/state.js';
@@ -21,6 +23,9 @@ export const ComidaState = {
   // Cómo pesó el cliente el alimento elegido: "crudo" o "cocido" (solo si el alimento
   // tiene esa opción, ver food.cook en core/foods.js).
   cookState: null,
+
+  // Búsqueda en Open Food Facts: { q, status: "loading" | "done" | "error", items }.
+  off: null,
 
   editEntry: null,
 
@@ -104,16 +109,37 @@ export function diaryTotals(){ return state.diary.reduce((a,e)=>({kcal:a.kcal+e.
 export function renderResults(q){
   const nq = norm(q);
   if(!nq) return '<div class="cal-hint">Escribí para buscar un alimento</div>';
-  const all = (state.foods||[]).concat(FOODS);
+  // Orden: mis alimentos, los productos de marca que ya usé (Open Food Facts) y la base.
+  const all = (state.foods||[]).concat(state.offRecent||[], FOODS);
   // Primero los que empiezan con lo buscado, después los que tienen una palabra que
   // empieza así y al final el resto ("pan" → Pan francés antes que Sartén de pan…).
   const rank = f => { const n=norm(f.name); return n.startsWith(nq) ? 0 : (n.includes(" "+nq) ? 1 : 2); };
   lastResults = all.filter(f=>norm(f.name).includes(nq)).sort((a,b)=>rank(a)-rank(b)).slice(0,40);
-  if(!lastResults.length) return '<div class="cal-hint">Sin resultados. Probá crear el alimento 👇</div>';
-  return lastResults.map((f,i)=>`<div class="food-row" data-action="food-pick" data-idx="${i}">
-    <div class="food-name">${esc(f.name)}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}</div>
+  const local = lastResults.length ? lastResults.map((f,i)=>foodRow(f, "food-pick", i)).join("")
+    : (nq.length < 3 ? '<div class="cal-hint">Sin resultados en la base. Probá crear el alimento 👇</div>' : '');
+  return local + '<div id="offResults">'+renderOffResults()+'</div>';
+}
+
+function foodRow(f, action, i){
+  return `<div class="food-row" data-action="${action}" data-idx="${i}">
+    <div class="food-name">${esc(f.name)}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}${f.src==="OFF"?'<span class="food-cook">marca</span>':''}</div>
     <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}${f.cook?" "+f.cook.base:""}</span></div>
-  </div>`).join("");
+  </div>`;
+}
+
+// Resultados de Open Food Facts (productos de marca), debajo de los de la base propia.
+// Se buscan aparte y sin bloquear la escritura (ver "food-search" en main.js).
+export let offResults = [];
+export function renderOffResults(){
+  const o = ComidaState.off || {};
+  if (!o.q || o.q.length < 3) return "";
+  const head = '<div class="off-head">Productos de marca <span>Open Food Facts</span></div>';
+  if (o.status === "loading") return head + '<div class="cal-hint">Buscando productos de marca…</div>';
+  if (o.status === "error") return head + '<div class="cal-hint">No se pudo buscar productos de marca (¿sin conexión?). La base propia sigue funcionando.</div>';
+  const shown = new Set((state.offRecent||[]).map(f=>f.code));
+  offResults = (o.items||[]).filter(f=>!f.code || !shown.has(f.code));
+  if (!offResults.length) return o.status === "done" ? head + '<div class="cal-hint">Sin productos de marca para esa búsqueda. Podés escanear el código de barras o crear el alimento.</div>' : "";
+  return head + offResults.map((f,i)=>foodRow(f, "off-pick", i)).join("");
 }
 
 export function entryBase(e){ return e.base ? e.base : { kcal: e.grams? e.kcal/e.grams*100:0, p: e.grams? e.p/e.grams*100:0, c: e.grams? e.c/e.grams*100:0, f: e.grams? e.f/e.grams*100:0, unit: e.unit||"g" }; }
@@ -227,7 +253,10 @@ export function renderComida(){
       <button class="water-goal" data-action="water-goal">Cambiar meta (${Lstr(wgoal)} L)</button>
     </div>
     <button class="cal-edit" data-action="cal-open">Editar meta</button>
-    <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Buscar alimento…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
+    <div class="food-search-row">
+      <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Buscar alimento o marca…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
+      <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
+    </div>
     <div id="foodResults">${renderResults(ComidaState.foodQuery)}</div>
     <button class="cal-create" data-action="food-create-open">+ Crear alimento propio</button>
     <div class="diary-head"><span class="t">Hoy</span><span class="s">${state.diary.length} ítems · ${tot.kcal} kcal</span></div>
