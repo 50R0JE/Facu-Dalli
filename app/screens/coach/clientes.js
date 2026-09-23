@@ -6,7 +6,7 @@ import { State } from '../../core/state.js';
 
 import { migrateNames } from '../../core/storage.js';
 
-import { signedUrls } from '../../core/supabase.js';
+import { sessionFromRow, signedUrls } from '../../core/supabase.js';
 
 import { esc, fmtDate, mondayOf, today } from '../../core/utils.js';
 
@@ -109,7 +109,8 @@ export async function openClient(id){
     const sb=State.sb;
     const [ws, ss, rt, dl, ck, ci, bl, np, ph] = await Promise.all([
       sb.from("body_weights").select("*").eq("client_id",id).order("measured_on"),
-      sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at"),
+      // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
+      sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at"),
       sb.from("routines").select("days").eq("client_id",id).maybeSingle(),
       sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false}),
       sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false}),
@@ -119,7 +120,7 @@ export async function openClient(id){
       sb.from("checkin_photos").select("*").eq("client_id",id).order("created_at",{ascending:false})
     ]);
     const weights=(ws.data||[]).map(w=>({date:w.measured_on, kg:Number(w.kg)}));
-    const sessions=(ss.data||[]).map(se=>{ const byEx={}; (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); }); return {date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))}; });
+    const sessions=(ss.data||[]).map(sessionFromRow);
     const routine=(rt.data&&Array.isArray(rt.data.days))?JSON.parse(JSON.stringify(rt.data.days)):[];
     migrateNames(routine);
     const phRows=ph.data||[];

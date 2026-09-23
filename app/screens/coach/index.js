@@ -14,6 +14,8 @@ import { renderVolumen, renderWChart } from '../progreso.js';
 
 import { showSilkBg } from '../../ui/background.js';
 
+import { renderSessionItem } from '../../ui/sessiondetail.js';
+
 export function renderCoach(){
   const host=document.getElementById("coachHost"); if(!host) return;
   if(!CoachState.coachSel && CoachState.coachApplyPicker){ CoachState.coachApplyPicker=null; renderApplyPicker(); }
@@ -90,7 +92,7 @@ export function renderCoach(){
     else {
       const wchart=d.weights.length ? renderWChart(d.weights,false,"med") : '<div class="cal-hint">Sin registros de peso.</div>';
       const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
-      const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,20).map(se=>{ const names=se.exercises.map(e=>e.name).join(", "); return '<div class="sess-item"><div class="sess-main"><div class="sess-date">'+fmtDate(se.date)+' · '+esc(se.day||"")+'</div><div class="sess-exs">'+esc(names)+'</div></div></div>'; }).join("");
+      const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(se=>renderSessionItem(se)).join("");
       const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
       const tab=CoachState.coachClientTab||"ficha";
       const tabs='<div class="co-tabs">'+
@@ -109,7 +111,7 @@ export function renderCoach(){
              '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
              '<div class="co-sec">Seguimiento diario</div>'+renderCoachDaily(d)+
              '<div class="co-sec">Check-in semanal</div>'+renderCoachCheckins(d)+
-             '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
+             '<div class="co-sec">Historial de entrenos</div>'+(sess?'<div class="sess-hint">Tocá un entreno para ver los pesos y las series.</div>'+sess:'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
              '<div class="co-bottom">'+
                '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
                '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+

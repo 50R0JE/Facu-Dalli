@@ -151,7 +151,8 @@ export async function loadCloud(){
       sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
       sb.from("routines").select("days").eq("client_id",uid).maybeSingle(),
       sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on"),
-      sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",uid).order("created_at"),
+      // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
+      sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",uid).order("created_at"),
       sb.from("daily_logs").select("*").eq("client_id",uid),
       sb.from("checkins").select("*").eq("client_id",uid),
       sb.from("client_info").select("*").eq("client_id",uid).maybeSingle(),
@@ -180,12 +181,7 @@ export async function loadCloud(){
       State.cloudWeightDates=new Set(ws.data.map(w=>w.measured_on));
     }
     if(!ss.error && Array.isArray(ss.data)){
-      state.sessions=ss.data.map(se=>{
-        const byEx={};
-        (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); });
-        const exercises=Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}));
-        return {id:se.id, cloudId:se.id, date:se.performed_on, ts:new Date(se.created_at).getTime(), day:se.day_name, exercises:exercises};
-      });
+      state.sessions=ss.data.map(se=>Object.assign(sessionFromRow(se), {id:se.id, cloudId:se.id}));
     }
     if(!dl.error && Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]={steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}; }); }
     if(!ck.error && Array.isArray(ck.data)){ state.checkins={}; ck.data.forEach(r=>{ const o=Object.assign({}, r.answers||{}); if(r.adherence) o.adherence=r.adherence; state.checkins[r.week_start]=o; }); }
@@ -267,6 +263,22 @@ export function syncExtras(){
   const p=prefsSnapshot(), pj=JSON.stringify(p);
   if(pj!==_lastPrefs){ _lastPrefs=pj; enqueue("prefs", p, "prefs"); queued=true; }
   if(queued){ clearTimeout(_extrasTimer); _extrasTimer=setTimeout(()=>{ flushOutbox(); }, 1500); }
+}
+
+// Fila de "sessions" (con sus session_entries) → entreno como lo guarda la app.
+// Las series se ordenan por set_order (su número dentro del ejercicio): Supabase no
+// garantiza el orden de la relación, y sin esto el detalle del entreno podía mostrar la
+// serie 3 antes que la 1. El sort es estable, así que el orden de los ejercicios no cambia.
+export function sessionFromRow(se){
+  const byEx={};
+  (se.session_entries||[]).slice().sort((a,b)=>(a.set_order||0)-(b.set_order||0)).forEach(en=>{
+    (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0});
+  });
+  const out={date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))};
+  if(se.rpe) out.rpe=se.rpe;
+  if(se.pump) out.pump=se.pump;
+  if(typeof se.joint_pain==="boolean") out.joint=se.joint_pain;
+  return out;
 }
 
 export function cloudSyncCore(){
