@@ -60,6 +60,10 @@ if (!Array.isArray(state.foods)) state.foods = [];
 // el dispositivo para encontrarlos rápido y sin internet la próxima vez.
 if (!Array.isArray(state.offRecent)) state.offRecent = [];
 
+// Calorías totales de cada día pasado ({ "2026-09-22": 1850, … }), para el promedio de
+// 7 días en Comida. Se llena al pasar de día y con lo que hay en la nube.
+if (!state.kcalLog || typeof state.kcalLog !== "object") state.kcalLog = {};
+
 if (!Array.isArray(state.diary)) state.diary = [];
 
 if (!state.diaryDate) state.diaryDate = today();

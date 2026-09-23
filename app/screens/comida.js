@@ -8,7 +8,7 @@ import { flameSvg, searchSvg, xSvg } from '../core/icons.js';
 
 import { state } from '../core/state.js';
 
-import { esc, norm } from '../core/utils.js';
+import { esc, norm, ymd } from '../core/utils.js';
 
 import { renderClientPlan } from './checkin.js';
 
@@ -225,6 +225,7 @@ export function renderComida(){
       <button class="diary-rm" data-action="diary-remove" data-id="${e.id}" title="Quitar">${xSvg}</button>
     </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
   return `
+    <div class="cal-top">
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
         <defs><linearGradient id="calRingGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--gize-r1)"/><stop offset=".35" style="stop-color:var(--gize-r2)"/><stop offset=".7" style="stop-color:var(--gize-r3)"/><stop offset="1" style="stop-color:var(--gize-r4)"/></linearGradient></defs>
@@ -235,6 +236,8 @@ export function renderComida(){
         <div id="calRingNum" class="ring-num${over?' over':''}" data-val="${tot.kcal}">${tot.kcal}</div>
         <div class="ring-lbl">de ${t} kcal</div>
       </div>
+    </div>
+    ${renderWeekAvg(t)}
     </div>
     <div class="macros">
       ${mbar("Proteína", tot.p, mt.p)}
@@ -291,4 +294,42 @@ export function cookPortion(food, st){
 // El alimento elegido con los valores del estado en que lo pesó el cliente.
 export function selectedFoodValues(){
   return cookVariant(ComidaState.selectedFood, ComidaState.cookState);
+}
+
+// ---- Promedio de calorías de los últimos 7 días ----
+// Se guarda el total del día cuando la app pasa al día siguiente (ver checkDaily) y se
+// completa con la nube al abrir la app. Se conservan 60 días.
+export function logDayKcal(date, diary){
+  if(!date || !Array.isArray(diary) || !diary.length) return;
+  const tot = diary.reduce((a,e)=>a+(Number(e.kcal)||0), 0);
+  state.kcalLog = Object.assign({}, state.kcalLog||{}); state.kcalLog[date] = Math.round(tot);
+  const keys = Object.keys(state.kcalLog).sort(); while(keys.length > 60) delete state.kcalLog[keys.shift()];
+}
+
+// Promedio de los 7 días anteriores a hoy (hoy no cuenta: todavía no terminó). Solo
+// promedia los días en que se anotó algo: un día sin registrar no es un día de 0 kcal.
+export function weekKcal(){
+  const log = state.kcalLog || {}; const vals = [];
+  for(let i=1;i<=7;i++){ const d=new Date(); d.setDate(d.getDate()-i); const v=log[ymd(d)]; if(v>0) vals.push(v); }
+  return vals.length ? { avg: Math.round(vals.reduce((a,b)=>a+b,0)/vals.length), days: vals.length } : null;
+}
+
+// Recuadro chico al lado del anillo de calorías. Con los datos del cliente (Mifflin-St
+// Jeor, ver calcTarget) se compara con su mantenimiento: déficit / superávit. Si la meta
+// la puso el coach o se cargó a mano, no se sabe el mantenimiento y se compara con la meta.
+function renderWeekAvg(target){
+  const w = weekKcal();
+  if(!w) return `<div class="wk-avg empty"><span class="wk-t">Promedio 7 días</span><span class="wk-hint">Registrá lo que comés unos días para verlo</span></div>`;
+  const prof = state.calProfile, useMaint = !state.coachPlan && prof && +prof.age>0 && +prof.height>0 && +prof.weight>0;
+  const ref = useMaint ? calcTarget(Object.assign({}, prof, {goal:"mantener"})) : target;
+  const diff = w.avg - ref, band = ref * 0.05;
+  const st = !ref ? "" : Math.abs(diff) <= band ? "eq" : (diff < 0 ? "down" : "up");
+  const lbl = { eq: useMaint ? "Mantenimiento" : "En tu meta", down: useMaint ? "Déficit" : "Debajo de la meta", up: useMaint ? "Superávit" : "Arriba de la meta" }[st] || "";
+  const sign = diff > 0 ? "+" : diff < 0 ? "−" : "";
+  return `<div class="wk-avg ${st}" title="Promedio de los días registrados de la última semana, comparado con ${useMaint?"tu mantenimiento ("+ref+" kcal)":"tu meta ("+ref+" kcal)"}">
+    <span class="wk-t">Promedio 7 días</span>
+    <span class="wk-n">${w.avg.toLocaleString("es-AR")}<small> kcal/día</small></span>
+    ${st ? `<span class="wk-st">${lbl}</span><span class="wk-d">${sign}${Math.abs(Math.round(diff)).toLocaleString("es-AR")} kcal vs ${useMaint?"mantenim.":"meta"}</span>` : ""}
+    <span class="wk-days">${w.days} de 7 días registrados</span>
+  </div>`;
 }

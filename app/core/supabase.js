@@ -6,7 +6,7 @@ import { State, state } from './state.js';
 
 import { migrateNames, save } from './storage.js';
 
-import { today } from './utils.js';
+import { today, ymd } from './utils.js';
 
 import { renderApp } from '../main.js';
 
@@ -28,6 +28,9 @@ export const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // devuelve {data:null, error}. Un try/catch a secas no atrapa nada, y el código seguía
 // como si se hubiera guardado. Envolvé cada escritura con sbOk() para que un error
 // real llegue al catch.
+// Fecha (AAAA-MM-DD) de hace n días, en hora local.
+function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return ymd(d); }
+
 export function sbOk(r){ if(r && r.error) throw r.error; return r; }
 
 // Pasa a la rutina que mandó el coach (cloudDays) lo que el cliente ya cargó en su copia
@@ -151,7 +154,7 @@ export async function loadCloud(){
     // Todas las lecturas salen juntas (antes iban de a una y el arranque sumaba ~12 idas
     // y vueltas a Supabase); después se aplican en el mismo orden de siempre.
     const uid=State.cloudUser.id, sb=State.sb;
-    const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp, cq] = await Promise.all([
+    const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp, cq, fw] = await Promise.all([
       sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
       sb.from("routines").select("days").eq("client_id",uid).maybeSingle(),
       sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on"),
@@ -168,6 +171,8 @@ export async function loadCloud(){
       // propio). Si la tabla todavía no existe en la base, da error y se ignora: quedan
       // las predeterminadas.
       sb.from("coach_questions").select("daily, checkin").maybeSingle(),
+      // Calorías de los 7 días anteriores, para el promedio semanal de Comida.
+      sb.from("food_entries").select("log_date, kcal").eq("client_id",uid).gte("log_date",daysAgo(7)).lt("log_date",today()),
       loadMyPhotos()
     ]);
     const pr=sbOk(pr0);
@@ -195,6 +200,11 @@ export async function loadCloud(){
     // sus columnas (que mandan si aparecen en los dos lados).
     if(!dl.error && Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]=Object.assign({}, r.answers||{}, {steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}); }); }
     if(!cq.error) state.coachQ = cq.data ? {daily:cq.data.daily||null, checkin:cq.data.checkin||null} : null;
+    // La nube manda para esos 7 días: suma lo anotado en cada uno (vale desde cualquier celular).
+    if(fw && !fw.error && Array.isArray(fw.data)){
+      const byDay={}; fw.data.forEach(r=>{ byDay[r.log_date]=(byDay[r.log_date]||0)+(Number(r.kcal)||0); });
+      state.kcalLog = Object.assign({}, state.kcalLog||{}, byDay);
+    }
     if(!ck.error && Array.isArray(ck.data)){ state.checkins={}; ck.data.forEach(r=>{ const o=Object.assign({}, r.answers||{}); if(r.adherence) o.adherence=r.adherence; state.checkins[r.week_start]=o; }); }
     if(!ci.error) state.info = ci.data || null;
     if(!bl.error) state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;

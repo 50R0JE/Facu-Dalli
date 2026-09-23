@@ -117,3 +117,27 @@ body.scan-open { overflow:hidden; }
 .scan-msg { text-align:center; color:var(--txt-2); font-size:var(--text-body); min-height:20px; }
 .scan-manual { display:flex; gap:8px; }
 .scan-manual .form-input { flex:1; min-width:0; }
+
+/* ===== Anillo de calorías + promedio de 7 días al costado ===== */
+.cal-top { display:flex; align-items:center; justify-content:center; gap:14px; margin:8px 0 6px; }
+.cal-top .ring-wrap { margin:0; flex-shrink:0; }
+.wk-avg { flex:0 1 150px; min-width:0; display:flex; flex-direction:column; gap:3px; padding:12px 12px 11px; border-radius:14px;
+    background:var(--gize-surface); border:1px solid var(--gize-border); }
+.wk-t { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--txt-3); }
+.wk-n { font:700 20px var(--font-mono); color:var(--gize-text); line-height:1.15; }
+.wk-n small { font:500 10px var(--gize-font); color:var(--txt-3); margin-left:3px; }
+.wk-st { font-size:var(--text-meta); font-weight:700; margin-top:2px; }
+.wk-d { font:600 11px var(--font-mono); color:var(--txt-2); }
+.wk-days, .wk-hint { font-size:10.5px; color:var(--txt-3); line-height:1.35; }
+/* Color = estado, no juicio: déficit en azul (dato), superávit en ámbar (aviso), en la
+   meta / mantenimiento en verde agua. */
+.wk-avg.down { border-color:color-mix(in srgb, var(--gize-blue) 45%, transparent); }
+.wk-avg.down .wk-st { color:var(--gize-blue); }
+.wk-avg.up { border-color:color-mix(in srgb, var(--gize-warning) 45%, transparent); }
+.wk-avg.up .wk-st { color:var(--gize-warning); }
+.wk-avg.eq { border-color:color-mix(in srgb, var(--gize-success) 45%, transparent); }
+.wk-avg.eq .wk-st { color:var(--gize-success); }
+@media (max-width: 360px){
+  .cal-top { flex-direction:column; }
+  .wk-avg { flex-basis:auto; width:100%; max-width:260px; }
+}
