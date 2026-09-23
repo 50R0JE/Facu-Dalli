@@ -149,7 +149,26 @@ select.co-select { cursor:pointer; }
     color:var(--txt-2); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
 .co-sec-gear svg { width:16px; height:16px; }
 .co-sec-gear:hover { color:var(--gize-text); border-color:var(--gize-blue); }
-/* Selector de día / semana del seguimiento. */
-.co-pick { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.co-pick span { font-size:var(--text-meta); color:var(--txt-3); font-weight:600; flex-shrink:0; }
-.co-pick select { max-width:260px; }
+/* Selector de día / semana / entreno de la ficha del cliente. Select propio (sin el
+   aspecto del sistema): Outfit, pastilla con borde de marca y flecha dibujada. */
+.co-pick { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.co-pick span { font-size:var(--text-meta); color:var(--txt-3); font-weight:600; letter-spacing:.02em; flex-shrink:0; min-width:52px; }
+.co-select { -webkit-appearance:none; appearance:none; min-width:0; width:min(320px, 100%);
+    font:600 var(--text-body) var(--gize-font); color:var(--gize-text); letter-spacing:.01em;
+    background:var(--gize-surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238F98A6' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    border:1px solid rgba(255,255,255,.14); border-radius:var(--gize-radius-pill); padding:10px 40px 10px 16px; cursor:pointer;
+    transition:border-color .15s, box-shadow .15s; }
+.co-select:hover { border-color:rgba(255,255,255,.28); }
+.co-select:focus-visible { outline:none; border-color:var(--gize-blue); box-shadow:0 0 0 3px color-mix(in srgb, var(--gize-blue) 18%, transparent); }
+.co-select option { background:var(--gize-surface); color:var(--gize-text); }
+
+/* Gráfico a la izquierda y registros a la derecha (promedio semanal y peso diario).
+   La lista tiene su propio scroll para no estirar la sección; en celular van apiladas. */
+.co-split { display:grid; gap:16px; align-items:start; }
+.co-split-side { max-height:340px; overflow-y:auto; border:1px solid var(--gize-border); border-radius:10px; padding:0 10px 6px; background:var(--gize-surface); }
+.co-split-side .co-tbl { margin-top:0; }
+.co-split-side .co-tbl th { position:sticky; top:0; background:var(--gize-surface); z-index:1; padding-top:10px; }
+@media (min-width: 900px){
+  .co-split { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .co-split .w-chart { margin-bottom:0; }
+}
