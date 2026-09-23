@@ -1,4 +1,4 @@
-import { CHECKIN_Q, SCALES } from '../core/data.js';
+import { clientQuestions } from '../core/questions.js';
 
 import { copySvg, pillSvg, trophySvg } from '../core/icons.js';
 
@@ -86,9 +86,14 @@ export function renderInfo(){
 
 export function renderDaily(){
   const d = CheckinState.dailyForm || (state.daily[today()] || {});
-  const rows = SCALES.map(sc=>{
-    const opts = sc[2].map(o=>'<button class="sc-opt'+(d[sc[0]]===o?' on':'')+'" data-action="daily-set" data-k="'+sc[0]+'" data-v="'+esc(o)+'">'+o+'</button>').join("");
-    return '<div class="sc-row"><span class="sc-lbl">'+sc[1]+'</span><div class="sc-opts">'+opts+'</div></div>';
+  // Preguntas del coach (o las predeterminadas): las de opciones van como botones, las de
+  // texto como campo. Peso y pasos quedan fijos arriba: alimentan el gráfico y Hábitos.
+  const rows = clientQuestions("daily").map(q=>{
+    if(q.type==="options"){
+      const opts = q.options.map(o=>'<button class="sc-opt'+(String(d[q.id])===o?' on':'')+'" data-action="daily-set" data-k="'+esc(q.id)+'" data-v="'+esc(o)+'">'+esc(o)+'</button>').join("");
+      return '<div class="sc-row"><span class="sc-lbl">'+esc(q.label)+'</span><div class="sc-opts">'+opts+'</div></div>';
+    }
+    return '<div class="dfield" style="margin-top:10px"><label>'+esc(q.label)+'</label><input class="form-input" value="'+esc(d[q.id]||"")+'" data-action="daily-text" data-k="'+esc(q.id)+'"></div>';
   }).join("");
   return `
     <div class="hb-head"><div class="hb-title">Registro de hoy</div><div class="title-accent"></div></div>
@@ -98,7 +103,6 @@ export function renderDaily(){
         <div class="dfield"><label>Pasos</label><input id="dSteps" class="form-input" type="text" inputmode="numeric" placeholder="0" value="${esc(d.steps||state.steps||"")}" data-action="daily-steps"></div>
       </div>
       ${rows}
-      <div class="dfield" style="margin-top:10px"><label>Comentarios del día</label><input id="dCom" class="form-input" placeholder="Cómo te sentiste, algo que quieras contarle a tu coach…" value="${esc(d.comment||"")}" data-action="daily-com"></div>
       <button class="form-save" style="margin-top:12px" data-action="daily-save">Guardar registro de hoy</button>
     </div>`;
 }
@@ -119,13 +123,17 @@ export function renderCheckin(){
       </div>`;
   }
   const f = CheckinState.checkinForm || (saved ? JSON.parse(JSON.stringify(saved)) : {});
-  const qs = CHECKIN_Q.map(q=>`<div class="ci-q"><label>${q[1]}</label><textarea class="ci-in" rows="2" data-action="ci-set" data-k="${q[0]}">${esc(f[q[0]]||"")}</textarea></div>`).join("");
-  const adh = [1,2,3,4,5,6,7,8,9,10].map(n=>'<button class="sc-opt'+(String(f.adherence)===String(n)?' on':'')+'" data-action="ci-adh" data-v="'+n+'">'+n+'</button>').join("");
+  const qs = clientQuestions("checkin").map(q=>{
+    if(q.type==="options"){
+      const opts = q.options.map(o=>'<button class="sc-opt'+(String(f[q.id])===o?' on':'')+'" data-action="ci-opt" data-k="'+esc(q.id)+'" data-v="'+esc(o)+'">'+esc(o)+'</button>').join("");
+      return '<div class="ci-q"><label>'+esc(q.label)+'</label><div class="sc-opts">'+opts+'</div></div>';
+    }
+    return '<div class="ci-q"><label>'+esc(q.label)+'</label><textarea class="ci-in" rows="2" data-action="ci-set" data-k="'+esc(q.id)+'">'+esc(f[q.id]||"")+'</textarea></div>';
+  }).join("");
   return `<div class="hb-head" style="margin-top:26px"><div class="hb-title">Check-in semanal</div><div class="title-accent"></div></div>
     <div class="ci-card">
       <div class="ci-week">Semana del ${fmtDate(wk)}</div>
       ${qs}
-      <div class="ci-q"><label>Adherencia a la nutrición (1 = nada, 10 = perfecto)</label><div class="sc-opts">${adh}</div></div>
       <button class="form-save" style="margin-top:14px" data-action="ci-save">Enviar check-in a mi coach</button>
       <button class="logout-btn" style="margin-top:8px" data-action="ci-close">Cancelar</button>
     </div>`;
