@@ -32,7 +32,7 @@ import { CoachState } from './screens/coach/state.js';
 
 import { ComidaState, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
 
-import { EntrenoState, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, routineLocked, startLive, stopLive } from './screens/entreno.js';
+import { EntrenoState, REST_DEFAULT, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, restLabel, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
 import { HabitosState, addHabit, checkDaily, renderHabitos } from './screens/habitos.js';
 
@@ -42,7 +42,7 @@ import { beep, initAudio } from './ui/audio.js';
 
 import { showSilkBg } from './ui/background.js';
 
-import { renderRestBar, startRest, stopRest } from './ui/restbar.js';
+import { parseRest, renderRestBar, startRest, stopRest } from './ui/restbar.js';
 
 import { initScrollReveal, setupExerciseFocus } from './ui/scrollfocus.js';
 
@@ -168,7 +168,7 @@ document.body.addEventListener("click", async e => {
   if (navBtn) { State.view = navBtn.dataset.view; ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.calEditing=false; ComidaState.creatingFood=false; EntrenoState.exPicker=null; renderApp(); return; }
   const el = e.target.closest("[data-action]"); if(!el) return;
   const a = el.dataset.action;
-  if (routineLocked() && ["addday","delday","removeex","addset","removeset","ex-add-open","ex-swap","ex-insert","ex-choose","ex-custom","load-default-routine"].indexOf(a)>=0) return;
+  if (routineLocked() && ["addday","delday","removeex","addset","removeset","ex-add-open","ex-swap","ex-insert","ex-choose","ex-custom","load-default-routine","rest-edit","rest-adj","rest-preset"].indexOf(a)>=0) return;
 
   // Hábitos
   if (a === "habit-add") { addHabit(); return; }
@@ -337,6 +337,15 @@ document.body.addEventListener("click", async e => {
   }
   if (a === "ex-expand") { expandedOverride.add(ex.id); renderApp(); return; }
   if (a === "ex-collapse") { collapseExerciseAnimated(ex.id, ()=>{ expandedOverride.delete(ex.id); renderApp(); }); return; }
+  // Descanso editable por ejercicio (solo sin coach: con coach no se muestra el lápiz).
+  if (a === "rest-edit") { EntrenoState.restEditEx = EntrenoState.restEditEx===ex.id ? null : ex.id; renderApp(); return; }
+  if (a === "rest-adj" || a === "rest-preset") {
+    if (routineLocked()) return;
+    const cur = parseRest(ex.rest) || REST_DEFAULT;
+    const sec = a === "rest-preset" ? (parseInt(el.dataset.sec)||REST_DEFAULT) : cur + (parseInt(el.dataset.d)||0);
+    ex.rest = restLabel(Math.min(900, Math.max(15, sec)));
+    save(); renderApp(); return;
+  }
   if (a === "addset") { ex.sets.push(mkSet()); }
   else if (a === "removeset") { ex.sets = ex.sets.filter(x=>x.id!==el.dataset.set); }
   else if (a === "removeex") { d.exercises = d.exercises.filter(x=>x.id!==el.dataset.ex); }

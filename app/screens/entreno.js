@@ -26,7 +26,38 @@ export const EntrenoState = {
 
   loadEx: null,
 
+  // Ejercicio con el editor de descanso abierto (solo sin coach).
+  restEditEx: null,
+
 };
+
+// Descanso de cada ejercicio. Con coach: el que puso el coach, solo para iniciar.
+// Sin coach: siempre visible (2:00 si el ejercicio no tiene uno) y con el lápiz para
+// cambiarlo a gusto; se guarda en el ejercicio (ex.rest) y viaja con la rutina.
+const REST_PRESETS = [45, 60, 90, 120, 150, 180, 240, 300];
+export const REST_DEFAULT = 120;
+export function restLabel(sec){ const m=Math.floor(sec/60), x=sec%60; return m+":"+String(x).padStart(2,"0"); }
+
+function restRow(ex){
+  if(routineLocked()){
+    return ex.rest?`<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${parseRest(ex.rest)}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest)}</span></button>`:'';
+  }
+  const sec = parseRest(ex.rest) || REST_DEFAULT;
+  const open = EntrenoState.restEditEx === ex.id;
+  const main = `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest||restLabel(sec))}</span></button>`+
+    `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${ex.id}" title="Cambiar tiempo de descanso" aria-label="Cambiar tiempo de descanso" aria-expanded="${open}">${pencilSvg}</button></div>`;
+  if(!open) return main;
+  return main + `<div class="rest-editor">
+      <div class="re-title">Descanso de este ejercicio</div>
+      <div class="re-adj">
+        <button class="re-step" data-action="rest-adj" data-ex="${ex.id}" data-d="-15" aria-label="Restar 15 segundos">−15s</button>
+        <span class="re-val">${restLabel(sec)}</span>
+        <button class="re-step" data-action="rest-adj" data-ex="${ex.id}" data-d="15" aria-label="Sumar 15 segundos">+15s</button>
+      </div>
+      <div class="re-presets">${REST_PRESETS.map(p=>`<button class="rest-opt${p===sec?' on':''}" data-action="rest-preset" data-ex="${ex.id}" data-sec="${p}">${restLabel(p)}</button>`).join("")}</div>
+      <button class="re-done" data-action="rest-edit" data-ex="${ex.id}">Listo</button>
+    </div>`;
+}
 
 export function blockWeek(b, dstr){
   if(!b || !b.start_date) return 0;
@@ -164,7 +195,7 @@ export function renderEntreno(){
       ${sets}
       ${ex.note?`<div class="ex-note"><span class="ex-note-t">Nota de tu coach</span>${esc(ex.note)}</div>`:''}
       ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>`}
-      ${ex.rest?`<button class="rest-btn-full" data-action="rest-from-ex" data-sec="${parseRest(ex.rest)}"><span class="rbf-play">${playSvg} Iniciar descanso</span><span class="rbf-time">${esc(ex.rest)}</span></button>`:''}
+      ${restRow(ex)}
     </div>`;
   } catch(err) {
     // Ojo acá: si lo que reventó fue justo leer una propiedad de ex (ex.name, ex.id),

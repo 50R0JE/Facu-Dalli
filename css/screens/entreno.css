@@ -131,3 +131,19 @@
 .ex-video svg { width:var(--icon-xs); height:var(--icon-xs); flex-shrink:0; }
 
 .ex-video:active { background:var(--blue); color:var(--gize-text); }
+
+/* --- Descanso editable (usuario sin coach): botón + lápiz y editor debajo --- */
+.rest-row { display:flex; gap:8px; align-items:stretch; margin-top:10px; }
+.rest-row .rest-btn-full { margin-top:0; flex:1; min-width:0; }
+.rest-edit { flex-shrink:0; width:46px; display:inline-flex; align-items:center; justify-content:center; background:var(--btn-fill, var(--card-2)); border:1px solid var(--btn-line, var(--border)); border-radius:var(--btn-r, 10px); color:var(--gize-text-2); cursor:pointer; }
+.rest-edit svg { width:var(--icon-sm); height:var(--icon-sm); }
+.rest-edit:hover, .rest-edit.on { color:var(--gize-text); border-color:color-mix(in srgb, var(--gize-blue) 55%, transparent); }
+.rest-editor { margin-top:10px; padding:14px; border:1px solid var(--gize-border); border-radius:12px; background:var(--gize-surface-2); display:flex; flex-direction:column; gap:12px; }
+.re-title { font-size:var(--text-meta); color:var(--gize-text-2); font-weight:600; text-align:center; }
+.re-adj { display:flex; align-items:center; justify-content:center; gap:14px; }
+.re-val { font:700 28px var(--gize-font); color:var(--gize-text); min-width:88px; text-align:center; font-variant-numeric:tabular-nums; }
+.re-step { min-width:62px; min-height:40px; border-radius:999px; background:var(--gize-surface); border:1px solid var(--gize-border); color:var(--gize-text); font-weight:600; cursor:pointer; }
+.re-step:active { transform:scale(.96); }
+.re-presets { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; }
+.re-presets .rest-opt { min-height:36px; font-weight:600; font-variant-numeric:tabular-nums; }
+.re-done { align-self:center; min-height:36px; padding:0 22px; border-radius:999px; background:var(--gize-blue); color:#fff; border:0; font-weight:700; cursor:pointer; }
