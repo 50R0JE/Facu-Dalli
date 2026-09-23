@@ -28,10 +28,17 @@ export async function resolveAvatars(paths){
   const need = [...new Set((paths || []).filter(p => p && !avatarUrl(p)))];
   if (!need.length || !State.sb) return false;
   const r = await State.sb.storage.from(BUCKET).createSignedUrls(need, TTL);
-  if (r.error || !Array.isArray(r.data)) return false;
+  if (r.error || !Array.isArray(r.data)){ console.error("avatars: links firmados", r.error); return false; }
   const exp = Date.now() + (TTL - 600) * 1000;
-  r.data.forEach(d => { if (d && d.signedUrl && d.path) urls.set(d.path, { url: d.signedUrl, exp }); });
-  return true;
+  let any = false;
+  r.data.forEach((d, i) => {
+    // Cada ítem puede venir con su propio error (p. ej. la política de storage no deja
+    // leer esa carpeta): se loguea para poder verlo en vez de quedar en iniciales mudas.
+    const p = (d && d.path) || need[i];
+    if (d && d.signedUrl && p){ urls.set(p, { url: d.signedUrl, exp }); any = true; }
+    else console.error("avatars: sin link para", p, d && d.error);
+  });
+  return any;
 }
 
 // Círculo con la foto o, si no hay, con las iniciales (mismas clases que ya usa cada lugar).
