@@ -1,9 +1,25 @@
 /* css/screens/auth.css */
+/* Fondo del login: la aurora de la marca (brand/tokens.css) con las cuatro manchas
+   de la gama RGB. Más tenue que en la landing para que la tarjeta se siga leyendo.
+   Ya respeta prefers-reduced-motion desde tokens.css. */
+.auth-aurora { opacity:.32; }
+
 .auth-card {
     position:relative; z-index:2; width:100%; max-width:368px; display:flex; flex-direction:column; gap:13px;
-    background: var(--card); border:1px solid var(--border); border-radius:4px; padding:36px 26px 28px;
-    box-shadow:0 20px 50px rgba(0,0,0,.45);
+    background: var(--card); border:1px solid transparent; border-radius:4px; padding:36px 26px 28px;
+    box-shadow:0 20px 50px rgba(0,0,0,.45),
+      0 0 60px -10px color-mix(in srgb, var(--gize-r2) 28%, transparent);
     animation:authFadeUp var(--duration-rare) var(--ease-drawer) both;
+  }
+
+/* Borde con la gama RGB alrededor de toda la tarjeta. Quieto a propósito: el único
+   anillo que gira en la pantalla es el del botón "Ingresar" (BRAND.md, regla 1).
+   Misma técnica de máscara que .gize-btn: solo se pinta el borde de 1,5 px. */
+.auth-card::before {
+    content:""; position:absolute; inset:-1px; padding:1.5px; border-radius:inherit; pointer-events:none;
+    background:conic-gradient(from 210deg, var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4), var(--gize-r1));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask:linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   }
 
 .auth-brand-ic {
