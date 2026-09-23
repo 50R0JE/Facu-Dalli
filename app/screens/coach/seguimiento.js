@@ -6,6 +6,8 @@ import { weeklyAvg } from './clientes.js';
 
 import { renderWChart } from '../progreso.js';
 
+import { CoachState } from './state.js';
+
 export function renderCoachWeekly(d){
   const avg=weeklyAvg(d.weights);
   if(!avg.length) return '<div class="cal-hint">Sin registros de peso.</div>';
@@ -27,36 +29,46 @@ function dailyAnswers(r){
   return a;
 }
 
+const WD=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+function dayLabel(iso){ const d=new Date(iso+"T12:00:00"); return (isNaN(d)?"":WD[d.getDay()]+" ")+fmtDate(iso); }
+
+// Tarjeta de preguntas → respuestas (mismo formato para el día y la semana).
+function qaList(list){
+  return list.map(q=>'<div class="ck-q"><div class="ck-qt">'+esc(q.label)+'</div><div class="ck-qa">'+esc(String(q.value))+'</div></div>').join("");
+}
+
+// Selector de día/semana: mismo <select> que "Evolución de cargas". Muestra un registro
+// por vez (antes se listaban todos juntos y había que scrollear para encontrar uno).
+function picker(action, items, sel, label){
+  return '<label class="co-pick"><span>'+label+'</span><select class="form-input" data-coach="'+action+'">'+
+    items.map(it=>'<option value="'+esc(it.v)+'"'+(it.v===sel?' selected':'')+'>'+esc(it.t)+'</option>').join("")+'</select></label>';
+}
+
 export function renderCoachDaily(d){
-  const rows=(d.daily||[]).slice(0,14);
+  const rows=(d.daily||[]).slice().sort((a,b)=>String(b.log_date).localeCompare(String(a.log_date)));
   if(!rows.length) return '<div class="cal-hint">El cliente todav\u00eda no carg\u00f3 registros diarios.</div>';
   const wmap={}; (d.weights||[]).forEach(w=>wmap[w.date]=w.kg);
-  // Una columna por pregunta respondida, en el orden de las preguntas del coach; las que
-  // ya no están (el coach las cambió o borró) van al final con su texto de entonces.
-  const cols=[]; const seen={};
-  rows.forEach(r=>answeredQuestions("daily", dailyAnswers(r), coachOwnQuestions("daily")).forEach(q=>{ if(!seen[q.id]){ seen[q.id]=1; cols.push(q); } }));
-  const own=(coachOwnQuestions("daily")||[]).map(q=>q.id);
-  cols.sort((x,y)=>{ const ix=own.indexOf(x.id), iy=own.indexOf(y.id); return (ix<0?999:ix)-(iy<0?999:iy); });
-  const body=rows.map(r=>{
-    const w=wmap[r.log_date]; const a=dailyAnswers(r);
-    return '<tr><td class="dt">'+fmtDate(r.log_date)+'</td>'+
-      '<td>'+(w?w.toFixed(1)+' kg':'\u2014')+'</td>'+
-      '<td>'+(r.steps?Number(r.steps).toLocaleString("es-AR"):'\u2014')+'</td>'+
-      cols.map(q=>'<td class="'+(String(a[q.id]||"").length>24?'cm':'')+'">'+(a[q.id]!=null&&a[q.id]!==""?esc(String(a[q.id])):'\u2014')+'</td>').join("")+'</tr>';
-  }).join("");
-  return '<div class="co-scroll"><table class="co-tbl"><thead><tr><th>Fecha</th><th>Peso</th><th>Pasos</th>'+cols.map(q=>'<th title="'+esc(q.label)+'">'+esc(q.label)+'</th>').join("")+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+  const sel=rows.some(r=>r.log_date===CoachState.coachDailySel) ? CoachState.coachDailySel : rows[0].log_date;
+  const r=rows.find(x=>x.log_date===sel);
+  const w=wmap[r.log_date];
+  const qs=answeredQuestions("daily", dailyAnswers(r), coachOwnQuestions("daily"));
+  const top='<div class="ck-head">'+dayLabel(r.log_date)+
+    '<span class="ck-adh">Peso: <b>'+(w?w.toFixed(1)+' kg':'\u2014')+'</b> · Pasos: <b>'+(r.steps?Number(r.steps).toLocaleString("es-AR"):'\u2014')+'</b></span></div>';
+  return picker("daily-pick", rows.map(x=>({v:x.log_date, t:dayLabel(x.log_date)})), sel, "Día")+
+    '<div class="ck-card">'+top+(qs.length?qaList(qs):'<div class="cal-hint">Ese día no respondió las preguntas del registro.</div>')+'</div>';
 }
 
 export function renderCoachCheckins(d){
-  const cks=(d.checkins||[]);
+  const cks=(d.checkins||[]).slice().sort((a,b)=>String(b.week_start).localeCompare(String(a.week_start)));
   if(!cks.length) return '<div class="cal-hint">El cliente todav\u00eda no respondi\u00f3 ning\u00fan check-in.</div>';
-  return cks.slice(0,8).map(c=>{
-    const a=c.answers||{};
-    // La adherencia tiene su propia columna y se muestra en el encabezado.
-    const qs=answeredQuestions("checkin", a, coachOwnQuestions("checkin")).filter(q=>q.id!=="adherence").map(q=>'<div class="ck-q"><div class="ck-qt">'+esc(q.label)+'</div><div class="ck-qa">'+esc(String(q.value))+'</div></div>').join("");
-    const adh=c.adherence?'<span class="ck-adh">Adherencia: <b>'+c.adherence+'/10</b></span>':'';
-    return '<div class="ck-card"><div class="ck-head">Semana del '+fmtDate(c.week_start)+' '+adh+'</div>'+(qs||'<div class="cal-hint">Sin respuestas.</div>')+'</div>';
-  }).join("");
+  const sel=cks.some(c=>c.week_start===CoachState.coachCkSel) ? CoachState.coachCkSel : cks[0].week_start;
+  const c=cks.find(x=>x.week_start===sel);
+  const a=c.answers||{};
+  // La adherencia tiene su propia columna y se muestra en el encabezado.
+  const qs=answeredQuestions("checkin", a, coachOwnQuestions("checkin")).filter(q=>q.id!=="adherence");
+  const adh=c.adherence?'<span class="ck-adh">Adherencia: <b>'+c.adherence+'/10</b></span>':'';
+  return picker("ck-pick", cks.map(x=>({v:x.week_start, t:"Semana del "+fmtDate(x.week_start)})), sel, "Semana")+
+    '<div class="ck-card"><div class="ck-head">Semana del '+fmtDate(c.week_start)+' '+adh+'</div>'+(qs.length?qaList(qs):'<div class="cal-hint">Sin respuestas.</div>')+'</div>';
 }
 
 export function renderCoachPhotos(d){

@@ -604,6 +604,8 @@ document.body.addEventListener("change", async e => {
   const a=el.dataset.coach;
   if(a==="ex"){ CoachState.coachData.loadEx=el.value; renderCoach(); }
   else if(a==="dayfilter"){ CoachState.coachDayFilter=el.value||null; CoachState.coachData.loadEx=null; renderCoach(); }
+  else if(a==="daily-pick"){ CoachState.coachDailySel=el.value; renderCoach(); }
+  else if(a==="ck-pick"){ CoachState.coachCkSel=el.value; renderCoach(); }
 });
 
 document.body.addEventListener("input", async e => {

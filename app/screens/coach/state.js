@@ -55,6 +55,12 @@ export const CoachState = {
 
   coachQError: null,
 
+  // Día (log_date) y semana (week_start) elegidos en el seguimiento del cliente. null =
+  // el más reciente.
+  coachDailySel: null,
+
+  coachCkSel: null,
+
   coachNameForm: null,
 
   // ids de ejercicios expandidos en el editor de rutina — por defecto todo colapsado

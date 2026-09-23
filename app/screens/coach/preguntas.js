@@ -37,8 +37,8 @@ function currentList(kind){
   return (cq && cq.length) ? cq : defaultQuestions(kind);
 }
 
-function openEditor(){
-  CoachState.coachQEdit = { tab: "daily", daily: currentList("daily"), checkin: currentList("checkin"), dirty: false };
+function openEditor(tab){
+  CoachState.coachQEdit = { tab: (tab === "checkin" ? "checkin" : "daily"), daily: currentList("daily"), checkin: currentList("checkin"), dirty: false };
   renderQuestionsEditor();
   // Si todavía no se leyeron (o cambiaron en otro dispositivo), se leen y se refresca,
   // salvo que el coach ya haya empezado a editar.
@@ -117,7 +117,7 @@ async function saveQuestions(btn){
 document.body.addEventListener("click", e => {
   const b = e.target.closest("[data-coach]"); if(!b) return;
   const a = b.dataset.coach; if(a.indexOf("q-") !== 0) return;
-  if(a === "q-open"){ openEditor(); return; }
+  if(a === "q-open"){ openEditor(b.dataset.k); return; }
   const ed = CoachState.coachQEdit; if(!ed) return;
   const list = ed[ed.tab], i = +b.dataset.i;
   if(a === "q-close"){ closeEditor(); return; }
