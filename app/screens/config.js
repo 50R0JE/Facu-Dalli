@@ -135,7 +135,7 @@ export function renderConfig() {
       '<button class="logout-btn cfg-danger" data-action="cfg-delete-account">Eliminar cuenta</button>' +
     '</div>';
 
-  const about = '<div class="cfg-about">Core</div>';
+  const about = '<div class="cfg-about"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>';
 
   return '<div class="hb-head"><div class="hb-title">Configuración</div><div class="title-accent"></div></div>' +
     account + coachSection + notifSection + legalSection + contactSection + dataSection + dangerSection + about;
@@ -220,7 +220,7 @@ document.body.addEventListener("click", async function (e) {
       return;
     }
     if (Notification.permission === "denied") {
-      alert("Las notificaciones están bloqueadas para Core en este dispositivo. Para activarlas, habilitalas desde los ajustes del navegador o del celular.");
+      alert("Las notificaciones están bloqueadas para GIZE en este dispositivo. Para activarlas, habilitalas desde los ajustes del navegador o del celular.");
       return;
     }
     try {

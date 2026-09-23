@@ -61,7 +61,9 @@
 
 .cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
 
-.cfg-about { text-align:center; color:var(--txt-3); font-size:var(--text-meta); margin-top:4px; padding-bottom:8px; }
+.cfg-about { display:flex; justify-content:center; margin-top:4px; padding-bottom:8px; }
+
+.cfg-about img { height:14px; width:auto; display:block; opacity:.55; }
 
 .cfg-danger { border-color:rgba(192,57,43,.35) !important; color:#e08a80 !important; }
 
