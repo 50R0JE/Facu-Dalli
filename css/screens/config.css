@@ -21,13 +21,13 @@
 /* Botón cuadrado con borde (mismo lenguaje que .top-btn / botones secundarios):
      antes era un ícono gris de 14px suelto, difícil de ver y de tocar. */
 .cfg-edit-name-btn { flex-shrink:0; width:32px; height:32px; padding:0; border-radius:8px;
-    background:rgba(34,129,224,.12); border:1px solid rgba(34,129,224,.45); color:#5aa5f0;
+    background:color-mix(in srgb, var(--gize-blue) 12%, transparent); border:1px solid color-mix(in srgb, var(--gize-blue) 45%, transparent); color:var(--gize-blue);
     cursor:pointer; display:flex; align-items:center; justify-content:center;
     transition:background-color .15s, border-color .15s, color .15s, transform .12s; }
 
 .cfg-edit-name-btn svg { width:16px; height:16px; }
 
-.cfg-edit-name-btn:hover { background:rgba(34,129,224,.22); border-color:#2281e0; color:#fff; }
+.cfg-edit-name-btn:hover { background:color-mix(in srgb, var(--gize-blue) 22%, transparent); border-color:var(--gize-blue); color:var(--gize-text); }
 
 .cfg-edit-name-btn:active { transform:scale(.95); }
 
@@ -77,7 +77,7 @@
 /* Elevación + iluminación de borde al pasar el cursor — mismo verde de marca
      que ya usan el borde y el glow de las cajas (--glow, --border en modo silk-on),
      así queda del mismo lenguaje visual en vez de un efecto ajeno a la estética. */
-.cfg-card:hover { transform: translateY(-2px); border-color: rgba(127,175,224,.5);
+.cfg-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--gize-blue) 50%, transparent);
     box-shadow: var(--shadow-card), 0 0 16px var(--glow); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -110,7 +110,7 @@
 
 .cfg-switch.on { background:var(--green); border-color:var(--green); }
 
-.cfg-switch.on .cfg-switch-knob { background:#061a2e; transform:translateX(18px); }
+.cfg-switch.on .cfg-switch-knob { background:var(--gize-bg); transform:translateX(18px); }
 
 @media (prefers-reduced-motion: reduce) {
     .cfg-switch, .cfg-switch-knob { transition:none; }

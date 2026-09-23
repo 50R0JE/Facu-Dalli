@@ -10,7 +10,7 @@
 
 .mc-tbl { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
 
-.mc-tbl th { font-size:10px; color:#fff; background:var(--xl-head); text-transform:uppercase; font-weight:700; text-align:center; padding:7px 4px; }
+.mc-tbl th { font-size:10px; color:var(--gize-text); background:var(--xl-head); text-transform:uppercase; font-weight:700; text-align:center; padding:7px 4px; }
 
 .mc-tbl th:first-child { border-radius:4px 0 0 0; }
 
@@ -89,13 +89,13 @@
 
 .fi-line span { display:block; font-size:9px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; }
 
-.ph-del { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.7); border:none; color:#fff; width:22px; height:22px; border-radius:3px; cursor:pointer; font-size: var(--text-meta); }
+.ph-del { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.7); border:none; color:var(--gize-text); width:22px; height:22px; border-radius:3px; cursor:pointer; font-size: var(--text-meta); }
 
 .fb-bg { position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:400; }
 
 .fb-card { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,92vw); max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; background:var(--card); border:1px solid var(--blue); border-radius:6px; padding:22px; z-index:401; }
 
-.fb-title { font-size:19px; font-weight:800; color:#fff; margin-bottom:4px; }
+.fb-title { font-size:19px; font-weight:800; color:var(--gize-text); margin-bottom:4px; }
 
 .pr-box { background:var(--card-2); border:1px solid var(--green); border-radius:4px; padding:var(--space-12) var(--space-14); margin-bottom:var(--space-14); }
 

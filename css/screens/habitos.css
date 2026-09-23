@@ -5,7 +5,7 @@
 
 .hb-item:active { background: var(--card-2); }
 
-.hb-check { width: 26px; height: 26px; border-radius: 4px; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; transition: var(--transition-tap), transform .14s cubic-bezier(.23,1,.32,1); }
+.hb-check { width: 26px; height: 26px; border-radius: 4px; border: 1.5px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--gize-text); transition: var(--transition-tap), transform .14s cubic-bezier(.23,1,.32,1); }
 
 .hb-item:active .hb-check { transform: scale(.97); }
 
@@ -25,7 +25,7 @@
 
 .hb-add input:focus { outline: none; border-color: var(--blue); box-shadow: var(--focus-ring); }
 
-.hb-add-btn { width: 48px; border: none; border-radius: 4px; background: var(--blue); color: #fff; font-size: 24px; cursor: pointer; box-shadow: var(--glow-lg); }
+.hb-add-btn { width: 48px; border: none; border-radius: 4px; background: var(--blue); color: var(--gize-text); font-size: 24px; cursor: pointer; box-shadow: var(--glow-lg); }
 
 .hb-add-btn:active { filter: brightness(1.12); }
 

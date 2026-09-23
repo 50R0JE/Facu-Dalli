@@ -5,13 +5,8 @@
 body.is-booting { overflow: hidden; }
 
 #splash {
-  --core-blue: #1E6BFF;
-  --core-grad: linear-gradient(180deg,
-    #123A8C 0%,
-    #0C2660 16%,
-    #071640 34%,
-    #030A20 56%,
-    #000000 82%);
+  --core-blue: var(--gize-blue);
+  --core-grad: var(--gize-bg);
   /* Sin height fija: en iOS 100svh es más corto que la pantalla real y deja
      una franja abajo donde se ve el contenido de atrás. inset:0 cubre todo. */
   position: fixed; inset: 0;

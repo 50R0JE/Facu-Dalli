@@ -91,7 +91,7 @@
 
 .blk { background:var(--card); border:1px solid var(--border); border-left:3px solid var(--blue); border-radius:4px; padding:12px 14px; margin-bottom:12px; }
 
-.blk.deload { border-color:#0064c8; border-left-color:#0064c8; }
+.blk.deload { border-color:var(--gize-blue-deep); border-left-color:var(--gize-blue-deep); }
 
 .blk-top { display:flex; justify-content:space-between; align-items:center; gap:10px; }
 
@@ -105,13 +105,13 @@
 
 .ex-prog { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:10px; }
 
-.ep-ord { background:var(--blue); color:#fff; font-size:10px; font-weight:800; padding:3px 6px; border-radius:3px; letter-spacing:.04em; }
+.ep-ord { background:var(--blue); color:var(--gize-text); font-size:10px; font-weight:800; padding:3px 6px; border-radius:3px; letter-spacing:.04em; }
 
 .ep-chip { background:var(--card-2); border:1px solid var(--border); color:var(--txt-2); font-size:11px; font-weight:700; padding:4px 7px; border-radius:3px; }
 
 .rest-btn-full { display:flex; align-items:center; justify-content:space-between; width:100%; margin-top:10px; padding:12px 14px; background:var(--card-2); border:1px solid var(--blue); border-radius:4px; color:var(--blue-2); font-size: var(--text-body); font-weight:700; cursor:pointer; }
 
-.rest-btn-full:active { background:var(--blue); color:#fff; }
+.rest-btn-full:active { background:var(--blue); color:var(--gize-text); }
 
 .rbf-play { display:inline-flex; align-items:center; gap:6px; letter-spacing:.02em; }
 
@@ -119,7 +119,7 @@
 
 .rbf-time { font-size: var(--text-meta); color:var(--txt-3); font-weight:600; }
 
-.rest-btn-full:active .rbf-time { color:#fff; }
+.rest-btn-full:active .rbf-time { color:var(--gize-text); }
 
 .ep-goal { flex:1; min-width:120px; font-size:11px; color:var(--txt-3); font-style:italic; }
 
@@ -127,4 +127,4 @@
 
 .ex-video svg { width:var(--icon-xs); height:var(--icon-xs); flex-shrink:0; }
 
-.ex-video:active { background:var(--blue); color:#fff; }
+.ex-video:active { background:var(--blue); color:var(--gize-text); }
