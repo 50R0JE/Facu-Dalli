@@ -24,18 +24,18 @@ export async function loadCoachClients(){
   try{
     // Lista de clientes y código de invitación salen juntos.
     const icP=Promise.resolve(State.sb.rpc("my_invite_code")).catch(()=>({data:null}));
-    let r=await State.sb.from("profiles").select("id, full_name, email, avatar_path").eq("coach_id",State.cloudUser.id).order("full_name");
-    // Sin la columna de la foto (falta supabase/foto-perfil.sql) se pide como antes.
-    if(r.error) r=await State.sb.from("profiles").select("id, full_name, email").eq("coach_id",State.cloudUser.id).order("full_name");
-    if(r.error){
-      // Supabase no tira excepción cuando una query falla (devuelve {data:null, error})
-      // — si "email" no existe como columna en profiles, o RLS no la deja leer, r.data
-      // quedaba null y la lista entera se vaciaba en silencio (el coach veía "0 clientes"
-      // aunque sí tuviera). El email es un plus, no algo crítico para ver la lista, así
-      // que ante un error reintentamos sin él en vez de perder los clientes por eso.
-      console.error("coachClients (con email)",r.error);
-      r=await State.sb.from("profiles").select("id, full_name").eq("coach_id",State.cloudUser.id).order("full_name");
-      if(r.error) console.error("coachClients",r.error);
+    // Supabase no tira excepción cuando una query falla (devuelve {data:null, error}).
+    // Si "email" no existe en profiles (o RLS no deja leerla) o todavía no está la
+    // columna de la foto (falta supabase/foto-perfil.sql), se reintenta sin esa columna.
+    // Ojo con el orden: antes, si fallaba el email, el último intento pedía solo
+    // id y nombre y la foto se perdía aunque la columna existiera — el coach veía
+    // siempre las iniciales. Ninguna de las dos columnas es crítica para ver la lista.
+    const cols=["id, full_name, email, avatar_path","id, full_name, avatar_path","id, full_name, email","id, full_name"];
+    let r;
+    for(const c of cols){
+      r=await State.sb.from("profiles").select(c).eq("coach_id",State.cloudUser.id).order("full_name");
+      if(!r.error) break;
+      console.error("coachClients ("+c+")",r.error);
     }
     CoachState.coachClients=r.data||[];
     // Fotos de los clientes y la propia: se piden los links y se redibuja cuando llegan.
