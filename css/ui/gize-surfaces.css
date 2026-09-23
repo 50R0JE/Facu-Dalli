@@ -32,6 +32,7 @@ body.silk-coach .app-aurora { opacity: .28; }
 body:not(#_) :is(
     /* coach */
     .co-invite, .co-table, .co-day-card, .ci-card, .opt-sec, .week-editor, .ck-card,
+    .tpl-item, /* rutinas cargadas (Mis rutinas) */
     /* cliente: cada ejercicio (.card) lleva el mismo borde que la tarjeta del login */
     .card, .blk, .coach-banner, .cfg-card,
     .daily-card, .water-card, .vol-card, .fi-card, .mc-block, .cardio-rx, .plan-banner,
