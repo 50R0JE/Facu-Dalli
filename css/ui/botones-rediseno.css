@@ -27,7 +27,7 @@ body:not(#_) {
   :is(.co-back, .co-logout, .co-gear, .top-btn, .clear, .reset-routine, .logout-btn,
       .load-def, .co-copy-btn, .qbtn, .ctrl.ghost, .co-exc-btn, .co-daynav-btn, .bw,
       .cp-back, .pl-toggle, .cal-edit, .water-goal, .ex-custom, .cp-copt, .cp-cat, .cp-ex,
-      .ap-radio, .ex-pick, .co-exc-menu button) {
+      .ap-radio, .ex-pick, .co-exc-menu button, .co-rt-add) {
     background: var(--btn-fill);
     border: 1px solid var(--btn-line);
     color: var(--btn-txt);
@@ -71,9 +71,36 @@ body:not(#_) {
   .tab::before, .tab .tab-ripple { display: none; }
   .tab { padding: 10px 16px; overflow: visible; }
 
-  /* ---------- 1) PRINCIPALES: relleno azul sólido ---------- */
-  :is(.ctrl.primary, .form-save, .save-session, .co-save-rt, .hb-add-btn, .co-rt-add,
-      .bw.dl) {
+  /* ---------- 1) PRINCIPALES: blanco de marca (como .gize-btn) ----------
+     "Guardar ficha / Guardar rutina" (coach) y "Guardar sesión" (entreno) son LA acción
+     de su pantalla: llevan además el anillo RGB girando (regla 1 de brand/BRAND.md, uno
+     por pantalla). El resto de principales va blanco sin anillo, porque en algunas
+     pantallas hay varios a la vez (check-in) y el anillo dejaría de señalar algo. */
+  /* .ctrl.primary va aparte de la lista: dentro de :is() su peso (dos clases) se le
+     aplicaría a todas y le ganaría a la regla del anillo de abajo. */
+  .ctrl.primary, :is(.form-save, .save-session, .co-save-rt, .hb-add-btn) {
+    background: #fff;
+    border: 2px solid transparent;
+    color: var(--gize-bg);
+    border-radius: var(--gize-radius-pill);
+    font-family: var(--gize-font);
+    font-weight: 700;
+    letter-spacing: 0;
+    box-shadow: none;
+    transition: filter .15s, transform .12s;
+    &:hover { filter: brightness(.94); transform: none; }
+    &:active { transform: scale(.985); filter: none; }
+  }
+  :is(.save-session, .co-save-rt) {
+    background: linear-gradient(#fff, #fff) padding-box,
+      conic-gradient(from var(--gize-angle), var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4), var(--gize-r1)) border-box;
+    animation: gize-spin 5s linear infinite;
+    @media (prefers-reduced-motion: reduce) { animation: none; }
+  }
+  .hb-add-btn { border-radius: var(--btn-r); }
+
+  /* ---------- Estados: azul funcional ---------- */
+  :is(.bw.dl) {
     background: var(--acc);
     border: 1px solid var(--acc);
     color: var(--gize-text);
