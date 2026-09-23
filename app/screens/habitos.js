@@ -12,6 +12,8 @@ import { renderApp } from '../main.js';
 
 import { liveCounting } from './entreno.js';
 
+import { logDayKcal } from './comida.js';
+
 export const HabitosState = {
 
   pendingFocusHabit: false,
@@ -22,7 +24,7 @@ export const HabitosState = {
 
 export function checkDaily(){ const t=today(); let ch=false;
   if (state.habitsDate !== t) { state.habits.forEach(h=>h.done=false); state.habitsDate=t; ch=true; }
-  if (state.diaryDate !== t) { state.diary=[]; state.diaryDate=t; ch=true; }
+  if (state.diaryDate !== t) { logDayKcal(state.diaryDate, state.diary); state.diary=[]; state.diaryDate=t; ch=true; }
   if (state.stepsDate !== t) { state.steps=0; state.stepsDate=t; ch=true; }
   if (state.waterDate !== t) { state.water=0; state.waterDate=t; ch=true; }
   if (ch) save();
