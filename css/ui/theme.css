@@ -29,9 +29,9 @@ body.silk-on .add-set, body.silk-on .cal-create { color: var(--gize-blue); borde
 
 body.silk-on .day-del { color: var(--gize-text-2); }
 
-/* --- Estilo "Meteors" para las cajas de contenido (Entreno/Hábitos/Cardio/Comida/Progreso) ---
-     Cada caja pasa a fondo oscuro de marca con 2 estelas verdes cruzándola en diagonal (CSS puro,
-     sin canvas extra por caja: rinde bien aunque haya muchas cajas en pantalla). Al redefinir las
+/* --- Cajas de contenido (Entreno/Hábitos/Cardio/Comida/Progreso) ---
+     Cada caja pasa a la superficie de marca (--gize-surface). Las de sección llevan además
+     el borde RGB (ver css/ui/gize-surfaces.css). Al redefinir las
      variables --card/--border/--txt* DENTRO de cada caja, todo lo que ya usaba esas variables
      (inputs, texto, subtítulos) se adapta solo, sin tocar el marcado ni la lógica. Scopeado a
      body.silk-on: no afecta login, panel del coach ni el modal/sheet de ejercicios.
@@ -47,20 +47,7 @@ body.silk-on :is(.card, .hb-item, .food-row, .diary-item, .w-chart, .w-item, .wa
     --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2); --glow: color-mix(in srgb, var(--gize-blue) 22%, transparent);
     --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
     position: relative; overflow: hidden; isolation: isolate;
-    background: linear-gradient(160deg, var(--gize-surface) 0%, var(--gize-surface-2) 60%, var(--gize-bg) 100%);
-    &::before, &::after {
-      content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
-      background: linear-gradient(90deg, var(--gize-blue), transparent);
-      box-shadow: 0 0 6px 1px color-mix(in srgb, var(--gize-blue) 40%, transparent), 0 0 0 1px rgba(255,255,255,.06);
-      transform: rotate(215deg); transform-origin: left center;
-      opacity: 0; z-index: 0; pointer-events: none;
-      animation: cardMeteor 11s linear infinite;
-    }
-    &::after { left: 82%; width: 60px; animation-duration: 15s; animation-delay: 4s; }
-    & > * { position: relative; z-index: 1; }
-    @media (prefers-reduced-motion: reduce) {
-      &::before, &::after { animation: none; opacity: 0; }
-    }
+    background: var(--gize-surface);
   }
 
 /* .cal-search no es una "card" (sin fondo/borde propio, solo envuelve el input de
@@ -83,19 +70,19 @@ body.silk-coach .co-sec, body.silk-coach .ci-f label, body.silk-coach .co-note-l
   body.silk-coach .co-sub, body.silk-coach .cal-hint, body.silk-coach .ml-head,
   body.silk-coach .pl-help, body.silk-coach .foot { color: var(--gize-text-2); }
 
-body.silk-coach .pl-sub, body.silk-coach .ml-tot { color: var(--gize-blue); }
+body.silk-coach .pl-sub, body.silk-coach .ml-tot { color: var(--gize-text); }
 
 body.silk-coach .co-logout, body.silk-coach .co-back {
     color: var(--gize-text); border-color: color-mix(in srgb, var(--gize-text) 28%, transparent); background: rgba(255,255,255,.04); }
 
 body.silk-coach .co-logout:hover, body.silk-coach .co-back:hover { border-color: color-mix(in srgb, var(--gize-blue) 55%, transparent); color: var(--gize-text); }
 
-body.silk-coach .co-add-day, body.silk-coach .co-copy-btn, body.silk-coach .co-rt-add {
+body.silk-coach .co-add-day, body.silk-coach .co-copy-btn {
     color: var(--gize-blue); border-color: color-mix(in srgb, var(--gize-blue) 42%, transparent); }
 
 body.silk-coach .co-day-del { color: var(--gize-danger); border-color: color-mix(in srgb, var(--gize-danger) 40%, transparent); }
 
-/* --- Cajas del coach con el mismo tratamiento "Meteors" ---
+/* --- Cajas del coach: mismo tratamiento que las del cliente ---
      Misma consolidación vía :is() + nesting que el bloque del cliente arriba: una sola
      lista de clases en vez de repetida en 6 selectores separados. */
 body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-editor,
@@ -104,22 +91,9 @@ body.silk-coach :is(.co-item, .co-exc, .co-invite, .opt-sec, .opt-item, .week-ed
     --card: var(--gize-surface); --card-2: var(--gize-surface-2); --border: var(--gize-border);
     --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2); --glow: color-mix(in srgb, var(--gize-blue) 22%, transparent);
     position: relative; overflow: hidden; isolation: isolate;
-    background: linear-gradient(160deg, var(--gize-surface) 0%, var(--gize-surface-2) 60%, var(--gize-bg) 100%);
+    background: var(--gize-surface);
     border-color: var(--gize-border); color: var(--gize-text);
     box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03);
-    &::before, &::after {
-      content: ""; position: absolute; top: -10%; left: 50%; width: 90px; height: 1px;
-      background: linear-gradient(90deg, var(--gize-blue), transparent);
-      box-shadow: 0 0 6px 1px color-mix(in srgb, var(--gize-blue) 40%, transparent), 0 0 0 1px rgba(255,255,255,.06);
-      transform: rotate(215deg); transform-origin: left center;
-      opacity: 0; z-index: 0; pointer-events: none;
-      animation: cardMeteor 11s linear infinite;
-    }
-    &::after { left: 82%; width: 60px; animation-duration: 15s; animation-delay: 4s; }
-    & > * { position: relative; z-index: 1; }
-    @media (prefers-reduced-motion: reduce) {
-      &::before, &::after { animation: none; opacity: 0; }
-    }
   }
 
 /* Bug de producción: .cp-modal y .cp-ccard son modales centrados con su propio
@@ -183,14 +157,3 @@ body.silk-coach .navbar { display: none; }
 
 body.silk-coach #coachModeBadge { display: flex; }
 
-/* Distintivo sutil para que esta caja resalte de las demás cards del panel (es la única
-     acción que el coach necesita repetir todo el tiempo: invitar clientes nuevos). Mismo
-     verde de marca que ya usa toda la app, nada nuevo — solo un borde más marcado y un
-     glow fino (--glow-sm, pensado justo para "acentos finos", ver su comentario en :root).
-     Va scopeado a body.silk-coach .co-invite (no solo .co-invite) para empatar en
-     especificidad con la regla de la familia "Meteors" de arriba y ganarle por orden en
-     la cascada — mismo criterio que ya usa el código para .cp-modal/.cp-ccard. */
-body.silk-coach .co-invite {
-    border-color: color-mix(in srgb, var(--gize-blue) 40%, transparent);
-    box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 3px 10px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.03), var(--glow-sm);
-  }

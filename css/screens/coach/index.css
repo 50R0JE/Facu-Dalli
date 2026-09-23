@@ -52,7 +52,7 @@
      sola línea de .cal-hint y dejaba el resto de la pantalla en negro sin nada — parecía
      rota, no "aire" premium. Ahora es un mini-onboarding de 3 pasos que usa la clase
      .co-item TAL CUAL (no una reimplementación): mismo fondo/borde/radio/padding, y de
-     yapa hereda gratis el fondo "Meteors" con estelas que ya tienen las cards reales de
+     yapa hereda gratis el fondo de marca que ya tienen las cards reales de
      cliente, vía la familia :is(...) de arriba. Solo se le saca el cursor de click (estos
      pasos no son filas navegables) y se le pone una numeración circular en vez de la
      flecha/nombre de un cliente real. */
