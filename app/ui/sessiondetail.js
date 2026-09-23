@@ -38,6 +38,7 @@ function feedbackChips(se){
 }
 
 // opts.removeBtn: HTML del botón de borrar (solo el cliente borra sus entrenos).
+// opts.open: arranca desplegado (el coach lo muestra así al elegirlo en el selector).
 export function renderSessionItem(se, opts){
   opts = opts || {};
   const exs = se.exercises || [];
@@ -50,7 +51,7 @@ export function renderSessionItem(se, opts){
     '<div><b>' + fmtKg(Math.round(vol)) + '</b><span>kg de volumen</span></div></div>';
   const rm = opts.removeBtn || "";
   return '<div class="sess-item sess-det-wrap">' +
-    '<details class="sess-det"><summary class="sess-sum"><div class="sess-main">' +
+    '<details class="sess-det"' + (opts.open ? ' open' : '') + '><summary class="sess-sum"><div class="sess-main">' +
       '<div class="sess-date">' + fmtDate(se.date) + ' · ' + esc(se.day || "") + ' <span class="sess-n">(' + nSets + (nSets === 1 ? ' serie' : ' series') + ')</span></div>' +
       '<div class="sess-exs">' + esc(names) + '</div></div>' +
       '<span class="sess-chev" aria-hidden="true"></span></summary>' +

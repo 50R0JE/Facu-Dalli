@@ -6,7 +6,7 @@ import { coachActivity, coachInitials, renderCoachInfo } from './clientes.js';
 
 import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine } from './rutinas.js';
 
-import { renderCoachCheckins, renderCoachDaily, renderCoachPhotos, renderCoachWeekly } from './seguimiento.js';
+import { picker, renderCoachCheckins, renderCoachDaily, renderCoachPhotos, renderCoachWeekly } from './seguimiento.js';
 
 import { CoachState } from './state.js';
 
@@ -96,8 +96,15 @@ export function renderCoach(){
     else if(d.error){ body='<div class="cal-hint">No se pudo cargar. Reintentá.</div>'; }
     else {
       const wchart=d.weights.length ? renderWChart(d.weights,false,"med") : '<div class="cal-hint">Sin registros de peso.</div>';
-      const wlist=d.weights.length ? '<div class="co-list">'+d.weights.slice().reverse().map(w=>'<div class="co-row"><span>'+fmtDate(w.date)+'</span><span class="co-val">'+Number(w.kg).toFixed(1)+' kg</span></div>').join("")+'</div>' : "";
-      const sess=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).map(se=>renderSessionItem(se)).join("");
+      // Peso día a día: gráfico a la izquierda, registros a la derecha (antes iban uno debajo del otro).
+      const wlist=d.weights.length ? '<table class="co-tbl"><thead><tr><th>Fecha</th><th>Peso</th></tr></thead><tbody>'+d.weights.slice().reverse().map(w=>'<tr><td class="dt">'+fmtDate(w.date)+'</td><td><b>'+Number(w.kg).toFixed(1)+' kg</b></td></tr>').join("")+'</tbody></table>' : "";
+      const wblock=d.weights.length ? '<div class="co-split"><div class="co-split-main">'+wchart+'</div><div class="co-split-side">'+wlist+'</div></div>' : wchart;
+      // Historial de entrenos: un entreno por vez con el mismo selector que el seguimiento.
+      const sessSorted=d.sessions.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+      const sessKey=se=>String(se.ts||se.date);
+      const sessSel=sessSorted.some(se=>sessKey(se)===CoachState.coachSessSel) ? CoachState.coachSessSel : "";
+      const sessOne=sessSorted.find(se=>sessKey(se)===sessSel);
+      const sess=sessSorted.length ? picker("sess-pick", sessSorted.map(se=>{ const n=(se.exercises||[]).reduce((t,e)=>t+(e.sets||[]).length,0); return {v:sessKey(se), t:fmtDate(se.date)+" · "+(se.day||"Entreno")+" ("+n+(n===1?" serie)":" series)")}; }), sessSel, "Entreno")+(sessOne?renderSessionItem(sessOne,{open:true}):"") : "";
       const vol=(d.routine&&d.routine.length)?renderVolumen(d.routine):'<div class="cal-hint">Sin rutina cargada.</div>';
       const tab=CoachState.coachClientTab||"ficha";
       const tabs='<div class="co-tabs">'+
@@ -116,12 +123,10 @@ export function renderCoach(){
              '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
              secHead("Seguimiento diario","daily")+renderCoachDaily(d)+
              secHead("Check-in semanal","checkin")+renderCoachCheckins(d)+
-             '<div class="co-sec">Historial de entrenos</div>'+(sess?'<div class="sess-hint">Tocá un entreno para ver los pesos y las series.</div>'+sess:'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
-             '<div class="co-bottom">'+
-               '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
-               '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
-             '</div>'+
-             '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wchart+wlist;
+             '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
+             '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
+             '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
+             '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wblock;
       }
       body=tabs+panel;
     }

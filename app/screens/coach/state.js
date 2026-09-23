@@ -55,11 +55,13 @@ export const CoachState = {
 
   coachQError: null,
 
-  // Día (log_date) y semana (week_start) elegidos en el seguimiento del cliente. null =
-  // el más reciente.
+  // Día (log_date), semana (week_start) y entreno (ts) elegidos en la ficha del cliente.
+  // null = "Ninguno": la sección queda cerrada hasta que el coach elige uno.
   coachDailySel: null,
 
   coachCkSel: null,
+
+  coachSessSel: null,
 
   coachNameForm: null,
 
