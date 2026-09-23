@@ -1,5 +1,6 @@
 import { DAILY_COLUMNS } from './questions.js';
 
+import { syncPush } from './push.js';
 import { resolveAvatars } from './avatar.js';
 
 import { loadCoachQuestions } from '../screens/coach/preguntas.js';
@@ -142,7 +143,7 @@ export async function afterLogin(sessionUser){
   }catch(e){ State.brandName=""; }
   applyBrand();
   if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); }
-  else { renderApp(); }
+  else { renderApp(); syncPush(); } // sin await: no demora la entrada
 }
 
 export async function loadCloud(){

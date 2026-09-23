@@ -9,6 +9,7 @@ import { loadCloud } from '../core/supabase.js';
 import { esc } from '../core/utils.js';
 import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
+import { pushSupported, prefOn, enablePush, disablePush, isIOS, isStandalone } from '../core/push.js';
 import { renderApp } from '../main.js';
 import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg } from '../core/icons.js';
 
@@ -36,19 +37,10 @@ function cfgLinkRow(icon, label, href) {
   '</a>';
 }
 
-// Sin backend de push (no hay VAPID key ni suscripción a un servidor acá): esto
-// prende/apaga el permiso del navegador para notificaciones locales. Un navegador
-// nunca deja "revocar" el permiso por código una vez dado — el apagado guarda una
-// preferencia propia de la app y listo; para bloquearlas del todo hay que hacerlo
-// desde los ajustes del sistema/navegador (se lo avisamos al usuario en ese caso).
-const NOTIF_KEY = "jfit_notif_enabled";
-
-function notifSupported() { return typeof Notification !== "undefined"; }
-
+// Notificaciones: push de verdad (ver app/core/push.js). El switch refleja permiso dado
+// + preferencia de la app; la suscripción se crea/borra al tocarlo.
 function notifOn() {
-  if (!notifSupported()) return false;
-  try { return Notification.permission === "granted" && localStorage.getItem(NOTIF_KEY) !== "0"; }
-  catch (e) { return Notification.permission === "granted"; }
+  return pushSupported() && Notification.permission === "granted" && prefOn();
 }
 
 export function renderConfig() {
@@ -117,6 +109,7 @@ export function renderConfig() {
         '<div class="cfg-notif-txt">' +
           '<div class="cfg-notif-label">Notificaciones</div>' +
           '<div class="cfg-notif-desc">Avisos de tu coach y recordatorios</div>' +
+          (!notifOnNow && isIOS() && !isStandalone() ? '<div class="cfg-notif-desc cfg-notif-ios">En iPhone, primero agregá GIZE a la pantalla de inicio (Compartir → Agregar a inicio) y abrila desde ahí.</div>' : '') +
         '</div>' +
         '<button class="cfg-switch' + (notifOnNow ? ' on' : '') + '" data-action="cfg-notif-toggle" role="switch" aria-checked="' + notifOnNow + '"><span class="cfg-switch-knob"></span></button>' +
       '</div>' +
@@ -220,23 +213,15 @@ document.body.addEventListener("click", async function (e) {
 
   const notifBtn = e.target.closest('[data-action="cfg-notif-toggle"]');
   if (notifBtn) {
-    if (!notifSupported()) { alert("Este navegador no soporta notificaciones."); return; }
+    if (notifBtn.disabled) return;
+    notifBtn.disabled = true;
     if (notifBtn.classList.contains("on")) {
-      // Ver comentario junto a NOTIF_KEY: no se puede revocar el permiso del navegador
-      // por código, solo apagar el aviso a nivel app.
-      try { localStorage.setItem(NOTIF_KEY, "0"); } catch (err) {}
-      renderApp();
-      return;
+      await disablePush();
+    } else {
+      const err = await enablePush();
+      if (err) alert(err);
     }
-    if (Notification.permission === "denied") {
-      alert("Las notificaciones están bloqueadas para GIZE en este dispositivo. Para activarlas, habilitalas desde los ajustes del navegador o del celular.");
-      return;
-    }
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm === "granted") { try { localStorage.setItem(NOTIF_KEY, "1"); } catch (err) {} }
-      else if (perm === "denied") { alert("No se activaron las notificaciones."); }
-    } catch (err) {}
+    notifBtn.disabled = false;
     renderApp();
     return;
   }

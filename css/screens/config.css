@@ -99,6 +99,7 @@
 .cfg-notif-label { font-size:var(--text-body); font-weight:700; color:var(--txt); }
 
 .cfg-notif-desc { font-size:var(--text-meta); color:var(--txt-2); margin-top:1px; }
+.cfg-notif-desc.cfg-notif-ios { color:var(--gize-warning); margin-top:6px; line-height:1.4; }
 
 /* Switch a mano (no <input type="checkbox">, para mantener el mismo lenguaje de botón
      custom que ya usa el resto de la app — ver .done en components.css). Botón chico
