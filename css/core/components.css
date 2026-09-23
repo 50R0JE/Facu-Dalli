@@ -391,18 +391,14 @@
 
 .auth-field.pass .auth-in { padding-right:42px; }
 
+/* "Ingresar" / "Crear cuenta" es la acción principal del login: usa .gize-btn
+   (brand/tokens.css, botón blanco con anillo RGB). Es el único anillo de la pantalla.
+   Acá solo va lo propio del login: aparición escalonada y foco. */
 .auth-btn {
-    position:relative; background:linear-gradient(135deg, var(--blue), var(--green-2)); color:var(--gize-text); border:none; border-radius:4px;
-    padding:15px; font-size: var(--text-emphasis); font-weight:700; letter-spacing:.01em; cursor:pointer; margin-top:4px;
-    box-shadow: var(--glow-lg), inset 0 1px 0 rgba(255,255,255,.12);
-    transition:transform .15s, box-shadow .15s, filter .15s; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards;
+    margin-top:4px; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards;
   }
 
-.auth-btn:hover { transform:translateY(-1px); box-shadow:0 0 22px var(--glow), inset 0 1px 0 rgba(255,255,255,.16); }
-
-.auth-btn:active { transform:translateY(0); filter:brightness(.95); }
-
-.auth-btn:focus-visible { outline:2px solid var(--green-2); outline-offset:3px; }
+.auth-btn:focus-visible { outline:2px solid var(--gize-blue); outline-offset:4px; }
 
 .auth-btn:disabled { opacity:.7; cursor:progress; transform:none; }
 

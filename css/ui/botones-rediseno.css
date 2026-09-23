@@ -73,7 +73,7 @@ body:not(#_) {
 
   /* ---------- 1) PRINCIPALES: relleno azul sólido ---------- */
   :is(.ctrl.primary, .form-save, .save-session, .co-save-rt, .hb-add-btn, .co-rt-add,
-      .auth-btn, .bw.dl) {
+      .bw.dl) {
     background: var(--acc);
     border: 1px solid var(--acc);
     color: var(--gize-text);
@@ -85,7 +85,6 @@ body:not(#_) {
     &:hover { background: var(--acc-hi); border-color: var(--acc-hi); transform: none; }
     &:active { transform: scale(.98); filter: none; }
   }
-  .auth-btn { background-image: none; }
 
   /* ---------- "Agregar": borde punteado más marcado ---------- */
   :is(.add-set, .cal-create, .co-add-day, .co-set-add, .pl-add, .cp-custom) {
