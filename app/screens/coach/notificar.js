@@ -16,7 +16,7 @@ import { CoachState } from './state.js';
 import { renderCoach } from './index.js';
 
 const MAX = 500;
-const FN_NAMES = ["notificar-cliente", "rapid-worker"];
+const FN_NAMES = ["rapid-worker", "notificar-cliente"];
 
 // Estado de notificaciones + últimos mensajes de un cliente. Se llama al abrir la ficha.
 export async function loadClientNotify(id){
@@ -71,18 +71,23 @@ async function send(){
   let res, errMsg = "";
   try{
     // La función se publicó desde el editor de Supabase con el nombre que genera solo
-    // ("rapid-worker"); el nombre no se puede cambiar después. Se prueba el nombre
-    // previsto y, si no existe (404), ese.
+    // ("rapid-worker"); el nombre no se puede cambiar después. Va primero ese y, si no
+    // existe, "notificar-cliente". Ojo: para una función que no existe, Supabase responde
+    // 404 SIN encabezados CORS, así que el navegador lo ve como error de red
+    // (FunctionsFetchError, sin status) — también se pasa al siguiente nombre en ese caso.
     for(const fn of FN_NAMES){
       res = await State.sb.functions.invoke(fn, { body: { client_id: d.id, body: body } });
-      const st = res.error && res.error.context && res.error.context.status;
-      if(st !== 404) break;
+      const er = res.error;
+      const st = er && er.context && er.context.status;
+      if(!er || !(st === 404 || er.name === "FunctionsFetchError")) break;
     }
     if(res.error){
       let detail = "";
       try{ const ctx = res.error.context; if(ctx && ctx.json){ const j = await ctx.json(); detail = j && j.error; } }catch(e){}
       const st = res.error.context && res.error.context.status;
-      errMsg = detail || (st === 404 ? "No se encontró la función de notificaciones en Supabase." : (res.error.message || String(res.error)));
+      errMsg = detail || (st === 404 ? "No se encontró la función de notificaciones en Supabase." :
+        res.error.name === "FunctionsFetchError" ? "La función de Supabase no respondió. Revisá que rapid-worker tenga el código de supabase/functions/notificar-cliente/index.ts (no el de ejemplo) y esté publicada." :
+        (res.error.message || String(res.error)));
     }
   }catch(e){ errMsg = (e && e.message) || String(e); }
   CoachState.notifSending = false;
