@@ -95,7 +95,7 @@ export function renderDaily(){
     <div class="daily-card">
       <div class="daily-top">
         <div class="dfield"><label>Peso</label><input id="dKg" class="form-input" type="text" inputmode="decimal" placeholder="kg" value="${esc(d.kg||"")}" data-action="daily-kg"></div>
-        <div class="dfield"><label>Pasos</label><input id="dSteps" class="form-input" type="text" inputmode="numeric" placeholder="0" value="${esc(d.steps||"")}" data-action="daily-steps"></div>
+        <div class="dfield"><label>Pasos</label><input id="dSteps" class="form-input" type="text" inputmode="numeric" placeholder="0" value="${esc(d.steps||state.steps||"")}" data-action="daily-steps"></div>
       </div>
       ${rows}
       <div class="dfield" style="margin-top:10px"><label>Comentarios del día</label><input id="dCom" class="form-input" placeholder="Cómo te sentiste, algo que quieras contarle a tu coach…" value="${esc(d.comment||"")}" data-action="daily-com"></div>

@@ -50,7 +50,10 @@ export function applyBrand(){
 // de ejecutarse en ese instante, State.sb quedaba en null para siempre y cualquier
 // login explotaba con "Cannot read properties of null (reading 'auth')" aunque la
 // librería cargara bien un momento después. Por eso reintentamos un rato.
-let _sbReady = null;
+// Si el script del CDN directamente no cargó (sin internet y todavía sin copia en el
+// caché del service worker), se vuelve a pedir en el próximo intento, que es cuando el
+// usuario toca "Ingresar". Antes el primer fracaso quedaba guardado para siempre.
+let _sbReady = null, _sbFailed = false;
 export function ensureSb(){
   if (State.sb) return Promise.resolve(State.sb);
   if (_sbReady) return _sbReady;
@@ -58,14 +61,34 @@ export function ensureSb(){
     if (!State.sb && window.supabase) { try { State.sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){} }
     return !!State.sb;
   };
+  if (_sbFailed && !window.supabase) reloadSbScript();
   _sbReady = tryInit() ? Promise.resolve(State.sb) : new Promise(resolve=>{
     let tries=0;
     const iv=setInterval(()=>{
       tries++;
-      if (tryInit() || tries>=160){ clearInterval(iv); resolve(State.sb); } // ~8s a 50ms
+      if (tryInit() || tries>=160){ // ~8s a 50ms
+        clearInterval(iv);
+        if(!State.sb){ _sbFailed=true; _sbReady=null; }
+        resolve(State.sb);
+      }
     },50);
   });
   return _sbReady;
+}
+
+function reloadSbScript(){
+  const old=document.querySelector('script[src*="supabase-js"]'); if(!old) return;
+  const s=document.createElement("script"); s.src=old.src;
+  old.replaceWith(s);
+}
+
+// El perfil se guarda también en el dispositivo: si la app abre sin internet, loadCloud()
+// no lo puede leer y un coach terminaba viendo la app de cliente. Se guarda junto con el
+// id de usuario para no usarle el perfil de otra cuenta; el logout lo borra.
+export const PROFILE_KEY = "core_profile_v1";
+function saveCachedProfile(p){ try{ if(p) localStorage.setItem(PROFILE_KEY, JSON.stringify({uid:State.cloudUser.id, profile:p})); }catch(e){} }
+function cachedProfile(){
+  try{ const c=JSON.parse(localStorage.getItem(PROFILE_KEY)||"null"); return (c && State.cloudUser && c.uid===State.cloudUser.id) ? c.profile : null; }catch(e){ return null; }
 }
 // Ojo: no llamar a ensureSb() acá arriba. core/state.js -> core/storage.js ->
 // core/supabase.js -> core/state.js forman un ciclo de imports; si esta función
@@ -88,7 +111,10 @@ export async function afterLogin(sessionUser){
   // Primero se envía lo que quedó pendiente de otra sesión (sin conexión, app cerrada):
   // loadCloud() reemplaza entrenos/registros locales por los de la nube.
   try { await flushOutbox(); } catch(e){ console.error("flushOutbox",e); }
+  // El nombre del coach no depende de loadCloud(): se pide en paralelo en vez de después.
+  let coachNameP=Promise.resolve(State.sb.rpc("my_coach_name")).catch(()=>({data:null}));
   await loadCloud();
+  if(!State.cloudProfile) State.cloudProfile=cachedProfile(); // sin conexión: el último perfil conocido
   try{
     const pc=localStorage.getItem("jfit_pending_code");
     if(pc && State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id){
@@ -97,13 +123,13 @@ export async function afterLogin(sessionUser){
       // y se lo intenta aplicar a la cuenta de OTRA persona que después inicie sesión ahí.
       localStorage.removeItem("jfit_pending_code");
       const r2=await State.sb.rpc("join_coach",{code:pc});
-      if(r2.data===true){ const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); }
+      if(r2.data===true){ coachNameP=Promise.resolve(State.sb.rpc("my_coach_name")).catch(()=>({data:null})); const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); }
     }
   }catch(e){ console.error("pending code",e); }
   hideLogin();
   try{
     if(State.cloudProfile && State.cloudProfile.role==="coach"){ State.brandName=State.cloudProfile.full_name||""; }
-    else { const cn=await State.sb.rpc("my_coach_name"); State.brandName=cn.data||""; }
+    else { const cn=await coachNameP; State.brandName=cn.data||""; }
   }catch(e){ State.brandName=""; }
   applyBrand();
   if (State.cloudProfile && State.cloudProfile.role==="coach"){ await loadCoachClients(); renderCoach(); }
@@ -114,9 +140,31 @@ export async function loadCloud(){
   if(!State.sb||!State.cloudUser) return;
   State.cloudLoading=true;
   try{
-    const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle();
+    // Supabase no lanza cuando una lectura falla: devuelve {data:null, error}. Un data null
+    // por error NO significa "no hay nada en la nube", así que cada lectura se chequea y,
+    // si falló, se conserva lo local en vez de pisarlo (o de subirlo como si fuera nuevo).
+    // Perfil y rutina son imprescindibles: sin ellos se corta acá y cloudReady queda false.
+    // Todas las lecturas salen juntas (antes iban de a una y el arranque sumaba ~12 idas
+    // y vueltas a Supabase); después se aplican en el mismo orden de siempre.
+    const uid=State.cloudUser.id, sb=State.sb;
+    const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp] = await Promise.all([
+      sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
+      sb.from("routines").select("days").eq("client_id",uid).maybeSingle(),
+      sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on"),
+      sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",uid).order("created_at"),
+      sb.from("daily_logs").select("*").eq("client_id",uid),
+      sb.from("checkins").select("*").eq("client_id",uid),
+      sb.from("client_info").select("*").eq("client_id",uid).maybeSingle(),
+      sb.from("blocks").select("*").eq("client_id",uid).eq("active",true).order("start_date",{ascending:false}).limit(1),
+      sb.from("nutrition").select("*").eq("client_id",uid).maybeSingle(),
+      sb.from("food_entries").select("*").eq("client_id",uid).eq("log_date",today()).order("pos"),
+      sb.from("client_prefs").select("*").eq("client_id",uid).maybeSingle(),
+      loadMyPhotos()
+    ]);
+    const pr=sbOk(pr0);
     State.cloudProfile=pr.data||null;
-    const rt=await State.sb.from("routines").select("days").eq("client_id",State.cloudUser.id).maybeSingle();
+    saveCachedProfile(State.cloudProfile);
+    const rt=sbOk(rt0);
     if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
       // Con coach, la rutina manda el coach: se toma la de la nube y solo se conserva lo
       // que el cliente cargó a mano (kg, reps, tildes) de cada serie.
@@ -124,12 +172,14 @@ export async function loadCloud(){
       migrateNames(state.days);
       if(!state.days.find(d=>d.id===State.activeId)) State.activeId=state.days[0].id;
     } else if(!routineLocked()) {
-      await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"});
+      sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
     }
-    const ws=await State.sb.from("body_weights").select("*").eq("client_id",State.cloudUser.id).order("measured_on");
-    if(Array.isArray(ws.data)) state.weights=ws.data.map(w=>({id:w.id, date:w.measured_on, kg:Number(w.kg)}));
-    const ss=await State.sb.from("sessions").select("id, performed_on, day_name, created_at, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",State.cloudUser.id).order("created_at");
-    if(Array.isArray(ss.data)){
+    State.cloudReady=true;
+    if(!ws.error && Array.isArray(ws.data)){
+      state.weights=ws.data.map(w=>({id:w.id, date:w.measured_on, kg:Number(w.kg)}));
+      State.cloudWeightDates=new Set(ws.data.map(w=>w.measured_on));
+    }
+    if(!ss.error && Array.isArray(ss.data)){
       state.sessions=ss.data.map(se=>{
         const byEx={};
         (se.session_entries||[]).forEach(en=>{ (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0}); });
@@ -137,25 +187,93 @@ export async function loadCloud(){
         return {id:se.id, cloudId:se.id, date:se.performed_on, ts:new Date(se.created_at).getTime(), day:se.day_name, exercises:exercises};
       });
     }
-    const dl=await State.sb.from("daily_logs").select("*").eq("client_id",State.cloudUser.id);
-    if(Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]={steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}; }); }
-    const ck=await State.sb.from("checkins").select("*").eq("client_id",State.cloudUser.id);
-    if(Array.isArray(ck.data)){ state.checkins={}; ck.data.forEach(r=>{ const o=Object.assign({}, r.answers||{}); if(r.adherence) o.adherence=r.adherence; state.checkins[r.week_start]=o; }); }
-    const ci=await State.sb.from("client_info").select("*").eq("client_id",State.cloudUser.id).maybeSingle();
-    state.info = ci.data || null;
-    const bl=await State.sb.from("blocks").select("*").eq("client_id",State.cloudUser.id).eq("active",true).order("start_date",{ascending:false}).limit(1);
-    state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;
-    const np=await State.sb.from("nutrition").select("*").eq("client_id",State.cloudUser.id).maybeSingle();
-    state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes, plan:np.data.plan||null, cardio:(np.data.plan&&np.data.plan.cardio)||null, habits:(np.data.plan&&np.data.plan.habits)||null} : null;
+    if(!dl.error && Array.isArray(dl.data)){ state.daily={}; dl.data.forEach(r=>{ state.daily[r.log_date]={steps:r.steps||"", comment:r.comment||"", soreness:r.soreness||"", performance:r.performance||"", motivation:r.motivation||"", hunger:r.hunger||"", fatigue:r.fatigue||"", sleep:r.sleep||""}; }); }
+    if(!ck.error && Array.isArray(ck.data)){ state.checkins={}; ck.data.forEach(r=>{ const o=Object.assign({}, r.answers||{}); if(r.adherence) o.adherence=r.adherence; state.checkins[r.week_start]=o; }); }
+    if(!ci.error) state.info = ci.data || null;
+    if(!bl.error) state.block = (bl.data && bl.data[0]) ? bl.data[0] : null;
+    if(!np.error) state.coachPlan = np.data ? {kcal:np.data.kcal, protein:np.data.protein, carbs:np.data.carbs, fat:np.data.fat, notes:np.data.notes, plan:np.data.plan||null, cardio:(np.data.plan&&np.data.plan.cardio)||null, habits:(np.data.plan&&np.data.plan.habits)||null} : null;
+    // Comidas, agua, pasos y hábitos de hoy. La nube manda solo si ya tiene el día
+    // (water_ml lo escribe siempre la app); si no, se conserva lo local y se sube.
+    _lastDay=null;
+    const todayRow=(!dl.error && Array.isArray(dl.data)) ? dl.data.find(r=>r.log_date===today()) : null;
+    if(!fe.error && todayRow && todayRow.water_ml!=null){
+      state.diaryDate=state.waterDate=state.stepsDate=state.habitsDate=today();
+      state.water=todayRow.water_ml||0;
+      state.steps=todayRow.steps||0;
+      state.diary=(fe.data||[]).map(r=>({id:r.id, name:r.name, grams:Number(r.grams)||0, kcal:r.kcal||0, p:Number(r.protein)||0, c:Number(r.carbs)||0, f:Number(r.fat)||0, unit:r.unit||"g", base:r.base||undefined}));
+      applyHabitsDone(todayRow.habits_done);
+      _lastDay=JSON.stringify(daySnapshot());
+    }
+    _lastPrefs=null;
+    if(!cp.error && cp.data){ applyPrefs(cp.data); _lastPrefs=JSON.stringify(prefsSnapshot()); }
+    if(!cp.error) state.cloudSeen=true; // desde acá lo local de este usuario ya se puede subir
     applyPending(); // lo que la nube todavía no tiene (cola de envío) se vuelve a poner encima
-    await loadMyPhotos();
     save();
   }catch(e){ console.error("loadCloud",e); }
   State.cloudLoading=false;
+  syncExtras();
+}
+
+// ===== Comidas, agua, pasos, hábitos y preferencias =====
+// Se comparan contra lo último enviado (o leído de la nube) y, si cambió, van a la cola
+// de envío como una foto completa: la del día (clave = fecha) y la de preferencias.
+// Una foto nueva reemplaza a la anterior todavía pendiente, así la cola no crece.
+let _lastDay=null, _lastPrefs=null, _extrasTimer=null;
+const UUID_RE=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function daySnapshot(){
+  const t=today();
+  if(state.diaryDate!==t || state.waterDate!==t || state.stepsDate!==t || state.habitsDate!==t) return null; // checkDaily() todavía no pasó al día nuevo
+  const coachHabits=(state.coachPlan && Array.isArray(state.coachPlan.habits)) ? state.coachPlan.habits.filter(x=>x&&x.trim()) : [];
+  return {
+    dt:t, water:state.water||0, steps:state.steps||0,
+    habits:{ coach:coachHabits.filter(n=>state.habitsDone && state.habitsDone[t+"|"+n]), own:(state.habits||[]).filter(h=>h.done).map(h=>h.name) },
+    foods:(state.diary||[]).map(e=>{ if(!UUID_RE.test(String(e.id))) e.id=newId(); return {id:e.id, name:e.name, grams:e.grams, unit:e.unit||"g", kcal:e.kcal||0, p:e.p||0, c:e.c||0, f:e.f||0, base:e.base||null}; })
+  };
+}
+
+function prefsSnapshot(){
+  return { cal_profile:state.calProfile||null, cal_target:state.calTarget||null, steps_goal:state.stepsGoal||null, water_goal:state.waterGoal||null,
+    rest_default:state.restDefault||null, habits:(state.habits||[]).map(h=>({id:h.id, name:h.name})), foods:state.foods||[] };
+}
+
+function applyHabitsDone(hd){
+  if(!hd) return;
+  const t=today(), own=new Set(hd.own||[]);
+  (state.habits||[]).forEach(h=>{ h.done=own.has(h.name); });
+  if(!state.habitsDone || typeof state.habitsDone!=="object") state.habitsDone={};
+  Object.keys(state.habitsDone).forEach(k=>{ if(k.indexOf(t+"|")===0) delete state.habitsDone[k]; });
+  (hd.coach||[]).forEach(n=>{ state.habitsDone[t+"|"+n]=true; });
+}
+
+function applyPrefs(p){
+  if(p.cal_profile!==undefined) state.calProfile=p.cal_profile||null;
+  if(p.cal_target!==undefined) state.calTarget=p.cal_target||null;
+  if(p.steps_goal) state.stepsGoal=p.steps_goal;
+  if(p.water_goal) state.waterGoal=p.water_goal;
+  if(p.rest_default) state.restDefault=p.rest_default;
+  if(Array.isArray(p.foods)) state.foods=p.foods;
+  if(Array.isArray(p.habits)){
+    const done=new Set((state.habits||[]).filter(h=>h.done).map(h=>h.name)); // las tildes de hoy no viajan en prefs
+    state.habits=p.habits.map(h=>({id:h.id, name:h.name, done:done.has(h.name)}));
+  }
+}
+
+export function syncExtras(){
+  if(!State.cloudUser || State.cloudLoading || !state.cloudSeen) return;
+  let queued=false;
+  const d=daySnapshot();
+  if(d){ const j=JSON.stringify(d); if(j!==_lastDay){ _lastDay=j; enqueue("day", d, d.dt); queued=true; } }
+  const p=prefsSnapshot(), pj=JSON.stringify(p);
+  if(pj!==_lastPrefs){ _lastPrefs=pj; enqueue("prefs", p, "prefs"); queued=true; }
+  if(queued){ clearTimeout(_extrasTimer); _extrasTimer=setTimeout(()=>{ flushOutbox(); }, 1500); }
 }
 
 export function cloudSyncCore(){
-  if(!State.sb||!State.cloudUser||State.cloudLoading) return;
+  // Comidas/agua/pasos/hábitos/preferencias van por la cola: no dependen de cloudReady
+  // (es data del propio cliente, no hay coach que pisar) y así funcionan sin conexión.
+  try{ syncExtras(); }catch(e){ console.error("extras",e); }
+  if(!State.sb||!State.cloudUser||State.cloudLoading||!State.cloudReady) return;
   clearTimeout(State.routineTimer);
   State.routineTimer=setTimeout(async ()=>{
     try{
@@ -164,10 +282,13 @@ export function cloudSyncCore(){
       if(!routineLocked()) sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
       const rows=(state.weights||[]).map(w=>({client_id:State.cloudUser.id, measured_on:w.date, kg:w.kg}));
       if(rows.length) sbOk(await State.sb.from("body_weights").upsert(rows,{onConflict:"client_id,measured_on"}));
-      const cw=sbOk(await State.sb.from("body_weights").select("measured_on").eq("client_id",State.cloudUser.id));
+      // Se borra de la nube solo lo que este dispositivo ya había visto ahí y el cliente
+      // sacó. Antes se borraba todo lo que no estuviera en local: si la lectura de pesos
+      // había fallado, o si otro dispositivo cargó un peso nuevo, se perdían.
       const local=new Set((state.weights||[]).map(w=>w.date));
-      const del=(cw.data||[]).map(w=>w.measured_on).filter(d=>!local.has(d));
-      for(const dd of del){ sbOk(await State.sb.from("body_weights").delete().eq("client_id",State.cloudUser.id).eq("measured_on",dd)); }
+      const del=[...State.cloudWeightDates].filter(d=>!local.has(d));
+      for(const dd of del){ sbOk(await State.sb.from("body_weights").delete().eq("client_id",State.cloudUser.id).eq("measured_on",dd)); State.cloudWeightDates.delete(dd); }
+      local.forEach(d=>State.cloudWeightDates.add(d));
     }catch(e){ console.error("sync",e); }
   },1200);
 }
@@ -175,13 +296,21 @@ export function cloudSyncCore(){
 export async function loadMyPhotos(){
   if(!State.sb||!State.cloudUser) return;
   try{
-    const r=await State.sb.from("checkin_photos").select("*").eq("client_id",State.cloudUser.id).order("created_at",{ascending:false});
-    CheckinState.myPhotos=[];
-    for(const p of (r.data||[])){
-      const u=await State.sb.storage.from("checkins").createSignedUrl(p.path, 3600);
-      CheckinState.myPhotos.push({id:p.id, path:p.path, url:(u.data&&u.data.signedUrl)||""});
-    }
+    const r=sbOk(await State.sb.from("checkin_photos").select("*").eq("client_id",State.cloudUser.id).order("created_at",{ascending:false}));
+    const rows=r.data||[];
+    const urls=await signedUrls(rows.map(p=>p.path));
+    CheckinState.myPhotos=rows.map(p=>({id:p.id, path:p.path, url:urls[p.path]||""}));
   }catch(e){ console.error("photos",e); }
+}
+
+// Links firmados de las fotos de check-in, todos en un solo pedido (antes era uno por
+// foto, en serie). Devuelve {path: url}; una foto sin link queda afuera del objeto.
+export async function signedUrls(paths){
+  const out={};
+  if(!paths.length) return out;
+  const r=await State.sb.storage.from("checkins").createSignedUrls(paths, 3600);
+  (r.data||[]).forEach(u=>{ if(u && u.path && u.signedUrl) out[u.path]=u.signedUrl; });
+  return out;
 }
 
 export async function cloudUploadPhoto(file){
@@ -266,12 +395,27 @@ async function sendItem(it){
     if(!r.data || !r.data.length){ const e=new Error("El feedback no se guardó: la base no permite actualizar sessions (falta política UPDATE)"); e.code="42501"; throw e; }
   } else if(it.k==="daily"){
     const rec=p.rec||{};
-    sbOk(await sb.from("daily_logs").upsert({
-      client_id:uid, log_date:p.dt,
-      steps: parseInt(rec.steps)||null, comment: rec.comment||null,
+    const row={
+      client_id:uid, log_date:p.dt, comment: rec.comment||null,
       soreness: rec.soreness||null, performance: rec.performance||null, motivation: rec.motivation||null,
       hunger: rec.hunger||null, fatigue: rec.fatigue||null, sleep: rec.sleep||null
-    },{onConflict:"client_id,log_date"}));
+    };
+    // Los pasos también los escribe el contador de Hábitos: si el registro los dejó vacíos
+    // no se mandan, para no borrar lo que ya contó.
+    if(parseInt(rec.steps)>=0) row.steps=parseInt(rec.steps);
+    sbOk(await sb.from("daily_logs").upsert(row,{onConflict:"client_id,log_date"}));
+  } else if(it.k==="day"){
+    // Solo las columnas del día: el upsert no toca comentario, sueño, etc. del registro.
+    sbOk(await sb.from("daily_logs").upsert({client_id:uid, log_date:p.dt, water_ml:p.water, steps:p.steps, habits_done:p.habits},{onConflict:"client_id,log_date"}));
+    if(p.foods.length){
+      sbOk(await sb.from("food_entries").upsert(p.foods.map((f,i)=>({id:f.id, client_id:uid, log_date:p.dt, pos:i, name:f.name, grams:f.grams, unit:f.unit, kcal:f.kcal, protein:f.p, carbs:f.c, fat:f.f, base:f.base})),{onConflict:"id"}));
+    }
+    // Lo que el cliente sacó del diario de ese día.
+    let del=sb.from("food_entries").delete().eq("client_id",uid).eq("log_date",p.dt);
+    if(p.foods.length) del=del.not("id","in","("+p.foods.map(f=>f.id).join(",")+")");
+    sbOk(await del);
+  } else if(it.k==="prefs"){
+    sbOk(await sb.from("client_prefs").upsert(Object.assign({client_id:uid, updated_at:new Date().toISOString()}, p),{onConflict:"client_id"}));
   } else if(it.k==="checkin"){
     const ans=Object.assign({},p.f); const adh=ans.adherence; delete ans.adherence;
     sbOk(await sb.from("checkins").upsert({client_id:uid, week_start:p.wk, answers:ans, adherence:adh||null},{onConflict:"client_id,week_start"}));
@@ -329,6 +473,13 @@ function applyPending(){
       state.daily[p.dt]=Object.assign({}, state.daily[p.dt]||{}, p.rec);
     } else if(it.k==="checkin"){
       state.checkins[p.wk]=Object.assign({}, state.checkins[p.wk]||{}, p.f);
+    } else if(it.k==="day" && p.dt===today()){
+      state.water=p.water; state.steps=p.steps;
+      state.diary=p.foods.map(f=>({id:f.id, name:f.name, grams:f.grams, kcal:f.kcal, p:f.p, c:f.c, f:f.f, unit:f.unit, base:f.base||undefined}));
+      applyHabitsDone(p.habits);
+      _lastDay=JSON.stringify(p);
+    } else if(it.k==="prefs"){
+      applyPrefs(p); _lastPrefs=JSON.stringify(p);
     }
   });
   state.sessions.sort((a,b)=>(a.ts||0)-(b.ts||0));
@@ -366,11 +517,15 @@ export async function cloudDeleteSession(cid){
 
 export async function cloudBoot(){
   await ensureSb();
-  if(!State.sb){ renderApp(); if(window.coreEnter) window.coreEnter(); return; }
+  // Sin la librería de Supabase no hay cuenta: antes se mostraba la app igual, "sin
+  // cuenta", y lo que se cargaba ahí se daba por guardado sin entrar nunca a la cola de
+  // envío. Ahora se pide el login, que al tocar "Ingresar" reintenta la conexión.
+  const offlineMsg="No hay conexión con el servidor. Revisá tu internet y tocá Ingresar para reintentar.";
+  if(!State.sb){ showLogin(offlineMsg,"in"); if(window.coreEnter) window.coreEnter(); return; }
   try{
     const sess=await State.sb.auth.getSession();
     if(sess.data.session){ await afterLogin(sess.data.session.user); }
     else { showLogin("","in"); }
-  }catch(e){ renderApp(); }
+  }catch(e){ console.error("cloudBoot",e); showLogin(offlineMsg,"in"); }
   finally{ if(window.coreEnter) window.coreEnter(); }
 }

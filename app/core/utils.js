@@ -10,7 +10,11 @@ export const mkEx = (name, n, mus) => { const e = { id: uid(), name, sets: mkSet
 
 export const mkExT = (name, mus, targets, note, opt) => { const e = { id: uid(), name, sets: targets.map(t => mkSet(t)) }; if (mus) e.mus = mus; if (note) e.note = note; if (opt) { if(opt.o) e.o=opt.o; if(opt.rir) e.rir=opt.rir; if(opt.rest) e.rest=opt.rest; if(opt.goal) e.goal=opt.goal; } return e; };
 
-export function today(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+// Fecha local YYYY-MM-DD. No usar toISOString(): pasa a UTC y, según la zona horaria,
+// devuelve el día anterior o el siguiente.
+export function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+export function today(){ return ymd(new Date()); }
 
 export function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
@@ -22,7 +26,7 @@ export function fmt(ms, ceil){ let s = ceil?Math.ceil(ms/1000):Math.floor(ms/100
 
 export function hkey(name){ return today()+"|"+name; }
 
-export function mondayOf(dstr){ const d=new Date((dstr||today())+"T00:00:00"); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return d.toISOString().slice(0,10); }
+export function mondayOf(dstr){ const d=new Date((dstr||today())+"T00:00:00"); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return ymd(d); }
 
 export function fmtDate(d){ const p=(d||"").split("-"); if(p.length!==3) return d; const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]; return parseInt(p[2],10)+" "+(m[parseInt(p[1],10)-1]||""); }
 
