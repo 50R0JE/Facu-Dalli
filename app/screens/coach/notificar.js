@@ -16,6 +16,7 @@ import { CoachState } from './state.js';
 import { renderCoach } from './index.js';
 
 const MAX = 500;
+const FN_NAMES = ["notificar-cliente", "rapid-worker"];
 
 // Estado de notificaciones + últimos mensajes de un cliente. Se llama al abrir la ficha.
 export async function loadClientNotify(id){
@@ -69,12 +70,19 @@ async function send(){
   CoachState.notifSending = true; renderCoach();
   let res, errMsg = "";
   try{
-    res = await State.sb.functions.invoke("notificar-cliente", { body: { client_id: d.id, body: body } });
+    // La función se publicó desde el editor de Supabase con el nombre que genera solo
+    // ("rapid-worker"); el nombre no se puede cambiar después. Se prueba el nombre
+    // previsto y, si no existe (404), ese.
+    for(const fn of FN_NAMES){
+      res = await State.sb.functions.invoke(fn, { body: { client_id: d.id, body: body } });
+      const st = res.error && res.error.context && res.error.context.status;
+      if(st !== 404) break;
+    }
     if(res.error){
       let detail = "";
       try{ const ctx = res.error.context; if(ctx && ctx.json){ const j = await ctx.json(); detail = j && j.error; } }catch(e){}
       const st = res.error.context && res.error.context.status;
-      errMsg = detail || (st === 404 ? "Falta publicar la función notificar-cliente en Supabase." : (res.error.message || String(res.error)));
+      errMsg = detail || (st === 404 ? "No se encontró la función de notificaciones en Supabase." : (res.error.message || String(res.error)));
     }
   }catch(e){ errMsg = (e && e.message) || String(e); }
   CoachState.notifSending = false;

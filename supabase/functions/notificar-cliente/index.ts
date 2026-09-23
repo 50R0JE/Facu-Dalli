@@ -3,7 +3,10 @@
 //
 // Cómo publicarla (una sola vez):
 //   1. Supabase → Edge Functions → Deploy a new function → Via Editor.
-//      Nombre: notificar-cliente. Pegar este archivo entero y Deploy.
+//      Nombre: notificar-cliente (la app también prueba "rapid-worker", el nombre que
+//      pone Supabase si no se cambia). Pegar este archivo entero y Deploy.
+//      En Settings de la función, "Verify JWT with legacy secret" puede ir apagado:
+//      la función ya chequea la sesión del coach con auth.getUser().
 //   2. Supabase → Edge Functions → Secrets → agregar:
 //        VAPID_PUBLIC_KEY   (la misma que está en app/core/push.js)
 //        VAPID_PRIVATE_KEY  (la privada, nunca va en el código de la app)
