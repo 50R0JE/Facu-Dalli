@@ -9,7 +9,7 @@ import { loadCloud, deleteMyStorageFiles, PROFILE_KEY } from '../core/supabase.j
 import { esc } from '../core/utils.js';
 import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
-import { pushSupported, prefOn, enablePush, disablePush, isIOS, isStandalone } from '../core/push.js';
+import { pushOnHere, enablePush, disablePush, isIOS, isStandalone } from '../core/push.js';
 import { renderApp } from '../main.js';
 import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg } from '../core/icons.js';
 
@@ -40,7 +40,7 @@ function cfgLinkRow(icon, label, href) {
 // Notificaciones: push de verdad (ver app/core/push.js). El switch refleja permiso dado
 // + preferencia de la app; la suscripción se crea/borra al tocarlo.
 function notifOn() {
-  return pushSupported() && Notification.permission === "granted" && prefOn();
+  return pushOnHere();
 }
 
 export function renderConfig() {
