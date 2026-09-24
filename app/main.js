@@ -1,3 +1,5 @@
+import './ui/keyboard.js';
+
 import { DEFAULT, PPL_DAYS } from './core/data.js';
 
 import { pushLogout } from './core/push.js';

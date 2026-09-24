@@ -23,7 +23,7 @@ export function renderSheet(){
         <div class="seg">${["crudo","cocido"].map(st=>`<button class="${ComidaState.cookState===st?'on':''}" role="radio" aria-checked="${ComidaState.cookState===st}" data-action="portion-cook" data-val="${st}">${st==="crudo"?"Crudo":"Cocido"}</button>`).join("")}</div>
       </div>` : ""}
       <div class="sheet-row">
-        <input id="portionGrams" class="sheet-input" type="text" inputmode="numeric" value="${grams}" data-action="portion-grams">
+        <input id="portionGrams" class="sheet-input" type="text" inputmode="decimal" enterkeyhint="done" value="${grams}" data-action="portion-grams" data-enter="${isEdit?'portion-save':'portion-add'}">
         <span class="sheet-unit">${base.unit==="ml"?"ml":"gramos"}</span>
       </div>
       <div class="sheet-preview" id="portionPreview">${previewStr(base, grams)}</div>
