@@ -14,6 +14,8 @@ export function renderSheet(){
   if (sf){ title=sf.name; grams=ComidaState.sheetGrams!=null ? ComidaState.sheetGrams : cookPortion(sf, ComidaState.cookState); base=selectedFoodValues(); isEdit=false; }
   else if (ComidaState.editEntry){ title=ComidaState.editEntry.name; grams=ComidaState.editEntry.grams; base=entryBase(ComidaState.editEntry); isEdit=true; }
   else return "";
+  // Tamaño de 1 unidad/porción (1 banana = 120 g): para sumar de a unidades con − / +.
+  const unitG = sf ? cookPortion(sf, ComidaState.cookState) : 0;
   return `
     <div class="sheet-bg" data-action="portion-cancel"></div>
     <div class="sheet">
@@ -26,12 +28,28 @@ export function renderSheet(){
         <input id="portionGrams" class="sheet-input" type="text" inputmode="decimal" enterkeyhint="done" value="${grams}" data-action="portion-grams" data-enter="${isEdit?'portion-save':'portion-add'}">
         <span class="sheet-unit">${base.unit==="ml"?"ml":"gramos"}</span>
       </div>
+      ${sf && unitG>0 ? `<div class="sheet-units">
+        <button class="sheet-step" data-action="portion-step" data-d="-1" aria-label="Una unidad menos">−</button>
+        <span class="sheet-units-txt" id="portionUnits">${unitsLabel(grams, unitG, base.unit)}</span>
+        <button class="sheet-step" data-action="portion-step" data-d="1" aria-label="Una unidad más">+</button>
+      </div>` : ""}
       <div class="sheet-preview" id="portionPreview">${previewStr(base, grams)}</div>
       <div class="sheet-btns">
         <button class="ctrl ghost" data-action="portion-cancel">Cancelar</button>
         <button class="ctrl primary" data-action="${isEdit?'portion-save':'portion-add'}">${isEdit?'Guardar':'Agregar'}</button>
       </div>
     </div>`;
+}
+
+// "2 unidades de 120 g" según los gramos escritos (si no es un número exacto de unidades,
+// muestra cuántas son aproximadamente).
+export function unitsLabel(grams, unitG, unit){
+  const g = parseFloat(String(grams).replace(",",".")) || 0;
+  const u = unit === "ml" ? "ml" : "g";
+  const n = g / unitG;
+  const exact = Math.abs(n - Math.round(n)) < 0.05;
+  const num = exact ? String(Math.round(n)) : "≈ " + (Math.round(n * 10) / 10).toString().replace(".", ",");
+  return num + (exact && Math.round(n) === 1 ? " unidad" : " unidades") + " de " + unitG + " " + u;
 }
 
 export function closeSheet(mutate, opts){

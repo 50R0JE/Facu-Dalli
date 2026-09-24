@@ -48,7 +48,7 @@ import { parseRest, renderRestBar, resumeRest, startRest, stopRest } from './ui/
 
 import { initScrollReveal, setupExerciseFocus } from './ui/scrollfocus.js';
 
-import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet } from './ui/sheet.js';
+import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet, unitsLabel } from './ui/sheet.js';
 import { clientQuestions, questionSnapshot } from './core/questions.js';
 import { renderConfig } from './screens/config.js';
 
@@ -57,6 +57,9 @@ import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
 import { productByCode, searchOFF } from './core/off.js';
 
 import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
+
+// Series cuyo peso se completó solo copiando el de la serie de arriba (ver input "kg").
+const autoKg = new Set();
 
 export function renderApp(){
   setTimeout(renderFeedback,0);
@@ -111,7 +114,7 @@ document.body.addEventListener("input", async e => {
   }
   if (a === "food-search") { ComidaState.foodQuery = t.value; scheduleOffSearch(t.value); const r=document.getElementById("foodResults"); if(r) r.innerHTML = renderResults(ComidaState.foodQuery); return; }
   if (a === "ex-search") { EntrenoState.exQuery = t.value; const l=document.getElementById("exList"); if(l) l.innerHTML = renderExList(); return; }
-  if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); } return; }
+  if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); const pu=document.getElementById("portionUnits"); if(pu && ComidaState.selectedFood) pu.textContent = unitsLabel(t.value, cookPortion(ComidaState.selectedFood, ComidaState.cookState), base.unit); } ComidaState.sheetGrams = t.value; return; }
   if (a === "cf-field") { ComidaState.foodForm[t.dataset.field] = t.value; return; }
   if (a === "cal-field") { ComidaState.calForm[t.dataset.field] = t.value; return; }
   if (a === "wkg-field") { ProgresoState.weightForm.kg = t.value; return; }
@@ -119,7 +122,23 @@ document.body.addEventListener("input", async e => {
   if (a === "dayname") d.name = t.value;
   else if (a === "subtitle") d.subtitle = t.value;
   else if (a === "exname") { const ex=d.exercises.find(x=>x.id===t.dataset.ex); if(ex) ex.name=t.value; }
-  else if (a === "kg" || a === "reps") { const ex=d.exercises.find(x=>x.id===t.dataset.ex); const s=ex&&ex.sets.find(x=>x.id===t.dataset.set); if(s) s[a]=t.value; }
+  else if (a === "kg" || a === "reps") {
+    const ex=d.exercises.find(x=>x.id===t.dataset.ex); const s=ex&&ex.sets.find(x=>x.id===t.dataset.set);
+    if(s){
+      s[a]=t.value;
+      if(a === "kg"){
+        // El peso casi siempre se repite: se copia a las series de abajo que están vacías o
+        // que se completaron solas antes (si el cliente cambia una a mano, esa ya no se toca).
+        autoKg.delete(s.id);
+        const i=ex.sets.indexOf(s);
+        ex.sets.slice(i+1).forEach(o=>{
+          if(o.done || (String(o.kg||"")!=="" && !autoKg.has(o.id))) return;
+          o.kg=t.value; if(t.value) autoKg.add(o.id); else autoKg.delete(o.id);
+          const inp=document.querySelector('input.kg[data-set="'+o.id+'"]'); if(inp && inp!==t) inp.value=t.value;
+        });
+      }
+    }
+  }
   else return;
   save();
 });
@@ -219,6 +238,16 @@ document.body.addEventListener("click", async e => {
     const wasDefault = String(cur) === String(cookPortion(f, ComidaState.cookState));
     ComidaState.cookState = el.dataset.val;
     ComidaState.sheetGrams = wasDefault ? null : cur;
+    renderApp(); return;
+  }
+  // Unidades: − / + suman o restan una porción (1 banana, 1 feta, 1 scoop…).
+  if (a === "portion-step") {
+    const f = ComidaState.selectedFood; if(!f) return;
+    const unit = cookPortion(f, ComidaState.cookState); if(!(unit>0)) return;
+    const inp = document.getElementById("portionGrams");
+    const cur = parseFloat(String(inp ? inp.value : "").replace(",",".")) || 0;
+    const n = Math.max(1, Math.round(cur/unit) + parseInt(el.dataset.d));
+    ComidaState.sheetGrams = String(Math.round(n*unit));
     renderApp(); return;
   }
   if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; renderApp(); }); return; }
@@ -330,6 +359,9 @@ document.body.addEventListener("click", async e => {
     s.done=!s.done;
     save();
     const nowDone=allSetsDone(ex);
+    // Al marcar una serie arranca solo el descanso de ese ejercicio (se puede saltear con
+    // la X). No arranca si con esta serie se terminó todo el entrenamiento del día.
+    if(s.done){ const dayDone=d.exercises.every(x=>allSetsDone(x)); if(!dayDone) startRest(effectiveRest(ex).sec); }
     // Se acaba de completar recién ahora (no estaba reabierto a mano) -> animar el
     // colapso. Si ya estaba todo tildado y esto es una corrección (reabierto), o si
     // se destildó, el render es inmediato como siempre.
