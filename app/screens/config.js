@@ -12,9 +12,10 @@ import { showLogin } from './auth.js';
 import { pushOnHere, enablePush, disablePush, isIOS, isStandalone } from '../core/push.js';
 import { renderApp } from '../main.js';
 import { isLite, setLite } from '../ui/background.js';
-import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg } from '../core/icons.js';
+import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg, checkSvg } from '../core/icons.js';
 
 const cameraSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+const zapSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
 
 function cfgRoleLabel(p) { return (p && p.role === "coach") ? "Coach" : "Cliente"; }
 
@@ -94,12 +95,16 @@ export function renderConfig() {
 
   const coachSection = !logged ? "" :
     linked
-      ? '<div class="card cfg-card"><div class="cfg-row-simple"><span>Tu coach</span><button class="cfg-ok" data-action="cfg-unlink-coach" title="Desvincularte de tu coach">Vinculado ✅</button></div></div>'
+      ? '<div class="card cfg-card"><div class="cfg-row-simple"><span>Tu coach</span><button class="cfg-ok" data-action="cfg-unlink-coach" title="Desvincularte de tu coach">Vinculado' + checkSvg + '</button></div></div>'
       : needsLink
-        ? '<div class="join-box" style="margin-top:0">' +
-            '<div class="join-t">Vinculate a tu coach</div>' +
-            '<input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px">' +
-            '<button class="form-save" data-auth="join" style="margin-top:0">Vincular</button>' +
+        // Card normal (no .join-box) para que tenga el mismo espaciado que el resto; input y
+        // botón en una fila así "Vincular" no queda como una pastilla gigante a todo el ancho.
+        ? '<div class="card cfg-card">' +
+            '<div class="cfg-sub">Vinculate a tu coach</div>' +
+            '<div class="join-row">' +
+              '<input id="joinCode" class="form-input" placeholder="Código del coach">' +
+              '<button class="form-save join-btn" data-auth="join">Vincular</button>' +
+            '</div>' +
           '</div>'
         : "";
 
@@ -120,9 +125,10 @@ export function renderConfig() {
   const liteOnNow = isLite();
   const liteSection = '<div class="card cfg-card">' +
       '<div class="cfg-notif-row">' +
+        '<span class="cfg-notif-ic">' + zapSvg + '</span>' +
         '<div class="cfg-notif-txt">' +
           '<div class="cfg-notif-label">Modo liviano</div>' +
-          '<div class="cfg-notif-desc">Apaga las animaciones del fondo para que la app vaya más fluida en equipos lentos y gaste menos batería</div>' +
+          '<div class="cfg-notif-desc">Menos animaciones y más fluidez</div>' +
         '</div>' +
         '<button class="cfg-switch' + (liteOnNow ? ' on' : '') + '" data-action="cfg-lite-toggle" role="switch" aria-checked="' + liteOnNow + '"><span class="cfg-switch-knob"></span></button>' +
       '</div>' +
@@ -140,20 +146,17 @@ export function renderConfig() {
       cfgLinkRow(whatsappSvg, "WhatsApp", "https://wa.me/" + LINKS.whatsapp) +
     '</div>';
 
-  const dataSection = '<div class="card cfg-card">' +
-      '<div class="cfg-sub">Datos en este dispositivo</div>' +
-      '<button class="logout-btn cfg-danger" data-action="cfg-clear-local">Borrar datos guardados localmente</button>' +
-    '</div>';
-
-  const dangerSection = !logged ? "" : '<div class="card cfg-card">' +
+  // Las dos acciones destructivas juntas en una sola card (antes eran dos cards rojas seguidas).
+  const dangerSection = '<div class="card cfg-card">' +
       '<div class="cfg-sub">Zona de peligro</div>' +
-      '<button class="logout-btn cfg-danger" data-action="cfg-delete-account">Eliminar cuenta</button>' +
+      '<button class="logout-btn cfg-danger" data-action="cfg-clear-local">Borrar datos de este dispositivo</button>' +
+      (logged ? '<button class="logout-btn cfg-danger" data-action="cfg-delete-account">Eliminar cuenta</button>' : '') +
     '</div>';
 
   const about = '<div class="cfg-about"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>';
 
   return '<div class="hb-head"><div class="hb-title">Configuración</div><div class="title-accent"></div></div>' +
-    account + coachSection + notifSection + liteSection + legalSection + contactSection + dataSection + dangerSection + about;
+    account + coachSection + notifSection + liteSection + legalSection + contactSection + dangerSection + about;
 }
 
 document.body.addEventListener("keydown", function (e) {
