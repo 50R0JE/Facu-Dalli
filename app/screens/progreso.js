@@ -107,7 +107,7 @@ export function renderHistorial(){
   if(!sess.length) return "";
   // Todos los entrenos (antes solo los últimos 20): cerrados ocupan una fila cada uno.
   const items=sess.map(se=>renderSessionItem(se, {
-    removeBtn:'<button class="diary-rm" data-action="session-remove" data-id="'+se.id+'" title="Borrar entreno" aria-label="Borrar entreno">'+xSvg+'</button>'
+    removeBtn:'<button class="diary-rm" data-action="session-remove" data-id="'+esc(se.id)+'" title="Borrar entreno" aria-label="Borrar entreno">'+xSvg+'</button>'
   })).join("");
   return '<div class="hb-head" style="margin-top:28px"><div class="hb-title">Historial de entrenos</div><div class="title-accent"></div></div><div class="sess-hint">Tocá un entreno para ver los pesos y las series.</div>'+items;
 }
@@ -177,7 +177,7 @@ export function renderProgreso(){
     header=`<div class="cal-hint" style="padding:20px 8px">Todavía no cargaste tu peso. Empezá registrando el de hoy acá abajo.</div>`;
   }
   const chart=ws.length?renderWChart(ws):"";
-  const list=ws.length?ws.slice().reverse().map(e=>`<div class="w-item" data-action="weight-edit" data-id="${e.id}"><div class="w-date">${fmtDate(e.date)}</div><div class="w-kg">${e.kg.toFixed(1)} kg</div><button class="diary-rm" data-action="weight-remove" data-id="${e.id}" title="Borrar">${xSvg}</button></div>`).join(""):"";
+  const list=ws.length?ws.slice().reverse().map(e=>`<div class="w-item" data-action="weight-edit" data-id="${esc(e.id)}"><div class="w-date">${fmtDate(e.date)}</div><div class="w-kg">${e.kg.toFixed(1)} kg</div><button class="diary-rm" data-action="weight-remove" data-id="${esc(e.id)}" title="Borrar">${xSvg}</button></div>`).join(""):"";
   return `
     <div class="hb-head"><div class="hb-title">Peso corporal</div><div class="title-accent"></div></div>
     ${header}
