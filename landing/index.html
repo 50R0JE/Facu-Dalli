@@ -250,7 +250,7 @@ footer a:hover{color:var(--text)}
 <div class="hero" id="top">
   <div class="hero-shade"></div>
   <svg class="hero-wm" viewBox="0 0 162.7 100" role="img" aria-label="GIZE"><use href="#g-wm" width="162.7" height="100"/></svg>
-  <div class="fx-dots" id="fxDots" role="group" aria-label="Efectos del fondo"></div>
+  <div class="fx-dots" id="fxDots" hidden></div>
   <div class="wrap hero-copy">
     <span class="eyebrow">Entrenamiento con coach</span>
     <h1>Tu coach, tu rutina y tu progreso en un solo lugar</h1>
@@ -427,7 +427,8 @@ footer a:hover{color:var(--text)}
 
   chips.innerHTML=VARS.map(function(v,i){return '<button class="fx-dot" data-v="'+v.id+'" aria-label="Efecto '+(i+1)+' de '+VARS.length+': '+v.name+'" aria-pressed="false"><span class="bar"></span></button>';}).join('');
   // Automático: pasa al siguiente efecto cada 7 segundos.
-  var HOLD=7000, autoOK=!matchMedia('(prefers-reduced-motion: reduce)').matches, auto=autoOK, since=0;
+  // El hero queda fijo en el vidrio; el fondo cambia solo al scrollear de sección en sección.
+  var HOLD=7000, autoOK=false, auto=false, since=0;
   chips.addEventListener('click',function(e){ var b=e.target.closest('.fx-dot'); if(b) go(b.dataset.v); });
 
   // ---------- escena: G + auroras (2D) y máscara de la G ----------
@@ -704,6 +705,8 @@ footer a:hover{color:var(--text)}
     var inHero=geo.heroBottom-y>vh*.45;
     if(inHero!==inHeroPrev){ inHeroPrev=inHero; since=performance.now(); }
     auto=autoOK&&inHero;
+    // Al volver al hero, vuelve el vidrio.
+    if(inHero&&cur!=='a'&&!switching) go('a');
     if(!inHero){
       dim=.55;
       if(geo.steps&&geo.steps.top<=mid&&geo.steps.bottom>=mid){
