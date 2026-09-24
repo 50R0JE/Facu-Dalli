@@ -20,6 +20,8 @@ import { avatarHtml } from '../../core/avatar.js';
 
 import { renderCoachNotify } from './notificar.js';
 
+import { billing, renderPaywall, renderPlanBanner } from './plan.js';
+
 // Título de sección con la ruedita que abre el editor de preguntas en esa pestaña.
 function secHead(title, kind){
   return '<div class="co-sec co-sec-row"><span>'+title+'</span><button class="co-sec-gear" data-coach="q-open" data-k="'+kind+'" title="Editar preguntas" aria-label="Editar preguntas de '+title.toLowerCase()+'">'+gearSvg+'</button></div>';
@@ -31,6 +33,9 @@ export function renderCoach(){
   host.style.display="block";
   showSilkBg();
   document.body.classList.add("silk-coach");
+  // Sin prueba ni plan vigente: solo la pantalla de planes (la base igual no le deja
+  // leer los datos de los clientes, ver supabase/suscripciones.sql).
+  if(!billing().active){ host.innerHTML=renderPaywall(); return; }
   if(!CoachState.coachSel && !CoachState.coachTplEdit){
     const tabs='<div class="co-tabs">'+
       '<button class="co-tab'+(CoachState.coachView==="clients"?" on":"")+'" data-coach="view-clients">Clientes <span class="co-tab-count'+(CoachState.coachClients.length?" has":"")+'">('+CoachState.coachClients.length+')</span></button>'+
@@ -81,7 +86,7 @@ export function renderCoach(){
       // Va como reemplazo del bloque entero (sin buscador ni grid), no como un item más.
       body=(!CoachState.coachSearch && !CoachState.coachClients.length) ? onboard : searchBox+list;
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-logout co-q-btn" data-coach="q-open" title="Preguntas del registro diario y del check-in">Preguntas</button><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+tabs+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-logout co-q-btn" data-coach="q-open" title="Preguntas del registro diario y del check-in">Preguntas</button><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+renderPlanBanner()+tabs+body+'</div>';
   } else if(CoachState.coachTplEdit){
     const rt=CoachState.coachTplEdit.days||[];
     let ed="";

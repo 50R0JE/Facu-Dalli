@@ -20,12 +20,15 @@ import { loadTpls } from './rutinas.js';
 
 import { CoachState } from './state.js';
 
+import { loadBilling } from './plan.js';
+
 import { renderWChart } from '../progreso.js';
 
 export async function loadCoachClients(){
   try{
     // Lista de clientes y código de invitación salen juntos.
     const icP=Promise.resolve(State.sb.rpc("my_invite_code")).catch(()=>({data:null}));
+    const billP=loadBilling();
     // Supabase no tira excepción cuando una query falla (devuelve {data:null, error}).
     // Si "email" no existe en profiles (o RLS no deja leerla) o todavía no está la
     // columna de la foto (falta supabase/foto-perfil.sql), se reintenta sin esa columna.
@@ -44,6 +47,7 @@ export async function loadCoachClients(){
     const paths=CoachState.coachClients.map(c=>c.avatar_path).concat([State.cloudProfile&&State.cloudProfile.avatar_path]);
     resolveAvatars(paths).then(ok=>{ if(ok) renderCoach(); }).catch(()=>{});
     const ic=await icP; CoachState.coachInvite=ic.data||null;
+    await billP;
   }catch(e){ console.error("coachClients",e); }
   loadCoachStats(); loadTpls();
 }

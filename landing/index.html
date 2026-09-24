@@ -239,6 +239,20 @@ footer a:hover{color:var(--text)}
   .mq-row{transform:none!important}
   *,*::before,*::after{animation:none!important;transition:none!important} html{scroll-behavior:auto}
 }
+
+/* ---------- precios (mismos valores que app/screens/coach/plan.js) ---------- */
+.prices{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+@media (max-width:820px){.prices{grid-template-columns:minmax(0,1fr)}}
+.price{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:28px 24px}
+.price.best{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4)) border-box}
+.price .badge{position:absolute;top:-12px;left:22px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--el);color:#000;border-radius:999px;padding:4px 10px}
+.price h3{margin:0;font-size:19px;color:var(--text-2);font-weight:500}
+.price h3 b{color:var(--text);font-size:24px}
+.price .amt{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.price .amt small{font-size:16px;font-weight:500;color:var(--text-2);margin-left:4px}
+.price ul{list-style:none;margin:4px 0 12px;padding:0;color:var(--text-2);font-size:15.5px;line-height:1.9}
+.price .btn{margin-top:auto;justify-content:center;text-align:center}
+.price-note{margin:22px 0 0;color:var(--text-2);font-size:15px;text-align:center}
 </style>
 <link rel="manifest" href="../manifest.json">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -264,6 +278,7 @@ footer a:hover{color:var(--text)}
         <a href="#como">Cómo funciona</a>
         <a href="#app">La app</a>
         <a href="#coach">Soy coach</a>
+        <a href="#precios">Precios</a>
       </div>
       <a class="btn btn-ghost btn-sm" href="../#instalar" data-install>Instalar</a>
       <a class="btn btn-ghost btn-sm" href="../">Entrar</a>
@@ -429,6 +444,19 @@ footer a:hover{color:var(--text)}
         </ul>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="precios">
+  <div class="wrap">
+    <h2 class="reveal">Planes para coaches</h2>
+    <p class="lead reveal">Probá GIZE 14 días gratis, sin tarjeta. Después elegís el plan según cuántos clientes tengas. Para tus clientes la app es gratis.</p>
+    <div class="prices">
+      <div class="price reveal"><h3>Hasta <b>10</b> clientes</h3><div class="amt">$9.300<small>/mes</small></div><ul><li>✓ Rutinas, seguimiento y check-in</li><li>✓ Mensajes al celular del cliente</li><li>✓ Plantillas de rutinas ilimitadas</li></ul><a class="btn btn-ghost" href="../#registro-coach">Probar 14 días gratis</a></div>
+      <div class="price reveal best"><span class="badge">Más elegido</span><h3>Hasta <b>25</b> clientes</h3><div class="amt">$15.000<small>/mes</small></div><ul><li>✓ Rutinas, seguimiento y check-in</li><li>✓ Mensajes al celular del cliente</li><li>✓ Plantillas de rutinas ilimitadas</li></ul><a class="btn btn-rgb" href="../#registro-coach">Probar 14 días gratis</a></div>
+      <div class="price reveal"><h3>Hasta <b>50</b> clientes</h3><div class="amt">$20.000<small>/mes</small></div><ul><li>✓ Rutinas, seguimiento y check-in</li><li>✓ Mensajes al celular del cliente</li><li>✓ Plantillas de rutinas ilimitadas</li></ul><a class="btn btn-ghost" href="../#registro-coach">Probar 14 días gratis</a></div>
+    </div>
+    <p class="price-note reveal">Precios en pesos argentinos. Se paga por mes con Mercado Pago y se cancela cuando quieras.</p>
   </div>
 </section>
 

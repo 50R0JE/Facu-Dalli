@@ -35,6 +35,10 @@ export function renderCoachSettings(){
       '<button class="co-save-rt" data-coach="settings-name-save">Guardar nombre</button>'+
     '</div>'+
     '<div class="cs-field">'+
+      '<label>Plan de GIZE</label>'+
+      '<button class="cp-copt cs-q-btn" data-plan="open">Ver mi plan y cantidad de clientes</button>'+
+    '</div>'+
+    '<div class="cs-field">'+
       '<label>Preguntas para tus clientes</label>'+
       '<button class="cp-copt cs-q-btn" data-coach="q-open">Editar preguntas del registro diario y del check-in</button>'+
     '</div>'+

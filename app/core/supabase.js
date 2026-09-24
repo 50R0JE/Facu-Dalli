@@ -21,6 +21,8 @@ import { routineLocked } from '../screens/entreno.js';
 
 import { loadCoachClients } from '../screens/coach/clientes.js';
 
+import { checkPaymentReturn } from '../screens/coach/plan.js';
+
 import { renderCoach } from '../screens/coach/index.js';
 
 export const SB_URL = "https://wegptuzhsrwppbknqstf.supabase.co";
@@ -154,6 +156,7 @@ export async function afterLogin(sessionUser){
       // y se lo intenta aplicar a la cuenta de OTRA persona que después inicie sesión ahí.
       localStorage.removeItem("jfit_pending_code");
       const r2=await State.sb.rpc("join_coach",{code:pc});
+      if(r2.error && r2.error.code==="P0001" && r2.error.message){ const m=r2.error.message; setTimeout(()=>alert(m+" Podés poner el código después en Configuración."), 600); }
       if(r2.data===true){ coachNameP=Promise.resolve(State.sb.rpc("my_coach_name")).catch(()=>({data:null})); const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); }
     }
   }catch(e){ console.error("pending code",e); }
@@ -163,7 +166,7 @@ export async function afterLogin(sessionUser){
     else { const cn=await coachNameP; State.brandName=cn.data||""; }
   }catch(e){ State.brandName=""; }
   applyBrand();
-  if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); }
+  if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); checkPaymentReturn(); }
   else { renderApp(); syncPush(); } // sin await: no demora la entrada
 }
 

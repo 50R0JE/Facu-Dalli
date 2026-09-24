@@ -88,6 +88,10 @@ Deno.serve(async (req) => {
   // Solo a clientes propios.
   const { data: client } = await admin.from("profiles").select("id, coach_id").eq("id", clientId).maybeSingle();
   if (!client || client.coach_id !== coachId) return json({ error: "Ese cliente no es tuyo" }, 403);
+  // Con el plan vencido no se mandan mensajes (ver supabase/suscripciones.sql). Si la
+  // función coach_active todavía no existe (falta ese SQL), no se bloquea.
+  const { data: active, error: actErr } = await admin.rpc("coach_active", { cid: coachId });
+  if (!actErr && active === false) return json({ error: "Tu plan de GIZE está vencido. Renovalo para seguir mandando mensajes." }, 402);
 
   const { data: coach } = await admin.from("profiles").select("full_name").eq("id", coachId).maybeSingle();
   const title = (coach && coach.full_name) ? coach.full_name + " · tu coach" : "Tu coach";
