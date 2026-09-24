@@ -190,6 +190,20 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
   }
 }
 
+/* ---------- rendimiento en celular: nada de desenfoques animados ---------- */
+@media (pointer:coarse),(max-width:820px){
+  #fx,#fxP{transition:opacity .42s ease}
+  .bgfx.fx-out #fx,.bgfx.fx-out #fxP{filter:none;transform:none}
+  .steps.pinned .step{filter:none;transition:opacity .5s ease,transform .5s ease}
+  .steps.pinned .step:not(.on){filter:none}
+}
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion:no-preference) and ((pointer:coarse) or (max-width:820px)){
+    .reveal{animation-name:rise-in}
+    @keyframes rise-in{from{opacity:0;transform:translateY(40px)}}
+  }
+}
+
 /* ---------- cierre ---------- */
 .final .cta{justify-content:center}
 .final{position:relative;text-align:center;border-radius:28px;padding:clamp(48px,7vw,84px) clamp(18px,4vw,26px);border:1px solid var(--border);background:var(--surface);overflow:hidden}
@@ -228,7 +242,7 @@ footer a:hover{color:var(--text)}
         <a href="#app">La app</a>
         <a href="#coach">Soy coach</a>
       </div>
-      <a class="btn btn-ghost btn-sm" href="https://corefitnessapp.github.io/CORE/">Entrar</a>
+      <a class="btn btn-ghost btn-sm" href="../">Entrar</a>
     </nav>
   </div>
 </header>
@@ -242,7 +256,7 @@ footer a:hover{color:var(--text)}
     <h1>Tu coach, tu rutina y tu progreso en un solo lugar</h1>
     <p>Dejá la planilla. Tu coach arma el plan, vos registrás cada serie y los dos ven la evolución en tiempo real.</p>
     <div class="cta">
-      <a class="btn btn-rgb" href="https://corefitnessapp.github.io/CORE/#registro">Creá tu cuenta</a>
+      <a class="btn btn-rgb" href="../#registro">Creá tu cuenta</a>
       <a class="btn btn-ghost" href="#coach">Soy coach</a>
     </div>
     <span class="hint" id="hint" aria-hidden="true"><svg class="mouse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v3"/></svg><svg class="finger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5a2 2 0 0 1 4 0v5M13 10V8.5a2 2 0 0 1 4 0V12M17 11a2 2 0 0 1 4 0v3a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L4.5 14a2 2 0 0 1 3.3-2.2L9 13.5"/></svg><span class="mouse">Mové el mouse sobre el fondo</span><span class="finger">Deslizá el dedo sobre el fondo</span></span>
@@ -373,8 +387,8 @@ footer a:hover{color:var(--text)}
       <h2 class="reveal" style="margin-top:26px">Empezá a entrenar con método</h2>
       <p class="lead" style="margin:14px auto 30px;text-align:center">Creá tu cuenta y sumá a tu coach, o invitá a tus clientes si el coach sos vos.</p>
       <div class="cta" style="margin-top:0">
-        <a class="btn btn-rgb" href="https://corefitnessapp.github.io/CORE/#registro">Creá tu cuenta</a>
-        <a class="btn btn-ghost" href="https://corefitnessapp.github.io/CORE/#registro-coach">Quiero ser coach GIZE</a>
+        <a class="btn btn-rgb" href="../#registro">Creá tu cuenta</a>
+        <a class="btn btn-ghost" href="../#registro-coach">Quiero ser coach GIZE</a>
       </div>
     </div>
   </div>
@@ -383,7 +397,7 @@ footer a:hover{color:var(--text)}
 <footer>
   <div class="wrap">
     <span class="logo" role="img" aria-label="GIZE" style="font-size:20px"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></span>
-    <a href="https://corefitnessapp.github.io/CORE/">Abrir la app</a>
+    <a href="../">Abrir la app</a>
     <span>© 2026 GIZE · Rosario, Argentina</span>
   </div>
 </footer>
@@ -404,6 +418,11 @@ footer a:hover{color:var(--text)}
   var chips=document.getElementById('fxDots');
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var DPR=Math.min(window.devicePixelRatio||1,1.5);
+  // Rendimiento: en celulares (o pantallas chicas) el fondo se dibuja a menos resolución
+  // (son efectos suaves/desenfocados, casi no se nota) y a 30 cuadros por segundo, con
+  // cálculos más livianos. Si aun así el equipo no llega, baja la calidad solo (ver loop).
+  var LOW=matchMedia('(pointer:coarse)').matches||innerWidth<820;
+  var RS=LOW?.6:Math.min(DPR,1.25);
   var cur='a';
 
   chips.innerHTML=VARS.map(function(v,i){return '<button class="fx-dot" data-v="'+v.id+'" aria-label="Efecto '+(i+1)+' de '+VARS.length+': '+v.name+'" aria-pressed="false"><span class="bar"></span></button>';}).join('');
@@ -418,26 +437,37 @@ footer a:hover{color:var(--text)}
   var COLS=['#2FA0FF','#A65CFF','#FF3DAE','#25E8C8'];
   function layout(W,H){ var port=H>W*1.05;
     return port?{S:Math.min(W*.62,H*.32),cx:W*.55,cy:H*.26}:{S:Math.min(H*.7,W*.4),cx:W*.7,cy:H*.42}; }
+  // Lo caro (degradés y resplandores) se dibuja UNA vez por tamaño en sprites; en cada
+  // cuadro solo se copian con drawImage.
+  var blobs=[], gLayer=null, dotSpr=null, GS=0, DS=0, LS=null;
+  function sprites(){
+    var W=sc.width,H=sc.height; LS=layout(W,H); var S=LS.S;
+    blobs=COLS.map(function(c){ var b=document.createElement('canvas'); b.width=b.height=128; var x=b.getContext('2d');
+      var g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,c); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return b; });
+    GS=Math.ceil(S*1.3); gLayer=document.createElement('canvas'); gLayer.width=gLayer.height=GS; var gx=gLayer.getContext('2d');
+    gx.translate((GS-S)/2,(GS-S)/2); gx.scale(S/100,S/100);
+    gx.shadowColor='rgba(255,255,255,.35)'; gx.shadowBlur=S*.06; gx.lineWidth=20; gx.lineCap='round'; gx.strokeStyle='#F4F6FA'; gx.stroke(arc);
+    DS=Math.ceil(S*1.1); dotSpr=document.createElement('canvas'); dotSpr.width=dotSpr.height=DS; var dx=dotSpr.getContext('2d');
+    dx.translate(DS/2,DS/2); dx.scale(S/100,S/100); dx.shadowColor='#2FA0FF'; dx.shadowBlur=S*.42; dx.fillStyle='#2FA0FF';
+    for(var k=0;k<3;k++){ dx.beginPath(); dx.arc(0,0,9.5,0,Math.PI*2); dx.fill(); }
+    dx.shadowBlur=0; dx.fillStyle='#8FD0FF'; dx.beginPath(); dx.arc(-1.7,-1.7,3.2,0,Math.PI*2); dx.fill();
+  }
   function drawScene(t){
-    var W=sc.width,H=sc.height,L=layout(W,H);
+    var W=sc.width,H=sc.height,L=LS;
     sx.globalCompositeOperation='source-over'; sx.globalAlpha=1;
     sx.fillStyle='#050608'; sx.fillRect(0,0,W,H);
-    sx.globalCompositeOperation='lighter';
+    sx.globalCompositeOperation='lighter'; sx.globalAlpha=.4;
     var R=Math.max(W,H)*.55;
     for(var i=0;i<4;i++){
       var x=W*(.5+.38*Math.sin(t*.00011*(i+2)+i*1.7)), y=H*(.5+.34*Math.cos(t*.00013*(i+1.5)+i*2.3));
-      var g=sx.createRadialGradient(x,y,0,x,y,R); g.addColorStop(0,COLS[i]); g.addColorStop(1,'rgba(0,0,0,0)');
-      sx.globalAlpha=.4; sx.fillStyle=g; sx.fillRect(0,0,W,H);
+      sx.drawImage(blobs[i],x-R,y-R,R*2,R*2);
     }
     sx.globalAlpha=1; sx.globalCompositeOperation='source-over';
     var S=L.S, cy=L.cy+Math.sin(t*.0006)*H*.01;
-    sx.save(); sx.translate(L.cx,cy); sx.rotate(Math.sin(t*.0003)*.04); sx.translate(-S/2,-S/2); sx.scale(S/100,S/100);
-    sx.shadowColor='rgba(255,255,255,.35)'; sx.shadowBlur=S*.06;
-    sx.lineWidth=20; sx.lineCap='round'; sx.strokeStyle='#F4F6FA'; sx.stroke(arc);
-    var pulse=1+.07*Math.sin(t*.0024);
-    sx.shadowColor='#2FA0FF'; sx.shadowBlur=S*.42; sx.fillStyle='#2FA0FF';
-    for(var k=0;k<3;k++){ sx.beginPath(); sx.arc(60.5,50,9.5*pulse,0,Math.PI*2); sx.fill(); }
-    sx.shadowBlur=0; sx.fillStyle='#8FD0FF'; sx.beginPath(); sx.arc(58.8,48.3,3.2*pulse,0,Math.PI*2); sx.fill();
+    sx.save(); sx.translate(L.cx,cy); sx.rotate(Math.sin(t*.0003)*.04);
+    sx.drawImage(gLayer,-GS/2,-GS/2);
+    var pulse=1+.07*Math.sin(t*.0024), d=DS*pulse;
+    sx.drawImage(dotSpr,S*.105-d/2,-d/2,d,d);
     sx.restore();
   }
   // Máscara: canal rojo = trazo de la G, canal verde = punto azul.
@@ -469,10 +499,11 @@ footer a:hover{color:var(--text)}
   // ---------- WebGL ----------
   var gl=null; try{ gl=cv.getContext('webgl',{antialias:false,alpha:false,premultipliedAlpha:false}); }catch(e){}
   var VS='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
-  var H_='precision highp float;varying vec2 v;uniform sampler2D scene,mask,trail;uniform vec2 res,m,mv,tres;uniform float t,cell,dpr;'+
+  var DEFS=LOW?'#define TAPS 6\n#define OCT 3\n#define ZT 12\n#define MT 8\n#define GL 2\n#define GT 4\n':'#define TAPS 12\n#define OCT 5\n#define ZT 24\n#define MT 16\n#define GL 3\n#define GT 8\n';
+  var H_=DEFS+'precision highp float;varying vec2 v;uniform sampler2D scene,mask,trail;uniform vec2 res,m,mv,tres;uniform float t,cell,dpr;'+
     'float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}'+
     'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}'+
-    'float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}'+
+    'float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<OCT;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}'+
     'vec3 pal(float x){x=fract(x)*4.;vec3 c1=vec3(.184,.627,1.),c2=vec3(.651,.361,1.),c3=vec3(1.,.239,.682),c4=vec3(.145,.91,.784);'+
     'return x<1.?mix(c1,c2,x):x<2.?mix(c2,c3,x-1.):x<3.?mix(c3,c4,x-2.):mix(c4,c1,x-3.);}'+
     'vec3 fin(vec3 c){c+=(h(v*res+fract(t*7.))-.5)*.045;return c*mix(.7,1.,smoothstep(1.2,.35,length(v-vec2(.55,.5))));}';
@@ -487,8 +518,8 @@ footer a:hover{color:var(--text)}
     'vec2 g=vec2(texture2D(trail,v+vec2(tp.x*2.,0.)).r-texture2D(trail,v-vec2(tp.x*2.,0.)).r,texture2D(trail,v+vec2(0.,tp.y*2.)).r-texture2D(trail,v-vec2(0.,tp.y*2.)).r);'+
     'vec2 q=v*res/cell;vec2 off=vec2(vn(q)-.5,vn(q+17.3)-.5)+.5*vec2(vn(q*2.1+5.)-.5,vn(q*2.1+9.)-.5);'+
     'vec2 ug=v+off*.028;vec3 acc=vec3(0.);float jit=h(v*res+fract(t))*6.2831;'+
-    'for(int i=0;i<12;i++){float fi=float(i);float an=fi*2.39996+jit;float rr=sqrt((fi+.5)/12.)*.02;acc+=texture2D(scene,ug+vec2(cos(an),sin(an))*rr*vec2(res.y/res.x,1.)).rgb;}'+
-    'vec3 glass=acc/12.*.86+.045;glass+=.06*pow(vn(q*1.3+t*.05),6.);vec3 sharp=texture2D(scene,v-g*.09).rgb;'+
+    'for(int i=0;i<TAPS;i++){float fi=float(i);float an=fi*2.39996+jit;float rr=sqrt((fi+.5)/float(TAPS))*.02;acc+=texture2D(scene,ug+vec2(cos(an),sin(an))*rr*vec2(res.y/res.x,1.)).rgb;}'+
+    'vec3 glass=acc/float(TAPS)*.86+.045;glass+=.06*pow(vn(q*1.3+t*.05),6.);vec3 sharp=texture2D(scene,v-g*.09).rgb;'+
     'float e=mm+(vn(v*res/5.)-.5)*.1;vec3 col=mix(glass,sharp,smoothstep(.16,.52,e));'+
     'float rim=smoothstep(.06,.2,mm)*(1.-smoothstep(.2,.42,mm));col+=rim*pal(v.x*.5+v.y*.35+t*.05)*.3;gl_FragColor=vec4(fin(col),1.);}';
   // B · tinta RGB dentro de la G
@@ -497,14 +528,14 @@ footer a:hover{color:var(--text)}
     'vec2 q=vec2(fbm(p+t*.05),fbm(p+vec2(5.2,1.3)-t*.04));vec2 r=vec2(fbm(p+3.*q+vec2(1.7,9.2)+t*.09),fbm(p+3.*q+vec2(8.3,2.8)-t*.07));'+
     'float f=fbm(p+3.*r);vec3 ink=pal(f*1.3+length(q)*.5+t*.02)*(.25+1.3*f*f);'+
     'vec2 mk=texture2D(mask,v).rg;float gb=0.,db=0.;'+
-    'for(int i=0;i<16;i++){float fi=float(i);float a2=fi*2.39996;float rr=sqrt((fi+.5)/16.)*.06;vec2 o=vec2(cos(a2),sin(a2))*rr*vec2(1./asp,1.);vec2 s2=texture2D(mask,v+o).rg;gb+=s2.r;db+=s2.g;}'+
-    'gb/=16.;db/=16.;vec3 col=ink*.07+vec3(.012);col+=ink*gb*.55;col=mix(col,ink*1.35+.06,mk.r);'+
+    'for(int i=0;i<MT;i++){float fi=float(i);float a2=fi*2.39996;float rr=sqrt((fi+.5)/float(MT))*.06;vec2 o=vec2(cos(a2),sin(a2))*rr*vec2(1./asp,1.);vec2 s2=texture2D(mask,v+o).rg;gb+=s2.r;db+=s2.g;}'+
+    'gb/=float(MT);db/=float(MT);vec3 col=ink*.07+vec3(.012);col+=ink*gb*.55;col=mix(col,ink*1.35+.06,mk.r);'+
     'vec3 blue=vec3(.184,.627,1.);float pu=1.+.25*sin(t*2.4);col+=blue*db*1.1*pu;col=mix(col,blue*1.25+.1,mk.g);gl_FragColor=vec4(fin(col),1.);}';
   // C · velocidad: desenfoque radial desde el puntero con separación de colores y latido
   FS.c=H_+'void main(){float ph=mod(t,1.5);float beat=exp(-ph*8.)+.65*exp(-max(0.,ph-.26)*8.)*step(.26,ph);'+
     'float str=.05+.2*beat+min(.15,length(mv)*6.);vec2 c=m;vec2 dir=v-c;vec3 acc=vec3(0.);float jit=h(v*res+t)*.04;'+
-    'for(int i=0;i<24;i++){float k=(float(i)+jit*24.)/24.;acc.r+=texture2D(scene,c+dir*(1.-str*k)).r;acc.g+=texture2D(scene,c+dir*(1.-str*k*1.08)).g;acc.b+=texture2D(scene,c+dir*(1.-str*k*1.16)).b;}'+
-    'vec3 col=acc/24.;col=mix(col,texture2D(scene,v).rgb,.25);col*=1.+.35*beat;'+
+    'for(int i=0;i<ZT;i++){float k=(float(i)+jit*float(ZT))/float(ZT);acc.r+=texture2D(scene,c+dir*(1.-str*k)).r;acc.g+=texture2D(scene,c+dir*(1.-str*k*1.08)).g;acc.b+=texture2D(scene,c+dir*(1.-str*k*1.16)).b;}'+
+    'vec3 col=acc/float(ZT);col=mix(col,texture2D(scene,v).rgb,.25);col*=1.+.35*beat;'+
     'col+=.03*step(.5,fract(v.y*res.y/(3.*dpr)))*beat;gl_FragColor=vec4(fin(col),1.);}';
   // E · trama de puntos RGB + lupa
   FS.e=H_+'vec2 rot(vec2 p,float a){return mat2(cos(a),-sin(a),sin(a),cos(a))*p;}'+
@@ -525,11 +556,11 @@ footer a:hover{color:var(--text)}
     'col/=5.;col*=.86+.14*cos(u*3.1416);col+=.1*smoothstep(.43,.5,abs(u));col+=.06*exp(-u*u*60.)*(.5+near);gl_FragColor=vec4(fin(col),1.);}';
   // G · aurora en capas con foco que sigue al puntero
   FS.g=H_+'vec3 layer(vec2 uv,float z,float blur){vec3 acc=vec3(0.);float jit=h(uv*res+t)*6.28;'+
-    'for(int i=0;i<8;i++){float fi=float(i);float an=fi*2.39996+jit;vec2 o=vec2(cos(an),sin(an))*sqrt((fi+.5)/8.)*blur*vec2(res.y/res.x,1.);'+
-    'vec2 p=(uv+o)*vec2(res.x/res.y,1.)*(1.2+z)+vec2(t*.03*(1.+z),-t*.02);float f=fbm(p+fbm(p+t*.05)*1.6);acc+=pal(f*.9+z*.27+t*.015)*smoothstep(.35,.95,f);}return acc/8.;}'+
+    'for(int i=0;i<GT;i++){float fi=float(i);float an=fi*2.39996+jit;vec2 o=vec2(cos(an),sin(an))*sqrt((fi+.5)/float(GT))*blur*vec2(res.y/res.x,1.);'+
+    'vec2 p=(uv+o)*vec2(res.x/res.y,1.)*(1.2+z)+vec2(t*.03*(1.+z),-t*.02);float f=fbm(p+fbm(p+t*.05)*1.6);acc+=pal(f*.9+z*.27+t*.015)*smoothstep(.35,.95,f);}return acc/float(GT);}'+
     'void main(){float fz=clamp(m.y,0.,1.);vec3 col=vec3(.01);'+
-    'for(int k=0;k<3;k++){float z=float(k);float b=abs(fz-z*.5)*.05+.002;col+=layer(v+vec2((m.x-.5)*(z-1.)*.04,0.),z,b)*(.55-z*.12);}'+
-    'vec2 mk=texture2D(mask,v).rg;float gb=0.;for(int i=0;i<12;i++){float fi=float(i);float an=fi*2.39996;gb+=texture2D(mask,v+vec2(cos(an),sin(an))*sqrt((fi+.5)/12.)*.03*vec2(res.y/res.x,1.)).r;}gb/=12.;'+
+    'for(int k=0;k<GL;k++){float z=float(k);float b=abs(fz-z*.5)*.05+.002;col+=layer(v+vec2((m.x-.5)*(z-1.)*.04,0.),z,b)*(.55-z*.12);}'+
+    'vec2 mk=texture2D(mask,v).rg;float gb=0.;for(int i=0;i<TAPS;i++){float fi=float(i);float an=fi*2.39996;gb+=texture2D(mask,v+vec2(cos(an),sin(an))*sqrt((fi+.5)/float(TAPS))*.03*vec2(res.y/res.x,1.)).r;}gb/=float(TAPS);'+
     'col=col*(1.-mk.r*.85)+vec3(.96,.97,.99)*mk.r+vec3(.9)*gb*.12;vec3 blue=vec3(.184,.627,1.);col=mix(col,blue*1.3+.08,mk.g);'+
     'gl_FragColor=vec4(fin(col),1.);}';
 
@@ -558,7 +589,7 @@ footer a:hover{color:var(--text)}
     PW=p2.width; PH=p2.height;
     var d=mx.getImageData(0,0,mc.width,mc.height).data, kx=PW/mc.width, pts=[], L=layout(PW,PH), step=Math.max(2,Math.round(mc.width/260));
     for(var y=0;y<mc.height;y+=step) for(var x=0;x<mc.width;x+=step){ var i=(y*mc.width+x)*4; if(d[i]>128||d[i+1]>128) pts.push([x*kx,y*kx,d[i+1]>128]); }
-    var N=Math.min(pts.length,PW*PH>900000?3200:2400);
+    var N=Math.min(pts.length,LOW?1300:2400);
     for(var i2=pts.length-1;i2>0;i2--){ var j=Math.floor(Math.random()*(i2+1)); var tmp=pts[i2]; pts[i2]=pts[j]; pts[j]=tmp; }
     parts=[];
     for(var n=0;n<N;n++){ var p=pts[n%pts.length];
@@ -582,16 +613,16 @@ footer a:hover{color:var(--text)}
       p.vx*=damp; p.vy*=damp; p.x+=p.vx*K; p.y+=p.vy*K;
     }
     px.globalCompositeOperation='lighter';
-    var sz=1.6*DPR;
+    var sz=Math.max(1,1.6*RS);
     for(var b=0;b<8;b++){ px.fillStyle=BUCK[(b+Math.floor(t*.0006))%8]; for(var j=0;j<parts.length;j++){ var q=parts[j]; if(q.b===b&&!q.blue) px.fillRect(q.x,q.y,sz,sz); } }
     px.fillStyle='#2FA0FF'; for(var k=0;k<parts.length;k++){ var r=parts[k]; if(r.blue) px.fillRect(r.x,r.y,sz*1.3,sz*1.3); }
   }
 
   function fit(){
     var r=stage.getBoundingClientRect();
-    W=Math.max(2,Math.round(r.width*DPR)); H=Math.max(2,Math.round(r.height*DPR));
+    W=Math.max(2,Math.round(r.width*RS)); H=Math.max(2,Math.round(r.height*RS));
     cv.width=W; cv.height=H; p2.width=W; p2.height=H;
-    var k=Math.min(1,1400/W); sc.width=Math.round(W*k); sc.height=Math.round(H*k);
+    var k=Math.min(1,(LOW?560:1100)/W); sc.width=Math.round(W*k); sc.height=Math.round(H*k); sprites();
     var km=Math.min(1,900/W); mc.width=Math.round(W*km); mc.height=Math.round(H*km); drawMask();
     if(gl){
       gl.bindTexture(gl.TEXTURE_2D,maskTex); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,mc);
@@ -621,7 +652,7 @@ footer a:hover{color:var(--text)}
     gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D,tA); gl.uniform1i(u(cur,'trail'),2);
     gl.uniform2f(u(cur,'res'),W,H); gl.uniform2f(u(cur,'tres'),TW,TH);
     gl.uniform2f(u(cur,'m'),pt.s.x,pt.s.y); gl.uniform2f(u(cur,'mv'),vel.x,vel.y);
-    gl.uniform1f(u(cur,'t'),t*.001); gl.uniform1f(u(cur,'cell'),(cur==='e'?9:16)*DPR); gl.uniform1f(u(cur,'dpr'),DPR);
+    gl.uniform1f(u(cur,'t'),t*.001); gl.uniform1f(u(cur,'cell'),(cur==='e'?9:16)*RS); gl.uniform1f(u(cur,'dpr'),RS);
     gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   }
 
@@ -656,39 +687,68 @@ footer a:hover{color:var(--text)}
   var rows=[].slice.call(document.querySelectorAll('.mq-row'));
   if(steps&&!reduce) steps.classList.add('pinned');
   var inHeroPrev=true, stepOn=-1;
+  // Posiciones medidas una vez (y al cambiar el tamaño o cargar las fuentes); en cada
+  // cuadro solo se usa scrollY, sin pedirle al navegador que mida la página.
+  var geo=null, lastY=-1;
+  function measure(){
+    var y=scrollY, R=function(el){ var r=el.getBoundingClientRect(); return {top:r.top+y,bottom:r.bottom+y,h:r.height}; };
+    var track=steps?steps.querySelector('.steps-track'):null;
+    geo={heroBottom:R(hero).bottom, steps:steps?R(steps):null, track:track?R(track):null,
+      secs:fxSecs.map(function(sec){ var r=R(sec); r.fx=sec.dataset.fx; r.dim=+sec.dataset.dim; return r; }),
+      rows:rows.map(function(row){ return {top:R(row).top,w:row.scrollWidth}; })};
+    lastY=-1;
+  }
   function scrollFx(){
-    var vh=innerHeight, mid=vh*.5, dim=0, want=null;
-    var inHero=hero.getBoundingClientRect().bottom>vh*.45;
+    if(!geo) measure();
+    var y=scrollY, vh=innerHeight, mid=y+vh*.5, dim=0, want=null;
+    var inHero=geo.heroBottom-y>vh*.45;
     if(inHero!==inHeroPrev){ inHeroPrev=inHero; since=performance.now(); }
     auto=autoOK&&inHero;
     if(!inHero){
       dim=.55;
-      if(steps){ var r=steps.getBoundingClientRect();
-        if(r.top<=mid&&r.bottom>=mid){
-          var track=steps.querySelector('.steps-track'), tr=track.getBoundingClientRect();
-          var prog=Math.min(1,Math.max(0,(70-tr.top)/Math.max(1,tr.height-(vh-70))));
-          var i=Math.min(2,Math.floor(prog*3)); want=stepEls[i].dataset.fx; dim=+steps.dataset.dim;
-          if(i!==stepOn){ stepOn=i; stepEls.forEach(function(el,k){ el.classList.toggle('on',k===i); }); }
-          stepBars.forEach(function(b,k){ b.style.setProperty('--p',Math.min(1,Math.max(0,prog*3-k))); });
-        } }
-      fxSecs.forEach(function(sec){ var r2=sec.getBoundingClientRect(); if(r2.top<=mid&&r2.bottom>=mid){ want=sec.dataset.fx; dim=+sec.dataset.dim; } });
+      if(geo.steps&&geo.steps.top<=mid&&geo.steps.bottom>=mid){
+        var prog=Math.min(1,Math.max(0,(70-(geo.track.top-y))/Math.max(1,geo.track.h-(vh-70))));
+        var i=Math.min(2,Math.floor(prog*3)); want=stepEls[i].dataset.fx; dim=+steps.dataset.dim;
+        if(i!==stepOn){ stepOn=i; stepEls.forEach(function(el,k){ el.classList.toggle('on',k===i); }); }
+        if(y!==lastY) stepBars.forEach(function(b,k){ b.style.setProperty('--p',Math.min(1,Math.max(0,prog*3-k))); });
+      }
+      geo.secs.forEach(function(r2){ if(r2.top<=mid&&r2.bottom>=mid){ want=r2.fx; dim=r2.dim; } });
       if(want&&want!==cur&&!switching) go(want);
     }
     if(steps&&stepOn<0&&steps.classList.contains('pinned')){ stepOn=0; stepEls[0].classList.add('on'); }
     // En el celular el texto va encima de la G: un poco más de oscuridad para leer bien.
     if(!inHero&&innerWidth<720) dim=Math.max(dim,.5);
-    stage.style.setProperty('--dim',dim);
-    if(!reduce) rows.forEach(function(row){ var r3=row.getBoundingClientRect(); row.style.transform='translate3d('+((r3.top-vh)*(+row.dataset.speed)-(row.dataset.speed>0?0:row.scrollWidth*.25))+'px,0,0)'; });
+    if(stage._dim!==dim){ stage._dim=dim; stage.style.setProperty('--dim',dim); }
+    if(!reduce&&y!==lastY) rows.forEach(function(row,k){ var g=geo.rows[k], sp=+row.dataset.speed; row.style.transform='translate3d('+((g.top-y-vh)*sp-(sp>0?0:g.w*.25))+'px,0,0)'; });
+    lastY=y;
   }
   // Brillo que sigue al mouse dentro de cada tarjeta.
   document.addEventListener('pointermove',function(e){ var c=e.target.closest&&e.target.closest('.spot'); if(!c) return; var r=c.getBoundingClientRect(); c.style.setProperty('--mx',(e.clientX-r.left)+'px'); c.style.setProperty('--my',(e.clientY-r.top)+'px'); },{passive:true});
   if(reduce){ if(steps) stepEls.forEach(function(el){ el.classList.add('on'); }); addEventListener('scroll',function(){ scrollFx(); },{passive:true}); }
   fit();
-  var rt; addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(function(){ fit(); if(reduce) select(cur); },120); });
+  var rt; addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(function(){ fit(); measure(); if(reduce) select(cur); },120); });
+  addEventListener('load',measure); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);
   select('a');
+  // Prepara los shaders de todos los efectos de a uno, en ratos libres, apenas abre la
+  // página: si no, el primer cambio a cada efecto (a veces en pleno scroll) da un tirón.
+  if(gl){ var warm=['trail','b','c','e','f','g'], wi=0; (function next(){ if(wi>=warm.length) return; try{ prog(warm[wi++]); }catch(e){ console.error(e); }
+    (window.requestIdleCallback||function(f){ return setTimeout(f,120); })(next,{timeout:600}); })(); }
   if(!reduce){
     since=performance.now();
-    (function loop(t){ if(!document.hidden){ try{ scrollFx(); draw(t); }catch(e){ console.error(e); } tickAuto(t); } else since=t-Math.min(HOLD,Math.max(0,t-since)); requestAnimationFrame(loop); })(0);
+    var lastDraw=0, slow=0, frames=0;
+    (function loop(t){
+      if(!document.hidden){
+        try{ scrollFx(); }catch(e){ console.error(e); }
+        if(!LOW||t-lastDraw>=30){
+          var dt=lastDraw?t-lastDraw:0; lastDraw=t;
+          try{ draw(t); }catch(e){ console.error(e); }
+          // Si tarda mucho de forma sostenida, baja la resolución del fondo un escalón.
+          if(dt){ frames++; if(dt>(LOW?50:34)) slow++; if(frames>=60){ if(slow>30&&RS>.4){ RS=Math.max(.4,RS*.8); fit(); } frames=0; slow=0; } }
+        }
+        tickAuto(t);
+      } else since=t-Math.min(HOLD,Math.max(0,t-since));
+      requestAnimationFrame(loop);
+    })(0);
   }
 })();
 </script>
