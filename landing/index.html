@@ -104,6 +104,8 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 
 /* ---------- secciones ---------- */
 section{padding-block:clamp(64px,9vw,110px)}
+/* Todo el contenido va por encima del fondo de auroras (que es fijo, z-index 0). */
+section,footer{position:relative;z-index:1}
 h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
 .lead{color:var(--text-2);font-size:18px;max-width:60ch;line-height:1.6;margin:0 0 42px}
 .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}
@@ -149,28 +151,43 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
 .feat p{margin:0;color:var(--text-2);line-height:1.5;font-size:15px}
 
 
-/* ---------- cómo funciona: pasos fijos mientras se scrollea ---------- */
-.steps-list{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}
-.step .big{display:block;font-size:clamp(56px,9vw,120px);font-weight:700;line-height:.9;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.55);font-variant-numeric:tabular-nums}
-.step h3{font-size:clamp(24px,3vw,36px);margin:14px 0 10px;font-weight:600;letter-spacing:-.02em}
-.step p{color:#C3C9D2;line-height:1.6;margin:0;max-width:42ch;font-size:clamp(16px,1.6vw,19px)}
-.steps:not(.pinned) .steps-list{margin-top:32px}
-/* Sin fijar (celular): cada paso es su propia tarjeta. */
-.steps:not(.pinned) .step{position:relative;overflow:hidden;background:rgba(11,13,17,.78);border:1px solid var(--border);border-radius:20px;padding:24px 22px}
-.steps:not(.pinned) .step::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));opacity:.65}
-.steps:not(.pinned) .step .big{font-size:64px}
-.steps:not(.pinned) .step h3{font-size:24px;margin-top:10px}
-.steps.pinned{padding-block:0}
-.steps.pinned .step.reveal{animation:none}
-.steps.pinned .steps-track{height:320svh}
-.steps.pinned .steps-pin{position:sticky;top:70px;height:calc(100svh - 70px);display:flex;flex-direction:column;justify-content:center;gap:28px}
-.steps.pinned .steps-list{display:block;position:relative;min-height:clamp(260px,40vh,360px)}
-.steps.pinned .step{position:absolute;inset:0 auto auto 0;max-width:560px;opacity:0;transform:translateY(30px);transition:opacity .6s ease,filter .6s ease,transform .6s cubic-bezier(.2,.7,.2,1);pointer-events:none}
-.steps.pinned .step.on{opacity:1;filter:none;transform:none;pointer-events:auto}
-.steps-prog{display:none;gap:8px}
-.steps.pinned .steps-prog{display:flex}
-.steps-prog i{width:46px;height:3px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;position:relative}
-.steps-prog i b{position:absolute;inset:0;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));transform-origin:left;transform:scaleX(var(--p,0))}
+/* ---------- cómo funciona: línea de 3 pasos con una pieza de la app en cada uno ----------
+   Todo visible de una (sin fijar ni animar al scrollear). En compu, tres columnas unidas por
+   una barra RGB; en el celular, una línea vertical a la izquierda. */
+.flow{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;position:relative;counter-reset:paso}
+.flow::before{content:"";position:absolute;left:calc(16.66% - 10px);right:calc(16.66% - 10px);top:21px;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));opacity:.7}
+.fstep{position:relative;display:flex;flex-direction:column;gap:14px}
+.fnum{position:relative;z-index:1;align-self:center;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 16px 'Outfit',system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#fff;
+  background:#07080b;border:2px solid transparent;background:linear-gradient(#07080b,#07080b) padding-box,conic-gradient(from 200deg,var(--r1),var(--r2),var(--r3),var(--r4),var(--r1)) border-box}
+.fcard{flex:1;background:rgba(11,13,17,.82);border:1px solid var(--border);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.fcard h3{margin:0;font-size:21px;font-weight:600;letter-spacing:-.01em}
+.fcard p{margin:0;color:var(--text-2);line-height:1.55;font-size:15.5px}
+/* Piezas de la app (funcionan de verdad) */
+.demo{margin-top:6px;background:#07080b;border:1px solid var(--border);border-radius:16px;padding:14px}
+.d-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);font-weight:600}
+.d-code{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.d-code b{font:700 22px ui-monospace,'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--r1)}
+.d-btn{font:600 13px 'Outfit',system-ui,sans-serif;color:#fff;background:rgba(255,255,255,.06);border:1px solid var(--border-hi);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.d-btn:hover{background:rgba(255,255,255,.1)}
+.d-set{display:flex;align-items:center;gap:10px;margin-top:8px}
+.d-idx{width:24px;height:24px;border-radius:7px;background:#12151B;border:1px solid var(--border);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--text-2)}
+.d-val{flex:1;display:flex;gap:6px;align-items:baseline;white-space:nowrap;font-size:clamp(17px,4.6vw,20px);font-weight:700;font-variant-numeric:tabular-nums}
+.d-val small{font-size:12px;font-weight:500;color:var(--text-2)}
+.d-check{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border-hi);background:transparent;display:grid;place-items:center;cursor:pointer;color:transparent;transition:background-color .2s,border-color .2s,color .2s}
+.d-check svg{width:20px;height:20px}
+.d-check[aria-pressed="true"]{background:var(--r4);border-color:var(--r4);color:#04120f}
+.d-ok{margin-top:8px;font-size:13px;color:var(--r4);min-height:1.3em}
+.d-chart{display:flex;align-items:flex-end;gap:8px;height:84px;margin-top:10px;cursor:pointer}
+.d-chart i{flex:1;border-radius:6px 6px 3px 3px;background:linear-gradient(var(--r2),var(--r1));height:var(--h);transform-origin:bottom;transform:scaleY(.35);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.d-chart i:last-child{background:linear-gradient(var(--r3),var(--r2))}
+.d-chart.up i,.d-chart:hover i{transform:none}
+.d-axis{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
+@media (max-width:860px){
+  .flow{grid-template-columns:1fr;gap:18px;padding-left:58px}
+  .flow::before{left:21px;right:auto;top:22px;bottom:22px;width:2px;height:auto;background:linear-gradient(var(--r1),var(--r2),var(--r3),var(--r4))}
+  .fnum{position:absolute;left:-58px;top:0;align-self:auto}
+}
+@media (prefers-reduced-motion:reduce){ .d-chart i{transition:none} }
 
 /* ---------- franja de palabras que se mueve con el scroll ---------- */
 .marquee{position:relative;z-index:1;overflow:hidden;padding-block:clamp(30px,6vw,70px);display:grid;gap:4px;pointer-events:none;user-select:none}
@@ -197,8 +214,6 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
 
 /* ---------- rendimiento en celular: nada de desenfoques animados ---------- */
 @media (pointer:coarse),(max-width:820px){
-  .steps.pinned .step{filter:none;transition:opacity .5s ease,transform .5s ease}
-  .steps.pinned .step:not(.on){filter:none}
 }
 @supports (animation-timeline: view()){
   @media (prefers-reduced-motion:no-preference) and ((pointer:coarse) or (max-width:820px)){
@@ -265,20 +280,48 @@ footer a:hover{color:var(--text)}
   </div>
 </div>
 
-<section id="como" class="steps">
-  <div class="steps-track">
-    <div class="steps-pin wrap">
-      <div>
-        <h2 class="reveal">Cómo funciona</h2>
-        <p class="lead reveal" style="margin-bottom:0">Tres pasos y estás entrenando con el plan de tu coach en el teléfono.</p>
-      </div>
-      <div class="steps-list">
-        <div class="step reveal"><span class="big">01</span><h3>Te vinculás</h3><p>Tu coach te pasa su código de invitación. Lo cargás una vez y quedan conectados.</p></div>
-        <div class="step reveal"><span class="big">02</span><h3>Entrenás</h3><p>Abrís el día que toca, ves la rutina con las notas de tu coach y registrás kilos y repeticiones serie por serie.</p></div>
-        <div class="step reveal"><span class="big">03</span><h3>Progresan juntos</h3><p>Tu coach ve tu historial, tu volumen semanal y tu check-in, y ajusta el plan sin perseguirte por mensajes.</p></div>
-      </div>
-      <div class="steps-prog" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i></div>
-    </div>
+<section id="como">
+  <div class="wrap">
+    <h2>Cómo funciona</h2>
+    <p class="lead" style="margin-bottom:0">Tres pasos y estás entrenando con el plan de tu coach en el teléfono. Probalos acá mismo.</p>
+    <ol class="flow">
+      <li class="fstep">
+        <span class="fnum" aria-hidden="true">1</span>
+        <div class="fcard">
+          <h3>Te vinculás</h3>
+          <p>Tu coach te pasa su código de invitación. Lo cargás una vez y quedan conectados.</p>
+          <div class="demo">
+            <span class="d-lbl">Código de tu coach (ejemplo)</span>
+            <div class="d-code"><b id="dCode">C8E2BD</b><button class="d-btn" id="dCopy" type="button">Copiar</button></div>
+          </div>
+        </div>
+      </li>
+      <li class="fstep">
+        <span class="fnum" aria-hidden="true">2</span>
+        <div class="fcard">
+          <h3>Entrenás</h3>
+          <p>Abrís el día que toca, ves la rutina con las notas de tu coach y registrás cada serie.</p>
+          <div class="demo">
+            <span class="d-lbl">Sentadilla · serie 1</span>
+            <div class="d-set"><span class="d-idx">1</span><span class="d-val">80<small>kg</small> × 10<small>reps</small></span>
+              <button class="d-check" id="dCheck" type="button" aria-pressed="false" aria-label="Marcar serie como hecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+            <div class="d-ok" id="dOk" aria-live="polite">Tocá el tilde para marcarla.</div>
+          </div>
+        </div>
+      </li>
+      <li class="fstep">
+        <span class="fnum" aria-hidden="true">3</span>
+        <div class="fcard">
+          <h3>Progresan juntos</h3>
+          <p>Tu coach ve tu historial, tu volumen semanal y tu check-in, y ajusta el plan con datos.</p>
+          <div class="demo">
+            <span class="d-lbl">Volumen semanal</span>
+            <div class="d-chart" id="dChart" role="button" tabindex="0" aria-label="Ver cómo crece tu volumen semana a semana"><i style="--h:38%"></i><i style="--h:52%"></i><i style="--h:61%"></i><i style="--h:74%"></i><i style="--h:100%"></i></div>
+            <div class="d-axis"><span>sem 1</span><span>sem 5</span></div>
+          </div>
+        </div>
+      </li>
+    </ol>
   </div>
 </section>
 
@@ -520,38 +563,38 @@ footer a:hover{color:var(--text)}
     document.addEventListener('visibilitychange',start); start();
   })();
 
-  // =============== 2) Scroll: pasos fijos y franja de palabras ===============
+  // =============== 2) Scroll: franja de palabras ===============
   // Solo trabaja cuando se scrollea (no en cada cuadro) y con posiciones medidas al
   // cambiar el tamaño, sin pedirle al navegador que mida la página a cada rato.
-  var steps=document.getElementById('como'), stepEls=steps?[].slice.call(steps.querySelectorAll('.step')):[];
-  var stepBars=steps?[].slice.call(steps.querySelectorAll('.steps-prog b')):[];
   var rows=[].slice.call(document.querySelectorAll('.mq-row'));
-  // Fija con los pasos solo en pantallas anchas; en el celular, tarjetas separadas.
-  function pinMode(){ if(steps) steps.classList.toggle('pinned',!reduce&&innerWidth>=900); }
-  pinMode();
-  if(steps&&reduce) stepEls.forEach(function(el){ el.classList.add('on'); });
-  var geo=null, stepOn=-1, ticking=false;
+  var geo=null, ticking=false;
   function measure(){
     var y=scrollY, R=function(el){ var r=el.getBoundingClientRect(); return {top:r.top+y,bottom:r.bottom+y,h:r.height}; };
-    var tr=steps?steps.querySelector('.steps-track'):null;
-    geo={track:tr?R(tr):null, rows:rows.map(function(r){ return {top:R(r).top,w:r.scrollWidth}; })}; update();
+    geo={rows:rows.map(function(r){ return {top:R(r).top,w:r.scrollWidth}; })}; update();
   }
   function update(){
     ticking=false; if(!geo||reduce) return;
     var y=scrollY, vh=innerHeight;
-    if(geo.track&&stepEls.length&&steps.classList.contains('pinned')){
-      var prog=Math.min(1,Math.max(0,(70-(geo.track.top-y))/Math.max(1,geo.track.h-(vh-70))));
-      var i=Math.min(2,Math.floor(prog*3));
-      if(i!==stepOn){ stepOn=i; stepEls.forEach(function(el,k){ el.classList.toggle('on',k===i); }); }
-      stepBars.forEach(function(b,k){ b.style.setProperty('--p',Math.min(1,Math.max(0,prog*3-k))); });
-    }
     rows.forEach(function(row,k){ var g=geo.rows[k], sp=+row.dataset.speed; if(Math.abs(g.top-y-vh*.5)>vh*1.5) return;
       row.style.transform='translate3d('+((g.top-y-vh)*sp-(sp>0?0:g.w*.25))+'px,0,0)'; });
   }
   addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } },{passive:true});
-  var mt; addEventListener('resize',function(){ clearTimeout(mt); mt=setTimeout(function(){ pinMode(); measure(); },150); });
+  var mt; addEventListener('resize',function(){ clearTimeout(mt); mt=setTimeout(measure,150); });
   addEventListener('load',measure); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);
   measure();
+
+  // =============== Cómo funciona: piezas de la app que se pueden tocar ===============
+  var dCopy=document.getElementById('dCopy'), dCode=document.getElementById('dCode');
+  if(dCopy&&dCode) dCopy.addEventListener('click',function(){
+    var done=function(){ dCopy.textContent='¡Copiado!'; setTimeout(function(){ dCopy.textContent='Copiar'; },1600); };
+    try{ navigator.clipboard.writeText(dCode.textContent).then(done,function(){ selectCode(); }); }catch(e){ selectCode(); }
+    function selectCode(){ var r=document.createRange(); r.selectNodeContents(dCode); var sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); dCopy.textContent='Seleccionado'; setTimeout(function(){ dCopy.textContent='Copiar'; },1600); }
+  });
+  var dCheck=document.getElementById('dCheck'), dOk=document.getElementById('dOk');
+  if(dCheck) dCheck.addEventListener('click',function(){ var on=dCheck.getAttribute('aria-pressed')!=='true'; dCheck.setAttribute('aria-pressed',String(on));
+    if(dOk) dOk.textContent=on?'¡Serie hecha! Tu coach ya la ve.':'Tocá el tilde para marcarla.'; if(on&&navigator.vibrate) navigator.vibrate(30); });
+  var dChart=document.getElementById('dChart');
+  if(dChart){ var tog=function(){ dChart.classList.toggle('up'); }; dChart.addEventListener('click',tog); dChart.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tog(); } }); }
 
   // =============== 3) Brillo que sigue al mouse en las tarjetas (solo con mouse) ===============
   if(matchMedia('(hover:hover)').matches) document.addEventListener('pointermove',function(e){ var c=e.target.closest&&e.target.closest('.spot'); if(!c) return;
