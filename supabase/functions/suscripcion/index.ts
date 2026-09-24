@@ -11,7 +11,7 @@
 //        MP_ACCESS_TOKEN  Access Token de PRODUCCIÓN de Mercado Pago
 //                         (mercadopago.com.ar/developers → Tus integraciones → la app →
 //                         Credenciales de producción). Es secreto: solo va acá.
-//        APP_URL          (opcional) https://gizeapp.github.io/GIZE/ o el dominio propio.
+//        APP_URL          (opcional) la dirección de la app. Si no está, https://gize.ar/
 //   3. Mercado Pago → Tus integraciones → la app → Webhooks → Modo productivo:
 //        URL: https://wegptuzhsrwppbknqstf.supabase.co/functions/v1/suscripcion?webhook=1
 //        Eventos: "Planes y suscripciones" (suscripciones y pagos recurrentes).
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
 
     const email = String(input.mp_email || u.user.email || "").trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: "Poné el mail de tu cuenta de Mercado Pago" }, 400);
-    const appUrl = Deno.env.get("APP_URL") || "https://gizeapp.github.io/GIZE/";
+    const appUrl = Deno.env.get("APP_URL") || "https://gize.ar/";
 
     let pa;
     try {
