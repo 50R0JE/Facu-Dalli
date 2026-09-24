@@ -17,6 +17,34 @@ export function auCreateNoise(){
 
 export let authParticlesHandle = null;
 
+// ---- Modo liviano (ver el script del <head> en index.html y css/ui/lite.css) ----
+// Con html.lite no corre ningún canvas de partículas: queda solo el degradé de fondo.
+export function isLite(){ return document.documentElement.classList.contains("lite"); }
+
+// Elección manual desde Ajustes: se guarda y le gana a la detección automática.
+export function setLite(on){
+  try { localStorage.setItem("gize_lite", on ? "1" : "0"); } catch(e){}
+  document.documentElement.classList.toggle("lite", on);
+  if(on) silkClear(); else if(silkVisible && silkRafId==null) silkLoop();
+}
+
+// Si nadie eligió a mano y el fondo va a menos de ~25 cuadros por segundo, el equipo no da:
+// se pasa solo a modo liviano y queda anotado para los próximos arranques.
+function autoLite(){
+  try { if(localStorage.getItem("gize_lite")!==null) return; localStorage.setItem("gize_lite_auto","1"); } catch(e){}
+  document.documentElement.classList.add("lite");
+  silkClear();
+}
+let perfLast=0, perfFrames=0, perfSum=0, perfDone=false;
+function perfSample(){
+  const t=performance.now();
+  if(perfLast && !document.body.classList.contains("is-booting")){ // el arranque siempre tironea: no cuenta
+    perfFrames++; perfSum+=t-perfLast;
+    if(perfFrames>=120){ perfDone=true; if(perfSum/perfFrames>40) autoLite(); }
+  }
+  perfLast=t;
+}
+
 // Gama RGB de la marca (brand/tokens.css): cada partícula toma uno de los cuatro
 // colores, alternados, para que el fondo hable el mismo idioma que el splash.
 const GIZE_GAMUT_VARS=["--gize-r1","--gize-r2","--gize-r3","--gize-r4"];
@@ -55,11 +83,12 @@ export function startAuthParticles(canvas){
     if(stopped) return;
     const w=canvas.clientWidth, h=canvas.clientHeight;
     ctx.clearRect(0,0,w,h);
+    const z=Date.now()*0.00008;
     for(const p of particles){
       p.life+=1;
       if(p.life>p.maxLife){ p.life=0; p.x=Math.random()*w; p.y=Math.random()*h; }
       const op=Math.sin((p.life/p.maxLife)*Math.PI)*0.55;
-      const n=noise.simplex3(p.x*0.0025, p.y*0.0025, Date.now()*0.00008);
+      const n=noise.simplex3(p.x*0.0025, p.y*0.0025, z);
       const angle=n*Math.PI*4;
       p.x+=Math.cos(angle)*0.55; p.y+=Math.sin(angle)*0.55;
       if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
@@ -69,7 +98,7 @@ export function startAuthParticles(canvas){
     ctx.globalAlpha=1;
     raf=requestAnimationFrame(frame);
   }
-  if(!reduceMotion) frame(); // respeta prefers-reduced-motion: sin loop, queda solo el fondo estático
+  if(!reduceMotion && !isLite()) frame(); // respeta prefers-reduced-motion: sin loop, queda solo el fondo estático
   function onResize(){ resize(); }
   window.addEventListener("resize", onResize);
   authParticlesHandle = { stop(){ stopped=true; if(raf) cancelAnimationFrame(raf); window.removeEventListener("resize", onResize); } };
@@ -125,19 +154,25 @@ export function silkResize(){
   if(silkReducedMotion() && silkRafId==null) silkLoop(); // el canvas se borra al redimensionar: redibuja el cuadro quieto
 }
 
+function silkClear(){
+  if(silkCtx && silkCanvasEl) silkCtx.clearRect(0, 0, silkCanvasEl.width, silkCanvasEl.height);
+}
+
 export function silkLoop(){
-  if(document.visibilityState!=="visible" || !silkVisible){ silkRafId=null; return; } // pausa real: no seguimos pidiendo frames
+  if(document.visibilityState!=="visible" || !silkVisible || isLite()){ silkRafId=null; perfLast=0; return; } // pausa real: no seguimos pidiendo frames
   silkRafId = requestAnimationFrame(silkLoop);
   if(!silkCtx || !silkCanvasEl || !silkNoise) return;
+  if(!perfDone) perfSample();
   const w = silkCanvasEl.clientWidth || window.innerWidth;
   const h = silkCanvasEl.clientHeight || window.innerHeight;
   const reduced = silkReducedMotion(); // reduced motion: se dibuja un solo cuadro y queda quieto
   silkCtx.clearRect(0, 0, w, h);
+  const z = Date.now()*0.00008;
   for(const p of silkParticles){
     p.life += 1;
     if(p.life>p.maxLife){ p.life=0; p.x=Math.random()*w; p.y=Math.random()*h; }
     const op = Math.sin((p.life/p.maxLife)*Math.PI)*0.55;
-    const n = silkNoise.simplex3(p.x*0.0025, p.y*0.0025, Date.now()*0.00008);
+    const n = silkNoise.simplex3(p.x*0.0025, p.y*0.0025, z);
     const angle = n*Math.PI*4;
     if(!reduced){ p.x += Math.cos(angle)*0.55; p.y += Math.sin(angle)*0.55; }
     if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
