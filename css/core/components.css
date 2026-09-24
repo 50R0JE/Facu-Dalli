@@ -405,6 +405,8 @@
 .auth-switch:hover { color:var(--gize-blue); text-decoration:underline; text-underline-offset:3px; }
 
 .auth-switch:focus-visible { outline:2px solid var(--green-2); outline-offset:2px; }
+.auth-install { display:block; margin:14px auto 0; background:none; border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:9px 18px; color:var(--gize-text-2); font:600 13px var(--gize-font); cursor:pointer; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-install:hover { color:var(--gize-text); border-color:rgba(255,255,255,.34); }
 
 @media (prefers-reduced-motion: reduce) {
     .auth-card, .auth-brand-ic, .auth-logo, .auth-sub, .auth-field, .auth-btn, .auth-switch, .auth-msg { animation:none !important; opacity:1 !important; transform:none !important; }
