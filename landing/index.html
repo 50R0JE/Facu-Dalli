@@ -154,7 +154,14 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
 .step .big{display:block;font-size:clamp(56px,9vw,120px);font-weight:700;line-height:.9;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.55);font-variant-numeric:tabular-nums}
 .step h3{font-size:clamp(24px,3vw,36px);margin:14px 0 10px;font-weight:600;letter-spacing:-.02em}
 .step p{color:#C3C9D2;line-height:1.6;margin:0;max-width:42ch;font-size:clamp(16px,1.6vw,19px)}
+.steps:not(.pinned) .steps-list{margin-top:32px}
+/* Sin fijar (celular): cada paso es su propia tarjeta. */
+.steps:not(.pinned) .step{position:relative;overflow:hidden;background:rgba(11,13,17,.78);border:1px solid var(--border);border-radius:20px;padding:24px 22px}
+.steps:not(.pinned) .step::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));opacity:.65}
+.steps:not(.pinned) .step .big{font-size:64px}
+.steps:not(.pinned) .step h3{font-size:24px;margin-top:10px}
 .steps.pinned{padding-block:0}
+.steps.pinned .step.reveal{animation:none}
 .steps.pinned .steps-track{height:320svh}
 .steps.pinned .steps-pin{position:sticky;top:70px;height:calc(100svh - 70px);display:flex;flex-direction:column;justify-content:center;gap:28px}
 .steps.pinned .steps-list{display:block;position:relative;min-height:clamp(260px,40vh,360px)}
@@ -266,9 +273,9 @@ footer a:hover{color:var(--text)}
         <p class="lead reveal" style="margin-bottom:0">Tres pasos y estás entrenando con el plan de tu coach en el teléfono.</p>
       </div>
       <div class="steps-list">
-        <div class="step"><span class="big">01</span><h3>Te vinculás</h3><p>Tu coach te pasa su código de invitación. Lo cargás una vez y quedan conectados.</p></div>
-        <div class="step"><span class="big">02</span><h3>Entrenás</h3><p>Abrís el día que toca, ves la rutina con las notas de tu coach y registrás kilos y repeticiones serie por serie.</p></div>
-        <div class="step"><span class="big">03</span><h3>Progresan juntos</h3><p>Tu coach ve tu historial, tu volumen semanal y tu check-in, y ajusta el plan sin perseguirte por mensajes.</p></div>
+        <div class="step reveal"><span class="big">01</span><h3>Te vinculás</h3><p>Tu coach te pasa su código de invitación. Lo cargás una vez y quedan conectados.</p></div>
+        <div class="step reveal"><span class="big">02</span><h3>Entrenás</h3><p>Abrís el día que toca, ves la rutina con las notas de tu coach y registrás kilos y repeticiones serie por serie.</p></div>
+        <div class="step reveal"><span class="big">03</span><h3>Progresan juntos</h3><p>Tu coach ve tu historial, tu volumen semanal y tu check-in, y ajusta el plan sin perseguirte por mensajes.</p></div>
       </div>
       <div class="steps-prog" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i></div>
     </div>
@@ -519,7 +526,9 @@ footer a:hover{color:var(--text)}
   var steps=document.getElementById('como'), stepEls=steps?[].slice.call(steps.querySelectorAll('.step')):[];
   var stepBars=steps?[].slice.call(steps.querySelectorAll('.steps-prog b')):[];
   var rows=[].slice.call(document.querySelectorAll('.mq-row'));
-  if(steps&&!reduce) steps.classList.add('pinned');
+  // Fija con los pasos solo en pantallas anchas; en el celular, tarjetas separadas.
+  function pinMode(){ if(steps) steps.classList.toggle('pinned',!reduce&&innerWidth>=900); }
+  pinMode();
   if(steps&&reduce) stepEls.forEach(function(el){ el.classList.add('on'); });
   var geo=null, stepOn=-1, ticking=false;
   function measure(){
@@ -530,7 +539,7 @@ footer a:hover{color:var(--text)}
   function update(){
     ticking=false; if(!geo||reduce) return;
     var y=scrollY, vh=innerHeight;
-    if(geo.track&&stepEls.length){
+    if(geo.track&&stepEls.length&&steps.classList.contains('pinned')){
       var prog=Math.min(1,Math.max(0,(70-(geo.track.top-y))/Math.max(1,geo.track.h-(vh-70))));
       var i=Math.min(2,Math.floor(prog*3));
       if(i!==stepOn){ stepOn=i; stepEls.forEach(function(el,k){ el.classList.toggle('on',k===i); }); }
@@ -540,7 +549,7 @@ footer a:hover{color:var(--text)}
       row.style.transform='translate3d('+((g.top-y-vh)*sp-(sp>0?0:g.w*.25))+'px,0,0)'; });
   }
   addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } },{passive:true});
-  var mt; addEventListener('resize',function(){ clearTimeout(mt); mt=setTimeout(measure,150); });
+  var mt; addEventListener('resize',function(){ clearTimeout(mt); mt=setTimeout(function(){ pinMode(); measure(); },150); });
   addEventListener('load',measure); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);
   measure();
 
