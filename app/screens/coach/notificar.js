@@ -104,14 +104,23 @@ async function send(){
   CoachState.notifSending = false;
   if(errMsg){ renderCoach(); alert("No se pudo enviar: " + errMsg); return; }
   const r = res.data || {};
-  CoachState.notifDraft = "";
+  const delivered = r.delivered > 0;
+  // saved: si quedó en el historial. Una función publicada antes de este cambio no lo
+  // manda: se da por guardado, como siempre.
+  const saved = r.saved !== false;
+  const who = d.name || "el cliente";
+  // Si no llegó a ningún lado ni quedó guardado, el texto se conserva para reintentar.
+  // Si le llegó, se borra aunque no se haya guardado: reintentar le mandaría otro push.
+  if(delivered || saved) CoachState.notifDraft = "";
   if(CoachState.coachData === d){
     d.notify = d.notify || { msgs: [] };
     d.notify.devices = typeof r.devices === "number" ? r.devices : d.notify.devices;
-    d.notify.msgs = [{ id: "new-" + Date.now(), body: body, delivered: r.delivered || 0, created_at: new Date().toISOString() }].concat(d.notify.msgs || []);
+    if(saved) d.notify.msgs = [{ id: "new-" + Date.now(), body: body, delivered: r.delivered || 0, created_at: new Date().toISOString() }].concat(d.notify.msgs || []);
   }
   renderCoach();
-  if(!(r.delivered > 0)) alert("Mensaje guardado, pero no le llegó al celular: " + (d.name || "el cliente") + " no tiene las notificaciones activadas.");
+  if(!saved && delivered) alert("Le llegó al celular a " + who + ", pero no quedó guardado en el historial de mensajes.");
+  else if(!saved) alert("No se pudo enviar: " + who + " no tiene las notificaciones activadas y el mensaje no se pudo guardar. Probá de nuevo.");
+  else if(!delivered) alert("Mensaje guardado, pero no le llegó al celular: " + who + " no tiene las notificaciones activadas.");
 }
 
 document.body.addEventListener("click", e => {

@@ -36,6 +36,25 @@ function daysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return ymd(d)
 
 export function sbOk(r){ if(r && r.error) throw r.error; return r; }
 
+// Supabase devuelve como máximo 1000 filas por pedido ("Max rows" del proyecto) y corta
+// el resto SIN avisar: con más de 1000 entrenos o registros diarios, loadCloud() traía un
+// pedazo del historial y el coach veía conteos de menos. fetchAll() pide de a 1000 hasta
+// que una página vuelve incompleta. make() arma la consulta de cero en cada página y
+// tiene que tener un orden único (si no, entre páginas se repiten o saltean filas).
+// Devuelve {data, error} como una consulta normal. Si alguien baja "Max rows" por debajo
+// de 1000, la primera página vuelve incompleta y se corta como antes (no empeora nada).
+const PAGE=1000;
+export async function fetchAll(make){
+  const all=[];
+  for(let from=0;;from+=PAGE){
+    const r=await make().range(from, from+PAGE-1);
+    if(r.error) return {data:null, error:r.error};
+    const rows=r.data||[];
+    for(const x of rows) all.push(x);
+    if(rows.length<PAGE) return {data:all, error:null};
+  }
+}
+
 // Pasa a la rutina que mandó el coach (cloudDays) lo que el cliente ya cargó en su copia
 // local (kg, reps y tildes), emparejando por id de serie. Si el coach cambió una serie
 // existente se conserva lo cargado; si aplicó una rutina nueva (ids nuevos) arranca limpia.
@@ -160,11 +179,13 @@ export async function loadCloud(){
     const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp, cq, fw] = await Promise.all([
       sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
       sb.from("routines").select("days").eq("client_id",uid).maybeSingle(),
-      sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on"),
+      // Las tablas que crecen con el uso van con fetchAll() (sin eso, más de 1000 filas se
+      // cortaban). Orden único: fecha (única por cliente) o created_at + id.
+      fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on")),
       // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
-      sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",uid).order("created_at"),
-      sb.from("daily_logs").select("*").eq("client_id",uid),
-      sb.from("checkins").select("*").eq("client_id",uid),
+      fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",uid).order("created_at").order("id")),
+      fetchAll(()=>sb.from("daily_logs").select("*").eq("client_id",uid).order("log_date")),
+      fetchAll(()=>sb.from("checkins").select("*").eq("client_id",uid).order("week_start")),
       sb.from("client_info").select("*").eq("client_id",uid).maybeSingle(),
       sb.from("blocks").select("*").eq("client_id",uid).eq("active",true).order("start_date",{ascending:false}).limit(1),
       sb.from("nutrition").select("*").eq("client_id",uid).maybeSingle(),
@@ -369,8 +390,11 @@ export async function cloudUploadPhoto(file){
 export async function cloudDeletePhoto(id, path){
   if(!State.sb||!State.cloudUser) return true;
   try{
-    sbOk(await State.sb.storage.from("checkins").remove([path]));
+    // Primero la fila y después el archivo: al revés, si fallaba borrar la fila quedaba en
+    // la lista una foto que ya no existe. Así, lo peor es un archivo sin fila, que nadie ve.
     sbOk(await State.sb.from("checkin_photos").delete().eq("id",id));
+    const rm=await State.sb.storage.from("checkins").remove([path]);
+    if(rm.error) console.error("deletePhoto: la foto se sacó de la lista pero el archivo quedó en Storage", path, rm.error);
     await loadMyPhotos(); renderApp();
     return true;
   }catch(e){ console.error("deletePhoto",e); return false; }
