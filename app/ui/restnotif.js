@@ -2,8 +2,9 @@
 //
 //   · Apps de las tiendas (Capacitor): el celular programa una notificación con sonido
 //     para la hora de fin (plugin LocalNotifications), sin internet. En Android además se
-//     muestra una notificación fija con una barra que se va llenando y el tiempo que queda
-//     (plugin propio RestTimer, android/…/RestTimerService.java), que se va sola al terminar.
+//     muestra una notificación fija con la cuenta regresiva (plugin propio RestTimer,
+//     android/…/RestTimerPlugin.java), que se borra sola al terminar. (La barra que se llena
+//     necesita un servicio en primer plano y un video para Play Console: queda para después.)
 //   · Web / app instalada desde el navegador: el navegador no puede sonar con la pantalla
 //     apagada, así que se le pide al servidor que mande una notificación push a la hora de
 //     fin (supabase/descanso.sql + función "descanso"). Solo si ya activó las
