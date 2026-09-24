@@ -77,11 +77,12 @@ export function renderPlanBanner(){
   else if(b.trial){ txt = "Prueba gratis · te quedan <b>" + b.daysLeft + " día" + (b.daysLeft === 1 ? "" : "s") + "</b> · " + b.count + "/" + b.max + " clientes"; if(b.daysLeft <= 3) cls = " warn"; }
   else txt = (b.max >= 100 ? "Plan Gimnasio" : "Plan " + b.max + " clientes") + " · " + b.count + "/" + b.max + (b.renews ? "" : " · vence el " + fmtDate(ymd(b.until)));
   const cap = b.atCap ? '<div class="pl-cap">Llegaste al máximo de tu plan: nadie más se puede vincular con tu código. ' + (IS_NATIVE ? '' : 'Pasate a un plan más grande.') + '</div>' : "";
-  return '<button class="pl-banner' + cls + (b.atCap ? " warn" : "") + '" data-plan="open"><span>' + txt + '</span><span class="pl-banner-go">' + (b.trial ? "Ver planes" : "Mi plan") + ' ›</span></button>' + cap;
+  return '<button class="pl-banner' + cls + (b.atCap ? " warn" : "") + '" data-plan="open"><span>' + txt + '</span><span class="pl-banner-go">' + (b.trial && !IS_NATIVE ? "Ver planes" : "Mi plan") + ' ›</span></button>' + cap;
 }
 
 function planCards(b){
-  if(IS_NATIVE) return '<div class="pl-note">Los planes se gestionan desde tu cuenta en la web de GIZE.</div>';
+  // En las apps de las tiendas no se habla de pagos ni de dónde se paga (reglas de Apple y Google).
+  if(IS_NATIVE) return '';
   const mail = B.mpEmail != null ? B.mpEmail : ((State.cloudUser && State.cloudUser.email) || "");
   const cards = PLANS.map(p => {
     const current = b.paid && b.plan && b.plan.id === p.id && b.renews;
@@ -110,7 +111,7 @@ function statusLine(b){
   if(!b.known) return "";
   if(b.comp) return '<div class="pl-status ok">Tenés un plan de cortesía, sin vencimiento.</div>';
   if(b.paid) return '<div class="pl-status ok">Plan de ' + b.max + ' clientes · ' + (b.renews ? 'se renueva solo cada mes' : 'cancelado, sigue activo hasta el ' + fmtDate(ymd(b.until))) + '.</div>';
-  if(b.trial) return '<div class="pl-status">Estás en la prueba gratis: te quedan ' + b.daysLeft + ' día' + (b.daysLeft === 1 ? '' : 's') + ' (hasta ' + TRIAL_MAX + ' clientes). Elegí un plan para seguir después.</div>';
+  if(b.trial) return '<div class="pl-status">Estás en la prueba gratis: te quedan ' + b.daysLeft + ' día' + (b.daysLeft === 1 ? '' : 's') + ' (hasta ' + TRIAL_MAX + ' clientes).' + (IS_NATIVE ? '' : ' Elegí un plan para seguir después.') + '</div>';
   return '<div class="pl-status warn">Tu ' + (B.row && B.row.paid_until ? 'plan venció' : 'prueba gratis terminó') + '.</div>';
 }
 
@@ -134,7 +135,7 @@ export function renderPaywall(){
     '<div class="co-head"><div class="co-brand"><img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-logout" data-auth="logout">Salir</button></div></div>' +
     '<div class="pl-wall-hero"><div class="pl-wall-t">' + (B.row && B.row.paid_until ? 'Tu plan venció' : 'Terminó tu prueba gratis') + '</div>' +
     '<div class="pl-wall-s">Tus ' + b.count + ' cliente' + (b.count === 1 ? '' : 's') + ', rutinas y registros están guardados. ' +
-    (IS_NATIVE ? 'Renová tu plan desde la web de GIZE para volver a verlos.' : 'Elegí un plan para volver a verlos y seguir sumando clientes.') + '</div>' +
+    (IS_NATIVE ? '' : 'Elegí un plan para volver a verlos y seguir sumando clientes.') + '</div>' +
     (B.confirming ? '<div class="pl-status">Confirmando tu pago con Mercado Pago…</div>' : '') + '</div>' +
     planCards(b) +
   '</div>';
