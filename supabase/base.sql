@@ -13,7 +13,8 @@
 --     y client_push_devices (notificaciones.sql), coach_questions (preguntas-coach.sql),
 --     el bucket avatars y set_my_avatar (foto-perfil.sql), coach_client_stats
 --     (estadisticas-coach.sql), validación de dispositivos push y de la ruta de la foto
---     de perfil (validaciones.sql).
+--     de perfil (validaciones.sql), plan de los coaches y límite de clientes (suscripciones.sql,
+--     que además redefine is_my_client y join_coach).
 --
 -- Si cambiás algo en Supabase, actualizalo también acá.
 --
