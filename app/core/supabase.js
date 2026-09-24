@@ -577,7 +577,15 @@ export async function cloudBoot(){
   try{
     const sess=await State.sb.auth.getSession();
     if(sess.data.session){ await afterLogin(sess.data.session.user); }
-    else { showLogin("","in"); }
+    else {
+      // Links de la landing: #registro abre "Crear cuenta" y #registro-coach lo abre con
+      // "Soy coach" ya elegido. Se limpia el # para que recargar no lo repita.
+      const h=location.hash;
+      if(h==="#registro"||h==="#registro-coach"){
+        try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+        showLogin("","up",h==="#registro-coach"?{role:"coach"}:{});
+      } else showLogin("","in");
+    }
   }catch(e){ console.error("cloudBoot",e); showLogin(offlineMsg,"in"); }
   finally{ if(window.coreEnter) window.coreEnter(); }
 }
