@@ -376,6 +376,30 @@ export async function cloudDeletePhoto(id, path){
   }catch(e){ console.error("deletePhoto",e); return false; }
 }
 
+// Borra todos los archivos del usuario en Storage (fotos de check-in y de perfil). Se usa
+// antes de eliminar la cuenta: delete_own_account borra auth.users y con eso las filas en
+// cascada, pero los archivos NO (Supabase no deja borrar storage.objects por SQL: trigger
+// protect_objects_delete), así que las fotos quedaban para siempre sin dueño.
+// Lanza si algo falla, para no eliminar la cuenta con fotos todavía guardadas.
+export async function deleteMyStorageFiles(){
+  if(!State.sb||!State.cloudUser) return;
+  const uid=State.cloudUser.id;
+  for(const bucket of ["checkins","avatars"]){
+    const st=State.sb.storage.from(bucket);
+    // Primero se listan todas (list() devuelve de a 1000 como máximo) y después se borran:
+    // borrar mientras se pagina corre el offset y se saltearía archivos.
+    const paths=[];
+    for(let offset=0;;offset+=1000){
+      const r=sbOk(await st.list(uid,{limit:1000, offset:offset}));
+      const items=r.data||[];
+      // id null = subcarpeta (la app no las crea; se ignoran).
+      items.forEach(it=>{ if(it && it.id) paths.push(uid+"/"+it.name); });
+      if(items.length<1000) break;
+    }
+    for(let i=0;i<paths.length;i+=100) sbOk(await st.remove(paths.slice(i,i+100)));
+  }
+}
+
 // ===== Cola de envío pendiente ("outbox") =====
 // Todo lo que el cliente carga a mano (entreno, registro diario, check-in, feedback de
 // sesión) se anota primero acá, en localStorage, y sale hacia Supabase desde esta cola.
