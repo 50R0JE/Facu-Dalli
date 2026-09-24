@@ -29,14 +29,6 @@
         </provider>
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_gize" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/gize_notif" />
-        <service
-            android:name=".RestTimerService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Temporizador del descanso entre series durante el entrenamiento: muestra el tiempo que queda con la pantalla bloqueada." />
-        </service>
     </application>
 
     <!-- Permissions -->
@@ -46,8 +38,5 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Aviso de fin de descanso a horario exacto (si el usuario lo permite; si no, Android lo manda apenas puede). -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <!-- Barra del descanso con el celular bloqueado (RestTimerService). -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 </manifest>
