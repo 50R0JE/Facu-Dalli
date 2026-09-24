@@ -51,8 +51,10 @@ export function mergeLocalProgress(cloudDays, localDays){
 export function applyBrand(){
   const t=document.getElementById("brandTag"), n=document.getElementById("brandName");
   if(!t||!n) return;
-  if(State.brandName){ n.textContent=State.brandName; t.style.display="block"; document.title=State.brandName+" \u00b7 GIZE"; }
-  else { t.style.display="none"; document.title="GIZE"; }
+  // La pestaña siempre dice solo "GIZE" (el nombre del coach se ve adentro de la app).
+  document.title="GIZE";
+  if(State.brandName){ n.textContent=State.brandName; t.style.display="block"; }
+  else { t.style.display="none"; }
 }
 
 // Crear el cliente de Supabase apenas el script del CDN esté listo. No alcanza con
