@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1016240784948",
+    "project_id": "gize-c41f8",
+    "storage_bucket": "gize-c41f8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016240784948:android:393539a2eacd0aa53d2c61",
+        "android_client_info": {
+          "package_name": "ar.com.gize.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM9R7XXd6a_g3BYP8nL-IsXTNLiV6eae4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
