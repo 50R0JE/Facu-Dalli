@@ -28,6 +28,7 @@ export function showLogin(msg, mode, vals){
         '<button type="button" class="auth-role-opt'+(role==="coach"?" active":"")+'" data-auth-role="coach" role="radio" aria-checked="'+(role==="coach")+'">Soy coach</button>'+
       '</div>'+
       '<input id="auRole" type="hidden" value="'+role+'">'+
+      (role==="coach"?'<div class="auth-trial">14 días gratis para probar todo · sin tarjeta</div>':'')+
     '</div>' : "";
   host.innerHTML =
     '<div class="gize-aurora auth-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>'+
