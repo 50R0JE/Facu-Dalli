@@ -44,6 +44,7 @@ export function showLogin(msg, mode, vals){
       (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+esc(msg)+'</div>':'')+
       '<button class="gize-btn auth-btn" data-auth="'+(isUp?"do-signup":"do-login")+'" style="animation-delay:'+nextDelay()+'">'+(isUp?"Crear cuenta":"Ingresar")+'</button>'+
       '<div class="auth-switch" data-auth="'+(isUp?"to-login":"to-signup")+'" role="button" tabindex="0" style="animation-delay:'+nextDelay()+'">'+(isUp?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
+      '<button type="button" class="auth-install" data-install style="animation-delay:'+nextDelay()+'">Instalar GIZE en el celular</button>'+
     '</div>';
   startAuthParticles(host.querySelector(".auth-particles"));
 }

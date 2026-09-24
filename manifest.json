@@ -1,7 +1,15 @@
 {
+  "id": "./",
   "name": "GIZE",
   "short_name": "GIZE",
-  "description": "Tu rutina, tu progreso.",
+  "description": "Tu coach, tu rutina y tu progreso en un solo lugar: registrá cada serie, tus hábitos y tu nutrición, y recibí los mensajes de tu coach.",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "categories": [
+    "health",
+    "fitness",
+    "sports"
+  ],
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -38,6 +46,36 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/celular-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tu coach, tu rutina y tu progreso en un solo lugar"
+    },
+    {
+      "src": "screenshots/celular-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Cómo funciona: te vinculás, entrenás y progresan juntos"
+    },
+    {
+      "src": "screenshots/celular-3.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ingresá con tu cuenta"
+    },
+    {
+      "src": "screenshots/compu-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "GIZE en la compu"
     }
   ]
 }

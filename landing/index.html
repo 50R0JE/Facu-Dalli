@@ -42,9 +42,10 @@ header .wrap{display:flex;align-items:center;justify-content:space-between;gap:1
 .nav-links{display:flex;gap:26px}
 .nav-links a{color:var(--text-2);text-decoration:none;font-weight:500;white-space:nowrap}
 .nav-links a:hover{color:var(--text)}
-.btn-sm{padding:9px 18px;font-size:15px}
+.btn.btn-sm{padding:9px 18px;font-size:15px}
 /* En el celular no entran los tres links: queda el logo y "Entrar". */
 @media (max-width:720px){ .nav-links{display:none} }
+@media (max-width:420px){ .nav{gap:6px} .btn.btn-sm{padding:7px 11px;font-size:13px} .logo--nav{font-size:20px} }
 
 /* ---------- botones ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;padding:16px 30px;border-radius:999px;font-weight:600;font-size:17px;text-decoration:none;border:1px solid transparent;transition:transform .15s ease,box-shadow .25s ease,border-color .15s;white-space:nowrap}
@@ -165,8 +166,8 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
 /* Piezas de la app (funcionan de verdad) */
 .demo{margin-top:6px;background:#07080b;border:1px solid var(--border);border-radius:16px;padding:14px}
 .d-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);font-weight:600}
-.d-code{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
-.d-code b{font:700 22px ui-monospace,'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--r1)}
+.d-code{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.d-code b{font:700 clamp(18px,5.4vw,22px) ui-monospace,'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--r1)}
 .d-btn{font:600 13px 'Outfit',system-ui,sans-serif;color:#fff;background:rgba(255,255,255,.06);border:1px solid var(--border-hi);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap}
 .d-btn:hover{background:rgba(255,255,255,.1)}
 .d-set{display:flex;align-items:center;gap:10px;margin-top:8px}
@@ -183,7 +184,7 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
 .d-chart.up i,.d-chart:hover i{transform:none}
 .d-axis{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
 @media (max-width:860px){
-  .flow{grid-template-columns:1fr;gap:18px;padding-left:58px}
+  .flow{grid-template-columns:minmax(0,1fr);gap:18px;padding-left:58px}
   .flow::before{left:21px;right:auto;top:22px;bottom:22px;width:2px;height:auto;background:linear-gradient(var(--r1),var(--r2),var(--r3),var(--r4))}
   .fnum{position:absolute;left:-58px;top:0;align-self:auto}
 }
@@ -239,6 +240,11 @@ footer a:hover{color:var(--text)}
   *,*::before,*::after{animation:none!important;transition:none!important} html{scroll-behavior:auto}
 }
 </style>
+<link rel="manifest" href="../manifest.json">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GIZE">
+<script src="../install.js" data-app="../"></script>
 </head>
 <body>
 
@@ -259,6 +265,7 @@ footer a:hover{color:var(--text)}
         <a href="#app">La app</a>
         <a href="#coach">Soy coach</a>
       </div>
+      <a class="btn btn-ghost btn-sm" href="../#instalar" data-install>Instalar</a>
       <a class="btn btn-ghost btn-sm" href="../">Entrar</a>
     </nav>
   </div>
@@ -435,6 +442,9 @@ footer a:hover{color:var(--text)}
         <a class="btn btn-rgb" href="../#registro">Creá tu cuenta</a>
         <a class="btn btn-ghost" href="../#registro-coach">Quiero ser coach GIZE</a>
       </div>
+      <div class="cta" style="margin-top:14px">
+        <a class="btn btn-ghost" href="../#instalar" data-install>Instalar la app en tu celular</a>
+      </div>
     </div>
   </div>
 </section>
@@ -600,6 +610,11 @@ footer a:hover{color:var(--text)}
   if(matchMedia('(hover:hover)').matches) document.addEventListener('pointermove',function(e){ var c=e.target.closest&&e.target.closest('.spot'); if(!c) return;
     var r=c.getBoundingClientRect(); c.style.setProperty('--mx',(e.clientX-r.left)+'px'); c.style.setProperty('--my',(e.clientY-r.top)+'px'); },{passive:true});
 })();
+</script>
+<script>
+// El service worker de la app (scope /GIZE/) también cubre la landing: así Chrome permite
+// instalar GIZE desde acá (el ícono abre la app, start_url del manifest).
+if("serviceWorker" in navigator) addEventListener("load",function(){ navigator.serviceWorker.register("../sw.js",{scope:"../",updateViaCache:"none"}).catch(function(){}); });
 </script>
 </body>
 </html>
