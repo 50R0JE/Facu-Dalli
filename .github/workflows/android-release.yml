@@ -1,0 +1,59 @@
+# Arma la versión de GIZE para subir a Play Store (.aab firmado).
+# Se corre a mano: Actions → "App Android · Play Store" → Run workflow.
+# El archivo queda en la ejecución, sección "Artifacts" (gize-play-store), y se sube en
+# Play Console → Probar y publicar → la versión que corresponda → Crear versión.
+#
+# Necesita estos secrets del repo (Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64   la clave de subida (.jks) en base64
+#   ANDROID_KEYSTORE_PASSWORD contraseña del .jks
+#   ANDROID_KEY_ALIAS         alias de la clave (gize)
+#   ANDROID_KEY_PASSWORD      contraseña de la clave (la misma que la del .jks)
+name: App Android · Play Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión que ve el usuario (ej: 1.0.1)"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Juntar la app web y pasarla al proyecto Android
+        run: npm run android
+      - name: Preparar la clave de firma
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error::Falta el secret ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/gize-upload.jks"
+      - name: Compilar .aab firmado
+        working-directory: android
+        env:
+          GIZE_KEYSTORE: ${{ runner.temp }}/gize-upload.jks
+          GIZE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          GIZE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          GIZE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # Cada ejecución sube el número interno: Play Store no acepta repetirlo.
+          GIZE_VERSION_CODE: ${{ github.run_number }}
+          GIZE_VERSION_NAME: ${{ inputs.version }}
+        run: ./gradlew bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gize-play-store
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 90
