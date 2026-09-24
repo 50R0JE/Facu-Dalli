@@ -5,7 +5,7 @@
 // cuando State.view === "config".
 import { State } from '../core/state.js';
 import { KEY } from '../core/storage.js';
-import { loadCloud } from '../core/supabase.js';
+import { loadCloud, deleteMyStorageFiles, PROFILE_KEY } from '../core/supabase.js';
 import { esc } from '../core/utils.js';
 import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
@@ -235,14 +235,16 @@ document.body.addEventListener("click", async function (e) {
     const prevHtml = delAccBtn.innerHTML;
     delAccBtn.disabled = true; delAccBtn.innerHTML = "Eliminando…";
     try {
-      // Requiere que exista en Supabase una función RPC "delete_own_account" (SECURITY
-      // DEFINER) que borre el registro de auth.users junto con lo que dependa de él —
-      // la anon key del cliente no tiene permiso para borrar de auth.users directo.
-      // Mismo patrón que join_coach/my_coach_name en core/supabase.js: acá solo se
-      // llama, la función se crea del lado de Supabase.
+      // Primero las fotos (check-in y perfil): la función de abajo no puede borrar archivos
+      // de Storage. Si esto falla se corta acá, con la cuenta intacta, para poder reintentar
+      // en vez de dejar fotos sin dueño.
+      await deleteMyStorageFiles();
+      // "delete_own_account" (SECURITY DEFINER, ver supabase/base.sql) borra el registro de
+      // auth.users y en cascada todo lo que depende de él — la anon key del cliente no
+      // tiene permiso para borrar de auth.users directo.
       const r = await State.sb.rpc("delete_own_account");
       if (r.error) throw r.error;
-      try { localStorage.removeItem(KEY); } catch (err) {}
+      try { localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); } catch (err) {}
       try { await State.sb.auth.signOut(); } catch (err) {}
       alert("Tu cuenta fue eliminada.");
       location.reload();
