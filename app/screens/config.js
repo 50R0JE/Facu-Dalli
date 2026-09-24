@@ -24,9 +24,9 @@ function cfgRoleLabel(p) { return (p && p.role === "coach") ? "Coach" : "Cliente
 // whatsapp: solo número con código de país, sin "+" ni espacios ni guiones) y listo,
 // los botones ya redirigen solos — no hace falta tocar nada más de este archivo.
 const LINKS = {
-  terms: "https://gize.ar/landing/privacidad/",
+  terms: "https://gize.ar/privacidad/",
   instagram: "https://instagram.com/gize.app",
-  website: "https://gize.ar/landing/",
+  website: "https://gize.ar/",
   email: "jeronimoperpi@gmail.com",
   whatsapp: "5493413490705",
 };

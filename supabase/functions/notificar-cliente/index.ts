@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
   const title = (coach && coach.full_name) ? coach.full_name + " · tu coach" : "Tu coach";
 
   const { data: subs } = await admin.from("push_subscriptions").select("id, endpoint, p256dh, auth").eq("user_id", clientId);
-  const payload = JSON.stringify({ title, body, tag: "coach-" + Date.now(), url: "./" });
+  const payload = JSON.stringify({ title, body, tag: "coach-" + Date.now(), url: "./app/" });
 
   const all = subs || [];
   const web = all.filter((s) => !s.endpoint.startsWith("fcm:"));
