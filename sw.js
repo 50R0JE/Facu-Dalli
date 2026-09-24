@@ -1,6 +1,6 @@
 // GIZE service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v66";
+const CACHE = "core-v67";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
@@ -79,7 +79,9 @@ self.addEventListener("push", e => {
 // Tocar la notificación abre la app (o la trae al frente si ya estaba abierta).
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const target = new URL((e.notification.data && e.notification.data.url) || "./app/", self.registration.scope).href;
+  let target = new URL((e.notification.data && e.notification.data.url) || "./app/", self.registration.scope).href;
+  // Solo páginas de GIZE: una notificación nunca abre un sitio de afuera.
+  if (new URL(target).origin !== self.location.origin) target = new URL("./app/", self.registration.scope).href;
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
     for (const c of list) { if (c.url.startsWith(target) && "focus" in c) return c.focus(); }
     return self.clients.openWindow ? self.clients.openWindow(target) : null;

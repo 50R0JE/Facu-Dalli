@@ -46,7 +46,7 @@ export function renderCoach(){
       const tl=CoachState.coachTpls.length ? CoachState.coachTpls.map(t=>{
         const nd=(t.days||[]).length;
         const nex=(t.days||[]).reduce((n,d)=>n+((d.exercises||[]).length),0);
-        return '<div class="co-item tpl-item" data-coach="tpl-open" data-id="'+t.id+'">'+
+        return '<div class="co-item tpl-item" data-coach="tpl-open" data-id="'+esc(t.id)+'">'+
           '<div class="co-name">'+esc(t.name||"Sin nombre")+'</div>'+
           '<div class="co-item-meta">'+nd+' día'+(nd===1?'':'s')+' · '+nex+' ejercicios</div>'+
           '<div class="co-arrow">›</div></div>';
@@ -68,7 +68,7 @@ export function renderCoach(){
         const st=CoachState.coachClientStats[c.id]||{};
         const act=coachActivity(st.lastSess);
         const statusLine=act.has ? '<div class="co-act-status"><span class="co-dot'+(act.active?' on':'')+'"></span>'+act.statusLabel+'</div>' : "";
-        return '<div class="co-trow" data-coach="open" data-id="'+c.id+'">'+
+        return '<div class="co-trow" data-coach="open" data-id="'+esc(c.id)+'">'+
             '<div class="co-td co-td-name">'+avatarHtml(c.avatar_path, coachInitials(c.full_name), 'co-avatar')+'<span class="co-cname">'+esc(c.full_name||"Sin nombre")+'</span></div>'+
             '<div class="co-td co-td-email'+(c.email?'':' co-empty')+'">'+esc(c.email||"Sin email")+'</div>'+
             '<div class="co-td co-td-activity"><div class="co-act-date">'+esc(act.label)+'</div>'+statusLine+'</div>'+
