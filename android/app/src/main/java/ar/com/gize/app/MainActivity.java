@@ -1,4 +1,4 @@
-package com.gizeapp.gize;
+package ar.com.gize.app;
 
 import com.getcapacitor.BridgeActivity;
 
