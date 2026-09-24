@@ -1,6 +1,6 @@
 // GIZE service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v50";
+const CACHE = "core-v51";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
@@ -41,11 +41,16 @@ self.addEventListener("fetch", e => {
   e.respondWith(
     net
       .then(res => {
+        // Una navegación que el servidor redirigió (ej. /CORE/landing → /CORE/landing/) no
+        // se puede devolver tal cual: Chrome la rechaza y muestra la página de error (había
+        // que apretar F5). Se le pasa la redirección al navegador para que cambie la dirección.
+        if (req.mode === "navigate" && res.redirected) return Response.redirect(res.url, 301);
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
         return res;
       })
-      .catch(() => caches.match(req).then(r => r || (isSbLib ? Response.error() : caches.match("./index.html"))))
+      // Sin internet: lo que haya en caché; si no hay, la app (salvo la landing, que no es la app).
+      .catch(() => caches.match(req).then(r => r || (isSbLib || url.pathname.indexOf("/landing") >= 0 ? Response.error() : caches.match("./index.html"))))
   );
 });
 
