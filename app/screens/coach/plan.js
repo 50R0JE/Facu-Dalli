@@ -19,6 +19,7 @@ export const PLANS = [
   { id: "p10", max: 10, price: 9300 },
   { id: "p25", max: 25, price: 15000, best: true },
   { id: "p50", max: 50, price: 20000 },
+  { id: "p100", max: 100, price: 33000, gym: true },
 ];
 const TRIAL_MAX = 10;
 
@@ -74,7 +75,7 @@ export function renderPlanBanner(){
   let txt, cls = "";
   if(b.comp) txt = "Plan cortesía · " + b.count + "/" + b.max + " clientes";
   else if(b.trial){ txt = "Prueba gratis · te quedan <b>" + b.daysLeft + " día" + (b.daysLeft === 1 ? "" : "s") + "</b> · " + b.count + "/" + b.max + " clientes"; if(b.daysLeft <= 3) cls = " warn"; }
-  else txt = "Plan " + b.max + " clientes · " + b.count + "/" + b.max + (b.renews ? "" : " · vence el " + fmtDate(ymd(b.until)));
+  else txt = (b.max >= 100 ? "Plan Gimnasio" : "Plan " + b.max + " clientes") + " · " + b.count + "/" + b.max + (b.renews ? "" : " · vence el " + fmtDate(ymd(b.until)));
   const cap = b.atCap ? '<div class="pl-cap">Llegaste al máximo de tu plan: nadie más se puede vincular con tu código. ' + (IS_NATIVE ? '' : 'Pasate a un plan más grande.') + '</div>' : "";
   return '<button class="pl-banner' + cls + (b.atCap ? " warn" : "") + '" data-plan="open"><span>' + txt + '</span><span class="pl-banner-go">' + (b.trial ? "Ver planes" : "Mi plan") + ' ›</span></button>' + cap;
 }
@@ -88,7 +89,8 @@ function planCards(b){
     const dis = current || tooSmall || B.busy;
     return '<div class="pl-card' + (p.best ? " best" : "") + (current ? " current" : "") + '">' +
       (p.best ? '<div class="pl-tag">Más elegido</div>' : '') +
-      '<div class="pl-max">Hasta <b>' + p.max + '</b> clientes</div>' +
+      (p.gym ? '<div class="pl-name">Gimnasio</div>' : '') +
+      '<div class="pl-max">Hasta <b>' + p.max + '</b> ' + (p.gym ? 'alumnos' : 'clientes') + '</div>' +
       '<div class="pl-price">' + money(p.price) + '<span>/mes</span></div>' +
       '<button class="pl-choose" data-plan="choose" data-id="' + p.id + '"' + (dis ? " disabled" : "") + '>' +
         (current ? "Tu plan actual" : tooSmall ? "Tenés " + b.count + " clientes" : B.busy === p.id ? "Abriendo Mercado Pago…" : "Elegir") + '</button>' +
@@ -100,7 +102,8 @@ function planCards(b){
       '<div class="pl-fine">Tiene que ser el mail con el que entrás a Mercado Pago para pagar.</div></div>'
     : '<div class="pl-fine pl-mail-line">Pagás con la cuenta de Mercado Pago de <b>' + esc(mail) + '</b> · <button class="pl-link" data-plan="mail-edit">¿Otro mail?</button></div>';
   return '<div class="pl-cards">' + cards + '</div>' + '<div class="pl-mp">' + mpBadge + '</div>' + mailBox +
-    '<div class="pl-fine">Se cobra una vez por mes con tarjeta o dinero en cuenta, y lo podés cancelar cuando quieras.</div>';
+    '<div class="pl-fine">Se cobra una vez por mes con tarjeta o dinero en cuenta, y lo podés cancelar cuando quieras.</div>' +
+    '<div class="pl-fine">¿Más de 100 alumnos? <a class="pl-link" href="mailto:jeronimoperpi@gmail.com?subject=GIZE%20para%20mi%20gimnasio">Escribinos</a> y armamos un plan a medida.</div>';
 }
 
 function statusLine(b){

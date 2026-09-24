@@ -14,7 +14,7 @@
 .pl-status.ok { border-color:rgba(37,232,200,.45); color:var(--txt); }
 .pl-status.warn { border-color:rgba(255,77,77,.5); color:var(--txt); }
 .pl-note { font-size:14px; color:var(--txt-2); padding:6px 2px 4px; }
-.pl-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.pl-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 10px; }
 @media (max-width:620px){ .pl-cards { grid-template-columns:minmax(0,1fr); } }
 .pl-card { position:relative; display:flex; flex-direction:column; gap:6px; padding:16px 14px 14px; border-radius:14px;
   background:var(--card); border:1px solid var(--border); }
@@ -52,3 +52,5 @@
   background:rgba(0,158,227,.10); border:1px solid rgba(0,158,227,.35); color:var(--txt-2); font-size:13px; }
 .mp-badge b { color:var(--txt); font-weight:600; }
 .mp-ic { width:24px; height:24px; padding:4px; border-radius:50%; background:#009EE3; color:#fff; flex:none; }
+
+.pl-name { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--gize-success); }
