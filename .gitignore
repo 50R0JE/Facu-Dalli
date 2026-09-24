@@ -1,0 +1,8 @@
+# Logs y capturas de herramientas locales (servidor de prueba, Playwright).
+*.log
+.playwright-mcp/
+
+# Dependencias y basura del sistema.
+node_modules/
+.DS_Store
+Thumbs.db

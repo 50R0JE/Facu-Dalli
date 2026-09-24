@@ -10,6 +10,17 @@ export const mkEx = (name, n, mus) => { const e = { id: uid(), name, sets: mkSet
 
 export const mkExT = (name, mus, targets, note, opt) => { const e = { id: uid(), name, sets: targets.map(t => mkSet(t)) }; if (mus) e.mus = mus; if (note) e.note = note; if (opt) { if(opt.o) e.o=opt.o; if(opt.rir) e.rir=opt.rir; if(opt.rest) e.rest=opt.rest; if(opt.goal) e.goal=opt.goal; } return e; };
 
+// Error de Supabase Storage al subir una foto → texto para el usuario. Storage responde
+// en inglés ("The object exceeded the maximum allowed size", "mime type … is not
+// supported") cuando la foto supera el límite del bucket o no es de un tipo permitido.
+export function storageErrorText(err, maxMb){
+  const m = String((err && (err.message || err.error)) || err || "");
+  const st = String((err && (err.statusCode || err.status)) || "");
+  if (st === "413" || /exceeded the maximum|too large/i.test(m)) return "La foto pesa demasiado" + (maxMb ? " (máximo " + maxMb + " MB)" : "") + ".";
+  if (st === "415" || /mime type|not supported|invalid_mime/i.test(m)) return "Ese archivo no es una foto compatible. Usá una imagen JPG, PNG, WEBP o HEIC.";
+  return m;
+}
+
 // Fecha local YYYY-MM-DD. No usar toISOString(): pasa a UTC y, según la zona horaria,
 // devuelve el día anterior o el siguiente.
 export function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
