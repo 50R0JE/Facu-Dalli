@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GIZE · Entrená con tu coach</title>
+<meta name="description" content="GIZE conecta a tu coach con tu entrenamiento: rutina, series, hábitos, nutrición y progreso en un solo lugar.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="../brand/logo/gize-monograma.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Paleta de brand/tokens.css. Un solo look (oscuro), a propósito: es la marca. */
+:root{
+  color-scheme:dark;
+  --bg:#000; --surface:#0B0D11; --surface-2:#12151B; --border:#1C2029; --border-hi:#3A4250;
+  --text:#FFFFFF; --text-2:#8F98A6;
+  --el:#2FA0FF;
+  --r1:#2FA0FF; --r2:#A65CFF; --r3:#FF3DAE; --r4:#25E8C8;
+  --ring:conic-gradient(from var(--a),var(--r1),var(--r2),var(--r3),var(--r4),var(--r1));
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,svg{max-width:100%}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--el);outline-offset:3px;border-radius:8px}
+.wrap{width:min(1120px,100%);margin-inline:auto;padding-inline:max(16px,4vw)}
+
+/* ---------- logo (curvas de brand/logo, nunca texto) ---------- */
+.logo{display:inline-flex;align-items:center;gap:.55em;color:var(--text);text-decoration:none}
+.logo .mono{width:1.35em;height:1.35em;flex:none}
+.logo .wm{height:1em;width:1.627em;flex:none}
+.logo--hero{font-size:clamp(46px,9vw,104px)}
+.logo--nav{font-size:24px}
+
+/* ---------- aurora RGB ----------
+   Manchas con degradé radial (ya difuminadas) en vez de filter:blur sobre capas enormes:
+   mismo efecto, mucho más liviano para el celular. */
+.aurora{position:absolute;inset:-30% -10% auto;height:120vh;pointer-events:none;z-index:0;opacity:.6;-webkit-mask-image:linear-gradient(#000 55%,transparent 88%);mask-image:linear-gradient(#000 55%,transparent 88%)}
+.aurora span{position:absolute;width:60vw;height:60vw;border-radius:50%;mix-blend-mode:screen;animation:drift 22s ease-in-out infinite}
+.aurora span:nth-child(1){background:radial-gradient(closest-side,var(--r1),transparent);left:0%;top:4%}
+.aurora span:nth-child(2){background:radial-gradient(closest-side,var(--r2),transparent);left:34%;top:-6%;animation-delay:-6s}
+.aurora span:nth-child(3){background:radial-gradient(closest-side,var(--r3),transparent);left:58%;top:10%;animation-delay:-12s}
+.aurora span:nth-child(4){background:radial-gradient(closest-side,var(--r4),transparent);left:20%;top:24%;animation-delay:-17s}
+@keyframes drift{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(6vw,4vh,0) scale(1.15)}66%{transform:translate3d(-5vw,-3vh,0) scale(.9)}}
+
+/* ---------- nav ---------- */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(0,0,0,.72);border-bottom:1px solid var(--border)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.nav{display:flex;gap:26px;align-items:center}
+.nav-links{display:flex;gap:26px}
+.nav-links a{color:var(--text-2);text-decoration:none;font-weight:500;white-space:nowrap}
+.nav-links a:hover{color:var(--text)}
+.btn-sm{padding:9px 18px;font-size:15px}
+/* En el celular no entran los tres links: queda el logo y "Entrar". */
+@media (max-width:720px){ .nav-links{display:none} }
+
+/* ---------- botones ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:16px 30px;border-radius:999px;font-weight:600;font-size:17px;text-decoration:none;border:1px solid transparent;transition:transform .15s ease,box-shadow .25s ease,border-color .15s;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+/* Anillo RGB: gira el COLOR (--a), no la forma. Antes rotaba la pastilla entera y en
+   un botón ancho sobresalía como una barra, además de tapar el fondo blanco. */
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+.btn-rgb{color:#000;border:2px solid transparent;
+  background:linear-gradient(#fff,#fff) padding-box,var(--ring) border-box;
+  animation:spin 5s linear infinite}
+.btn-rgb:hover{box-shadow:0 0 34px rgba(47,160,255,.45)}
+.btn-ghost{color:var(--text);border-color:var(--border);background:rgba(255,255,255,.03)}
+.btn-ghost:hover{border-color:var(--border-hi)}
+@keyframes spin{to{--a:360deg}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding-block:clamp(64px,12vh,140px) 90px;text-align:center;overflow:hidden}
+.hero .wrap{position:relative;z-index:1}
+.hero h1{font-size:clamp(30px,4.6vw,52px);font-weight:600;line-height:1.12;margin:38px auto 0;max-width:18ch;letter-spacing:-.02em;text-wrap:balance}
+.hero p{color:var(--text-2);font-size:clamp(17px,2.2vw,21px);max-width:54ch;margin:20px auto 0;line-height:1.6}
+.cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:38px}
+
+/* ---------- secciones ---------- */
+section{padding-block:clamp(64px,9vw,110px)}
+h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+.lead{color:var(--text-2);font-size:18px;max-width:60ch;line-height:1.6;margin:0 0 42px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}
+.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:26px;overflow:hidden}
+.card h3{margin:14px 0 8px;font-size:20px;font-weight:600}
+.card p{margin:0;color:var(--text-2);line-height:1.6}
+.card::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));opacity:.65}
+.num{font-variant-numeric:tabular-nums;font-size:13px;letter-spacing:.14em;color:var(--el);font-weight:600}
+.two{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:clamp(24px,4vw,34px)}
+.panel h3{font-size:24px;margin:0 0 6px}
+.panel ul{list-style:none;padding:0;margin:20px 0 0}
+.panel li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);color:var(--text-2);line-height:1.5}
+.panel li:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:8px;flex:none;background:linear-gradient(135deg,var(--r1),var(--r3))}
+
+/* ---------- lo nuevo ---------- */
+.new{display:grid;gap:18px;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:stretch}
+@media (max-width:860px){ .new{grid-template-columns:1fr} }
+.feature-main{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:clamp(24px,4vw,34px);overflow:hidden;display:flex;flex-direction:column;gap:22px}
+.feature-main h3{font-size:24px;margin:0}
+.feature-main p{margin:0;color:var(--text-2);line-height:1.6}
+.tag{align-self:flex-start;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--r4);border:1px solid rgba(37,232,200,.35);border-radius:999px;padding:5px 12px}
+/* Notificación de ejemplo, como la que llega al celular. */
+.lock{position:relative;border-radius:22px;padding:22px 16px 18px;background:
+  radial-gradient(120% 90% at 20% 0%,rgba(166,92,255,.35),transparent 60%),
+  radial-gradient(90% 80% at 100% 100%,rgba(47,160,255,.3),transparent 60%),#07080b;border:1px solid var(--border)}
+.lock-time{text-align:center;font-size:44px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.lock-date{text-align:center;color:var(--text-2);font-size:14px;margin:4px 0 18px}
+.notif{display:flex;gap:12px;align-items:flex-start;background:rgba(28,32,41,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:12px 14px}
+.notif + .notif{margin-top:8px;opacity:.75}
+.notif-ic{width:34px;height:34px;border-radius:9px;background:#000;display:grid;place-items:center;flex:none;border:1px solid var(--border)}
+.notif-ic svg{width:22px;height:22px}
+.notif-b{min-width:0;flex:1}
+.notif-h{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--text-2)}
+.notif-t{font-weight:600;color:var(--text);font-size:15px;margin-top:2px}
+.notif-m{color:#D5DAE1;font-size:15px;line-height:1.4;margin-top:1px}
+.feat-list{display:grid;gap:12px}
+.feat{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start}
+.feat-ic{grid-row:span 2;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--border);color:var(--el)}
+.feat-ic svg{width:20px;height:20px}
+.feat h3{margin:0;font-size:17px;font-weight:600}
+.feat p{margin:0;color:var(--text-2);line-height:1.5;font-size:15px}
+
+/* ---------- cierre ---------- */
+.final{position:relative;text-align:center;border-radius:28px;padding:clamp(48px,7vw,84px) clamp(18px,4vw,26px);border:1px solid var(--border);background:var(--surface);overflow:hidden}
+.final::before{content:"";position:absolute;inset:-40%;background:
+  radial-gradient(closest-side at 30% 40%,rgba(47,160,255,.28),transparent),
+  radial-gradient(closest-side at 70% 60%,rgba(255,61,174,.22),transparent),
+  radial-gradient(closest-side at 50% 30%,rgba(166,92,255,.22),transparent);pointer-events:none}
+.final > *{position:relative}
+footer{border-top:1px solid var(--border);padding-block:34px;color:var(--text-2);font-size:15px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+footer a{color:var(--text-2);text-decoration:none}
+footer a:hover{color:var(--text)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important} html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- Logo oficial (brand/logo): monograma + palabra, definidos una vez y reusados. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="g-mono" viewBox="0 0 100 100"><path d="M81.53,62.74 A34,34 0 1 1 67,20.55" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><circle cx="60.5" cy="50" r="9.5" fill="#2FA0FF"/></symbol>
+  <symbol id="g-wm" viewBox="0 0 162.7 100"><g transform="translate(-1.34,100) scale(0.12739,-0.12739)" fill="currentColor"><path d="M357.5 648.2C357.5 732 289.5 800 205.7 800H162.3C78.5 800 10.5 732 10.5 648.2V130.9C10.5 107.6 15.1 85.3 23.5 65C42.5 18.8 87.6-1.6 130.5-1.6C167.6-1.6 202.9 14.3 218.7 41.6H230.7L221 13.1H357.5V469.6H196V330.8H218.7V171.7C218.7 153.3 204.4 138.3 186.3 137.1C166.2 135.8 149.3 152.4 149.3 172.6V625.9C149.3 644.9 164.2 660.8 183.1 661.3C193 661.5 202 657.6 208.5 651.1C214.8 644.9 218.7 636.2 218.7 626.6V551.1H357.5Z"/><path transform="translate(391.6,0)" d="M10.6 13.1H149.4V785.2H10.6Z"/><path transform="translate(575.1,0)" d="M160.3 164.9 344.5 646.4V785.2H23.5V646.4H194.8V633.4L10.5 150.6V13.1H357.5V151.9H160.3Z"/><path transform="translate(966.7,0)" d="M147.7 646.4H321.1V785.2H8.9V13.1H321.1V151.9H147.7V329.8H298.4V468.5H147.7Z"/></g></symbol>
+</svg>
+
+<header>
+  <div class="wrap">
+    <a class="logo logo--nav" href="#top" aria-label="GIZE, volver arriba"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></a>
+    <nav class="nav" aria-label="Secciones">
+      <div class="nav-links">
+        <a href="#como">Cómo funciona</a>
+        <a href="#app">La app</a>
+        <a href="#coach">Soy coach</a>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="https://corefitnessapp.github.io/CORE/">Entrar</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero" id="top">
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div class="wrap">
+    <span class="logo logo--hero" role="img" aria-label="GIZE"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></span>
+    <h1>Tu coach, tu rutina y tu progreso en un solo lugar</h1>
+    <p>Dejá la planilla. Tu coach arma el plan, vos registrás cada serie y los dos ven la evolución en tiempo real.</p>
+    <div class="cta">
+      <a class="btn btn-rgb" href="https://corefitnessapp.github.io/CORE/#registro">Creá tu cuenta</a>
+      <a class="btn btn-ghost" href="#coach">Soy coach</a>
+    </div>
+  </div>
+</div>
+
+<section id="como">
+  <div class="wrap">
+    <h2>Cómo funciona</h2>
+    <p class="lead">Tres pasos y estás entrenando con el plan de tu coach en el teléfono.</p>
+    <div class="grid">
+      <div class="card"><span class="num">01</span><h3>Te vinculás</h3><p>Tu coach te pasa su código de invitación. Lo cargás una vez y quedan conectados.</p></div>
+      <div class="card"><span class="num">02</span><h3>Entrenás</h3><p>Abrís el día que toca, ves la rutina con las notas de tu coach y registrás kilos y repeticiones serie por serie.</p></div>
+      <div class="card"><span class="num">03</span><h3>Progresan juntos</h3><p>Tu coach ve tu historial, tu volumen semanal y tu check-in, y ajusta el plan sin perseguirte por mensajes.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="app">
+  <div class="wrap">
+    <h2>Todo lo que entrenás, en un solo lugar</h2>
+    <p class="lead">Sin planillas, sin capturas de pantalla, sin anotar en el teléfono y perderlo.</p>
+    <div class="grid">
+      <div class="card"><h3>Rutina del coach</h3><p>Organizada por grupo muscular, con series, RIR, descansos y notas en cada ejercicio.</p></div>
+      <div class="card"><h3>Registro de series</h3><p>Ves lo que levantaste la vez pasada y vas por más. Con cronómetro de descanso incluido.</p></div>
+      <div class="card"><h3>Hábitos diarios</h3><p>Tu checklist del día: suplementos, pasos, agua. Lo que sostiene el resultado.</p></div>
+      <div class="card"><h3>Cardio</h3><p>Lo que te pide tu coach, con cronómetro y temporizador.</p></div>
+      <div class="card"><h3>Nutrición</h3><p>Macros, hidratación y el plan de comidas con opciones para elegir.</p></div>
+      <div class="card"><h3>Progreso</h3><p>Volumen semanal por músculo, fotos, peso e historial de cada ejercicio.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="nuevo">
+  <div class="wrap">
+    <h2>Lo nuevo en GIZE</h2>
+    <p class="lead">Lo último que sumamos para que coach y atleta estén más cerca, todos los días.</p>
+    <div class="new">
+      <div class="feature-main">
+        <span class="tag">Mensajes del coach</span>
+        <h3>Tu coach te escribe y te llega al celular</h3>
+        <p>Como un mensaje de WhatsApp, aunque tengas la app cerrada. El coach ve si te llegó y tiene el historial de lo que te mandó.</p>
+        <div class="lock" aria-label="Ejemplo de notificación en el celular">
+          <div class="lock-time">07:42</div>
+          <div class="lock-date">jueves 24 de septiembre</div>
+          <div class="notif">
+            <span class="notif-ic"><svg aria-hidden="true" style="color:#fff"><use href="#g-mono"/></svg></span>
+            <div class="notif-b"><div class="notif-h"><span>GIZE</span><span>ahora</span></div>
+              <div class="notif-t">Martina · tu coach</div>
+              <div class="notif-m">Hoy toca pierna. Subile 2,5 kg a la sentadilla, venís muy bien.</div></div>
+          </div>
+          <div class="notif">
+            <span class="notif-ic"><svg aria-hidden="true" style="color:#fff"><use href="#g-mono"/></svg></span>
+            <div class="notif-b"><div class="notif-h"><span>GIZE</span><span>hace 3 min</span></div>
+              <div class="notif-t">¡Descanso terminado! 💪</div>
+              <div class="notif-m">Volvé a la próxima serie.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="feat-list">
+        <div class="feat">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10.5 8v8M14 8v8M17 8v8"/></svg></span>
+          <h3>Escaneá lo que comés</h3>
+          <p>Apuntás al código de barras y se carga el producto. Más de 900 alimentos con nombres de acá, y peso crudo o cocido.</p>
+        </div>
+        <div class="feat">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <h3>Preguntas a tu medida</h3>
+          <p>El coach arma las preguntas del registro diario y del check-in semanal, y ve las respuestas día por día.</p>
+        </div>
+        <div class="feat">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></span>
+          <h3>Descanso a tu ritmo</h3>
+          <p>Ajustás el descanso de cada ejercicio y el cronómetro sigue aunque salgas de la app.</p>
+        </div>
+        <div class="feat">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg></span>
+          <h3>Fotos y entrenos por fecha</h3>
+          <p>Fotos de progreso, entrenos pasados con cada serie y peso, todo ordenado para comparar semana a semana.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coach">
+  <div class="wrap">
+    <h2>Dos partes, un solo sistema</h2>
+    <p class="lead">GIZE no es una app de ejercicios: es el vínculo entre un coach y su atleta.</p>
+    <div class="two">
+      <div class="panel">
+        <h3>Si entrenás</h3>
+        <ul>
+          <li><span class="dot"></span>Sabés exactamente qué hacer hoy, sin preguntar.</li>
+          <li><span class="dot"></span>Registrás cada serie en segundos.</li>
+          <li><span class="dot"></span>Ves tu progreso sin armar una planilla.</li>
+          <li><span class="dot"></span>Tu coach te responde con datos, no con suposiciones.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Si sos coach</h3>
+        <ul>
+          <li><span class="dot"></span>Todos tus clientes en un panel, vinculados con tu código.</li>
+          <li><span class="dot"></span>Creás rutinas, las importás y las reutilizás como plantillas.</li>
+          <li><span class="dot"></span>Planificás mesociclos y marcás las semanas de descarga.</li>
+          <li><span class="dot"></span>Ves el check-in semanal y la adherencia sin perseguir a nadie.</li>
+          <li><span class="dot"></span>Le escribís a un cliente y le llega al celular en el momento.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="final">
+  <div class="wrap">
+    <div class="final">
+      <span class="logo" role="img" aria-label="GIZE" style="font-size:clamp(34px,6vw,64px)"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></span>
+      <h2 style="margin-top:26px">Empezá a entrenar con método</h2>
+      <p class="lead" style="margin:14px auto 30px;text-align:center">Creá tu cuenta y sumá a tu coach, o invitá a tus clientes si el coach sos vos.</p>
+      <div class="cta" style="margin-top:0">
+        <a class="btn btn-rgb" href="https://corefitnessapp.github.io/CORE/#registro">Creá tu cuenta</a>
+        <a class="btn btn-ghost" href="https://corefitnessapp.github.io/CORE/#registro-coach">Quiero ser coach GIZE</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="logo" role="img" aria-label="GIZE" style="font-size:20px"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></span>
+    <a href="https://corefitnessapp.github.io/CORE/">Abrir la app</a>
+    <span>© 2026 GIZE · Rosario, Argentina</span>
+  </div>
+</footer>
+
+</body>
+</html>
