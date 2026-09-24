@@ -14,7 +14,8 @@
 //   SUPABASE_URL, SUPABASE_ANON_KEY y SUPABASE_SERVICE_ROLE_KEY ya vienen puestas.
 //
 // Recibe { client_id, body } con el token del coach logueado (supabase.functions.invoke).
-// Devuelve { delivered, devices }: a cuántos dispositivos llegó de cuántos tenía.
+// Devuelve { delivered, devices, saved }: a cuántos dispositivos llegó de cuántos tenía, y
+// si quedó guardado en el historial (coach_messages).
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
@@ -78,7 +79,11 @@ Deno.serve(async (req) => {
   }));
   if (gone.length) await admin.from("push_subscriptions").delete().in("id", gone);
 
-  await admin.from("coach_messages").insert({ coach_id: coachId, client_id: clientId, body, delivered });
+  // El push ya salió: si guardar el historial falla no se devuelve error (el coach
+  // reintentaría y al cliente le llegaría dos veces), pero se avisa con saved:false para
+  // que la app no diga "guardado" ni lo muestre en el historial como si estuviera.
+  const { error: saveErr } = await admin.from("coach_messages").insert({ coach_id: coachId, client_id: clientId, body, delivered });
+  if (saveErr) console.error("coach_messages", saveErr.code, saveErr.message);
 
-  return json({ delivered, devices: (subs || []).length - gone.length });
+  return json({ delivered, devices: (subs || []).length - gone.length, saved: !saveErr });
 });

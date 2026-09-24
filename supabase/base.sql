@@ -11,7 +11,8 @@
 --     sacar un dump con la CLI: npx supabase db dump --db-url "<URI>" -f supabase/schema.sql
 --   · Lo que ya está en los otros archivos de supabase/: push_subscriptions, coach_messages
 --     y client_push_devices (notificaciones.sql), coach_questions (preguntas-coach.sql),
---     el bucket avatars y set_my_avatar (foto-perfil.sql).
+--     el bucket avatars y set_my_avatar (foto-perfil.sql), coach_client_stats
+--     (estadisticas-coach.sql).
 --
 -- Si cambiás algo en Supabase, actualizalo también acá.
 --

@@ -6,7 +6,7 @@ import { State } from '../../core/state.js';
 
 import { migrateNames } from '../../core/storage.js';
 
-import { sessionFromRow, signedUrls } from '../../core/supabase.js';
+import { fetchAll, sessionFromRow, signedUrls } from '../../core/supabase.js';
 
 import { resolveAvatars } from '../../core/avatar.js';
 
@@ -51,19 +51,29 @@ export async function loadCoachClients(){
 export async function loadCoachStats(){
   if(!State.sb||!State.cloudUser) return;
   try{
-    // performed_on, no "date" — ver mismo campo usado en openClient() más abajo y en
-    // core/supabase.js. Un select a una columna inexistente le pega un 400 a PostgREST,
-    // que el catch se traga en silencio: coachClientStats quedaba siempre {} y todos los
-    // clientes mostraban "sin entrenos aún" aunque sí hubieran entrenado.
-    const {data, error}=await State.sb.from("sessions").select("client_id, performed_on").order("performed_on",{ascending:false});
-    if(error) console.error("coachStats",error);
-    if(!Array.isArray(data)) return;
     const stats={};
-    data.forEach(r=>{
-      if(!stats[r.client_id]) stats[r.client_id]={nSess:0, lastSess:null};
-      stats[r.client_id].nSess++;
-      if(!stats[r.client_id].lastSess) stats[r.client_id].lastSess=r.performed_on;
-    });
+    // Cantidad de entrenos y último entreno de cada cliente, contados en la base
+    // (supabase/estadisticas-coach.sql): antes se traían TODAS las sesiones solo para
+    // contarlas y, pasadas las 1000, Supabase cortaba el resto sin avisar.
+    const rs=await State.sb.rpc("coach_client_stats");
+    if(!rs.error && Array.isArray(rs.data)){
+      rs.data.forEach(r=>{ stats[r.client_id]={nSess:Number(r.n_sessions)||0, lastSess:r.last_session||null}; });
+    } else {
+      // La función todavía no existe en la base: la cuenta de siempre, pero paginada.
+      // performed_on, no "date" — ver mismo campo usado en openClient() más abajo y en
+      // core/supabase.js. Un select a una columna inexistente le pega un 400 a PostgREST,
+      // que el catch se traga en silencio: coachClientStats quedaba siempre {} y todos los
+      // clientes mostraban "sin entrenos aún" aunque sí hubieran entrenado.
+      if(rs.error) console.warn("coach_client_stats no disponible, se cuenta en el celular", rs.error);
+      const {data, error}=await fetchAll(()=>State.sb.from("sessions").select("client_id, performed_on").order("performed_on",{ascending:false}).order("id"));
+      if(error) console.error("coachStats",error);
+      if(!Array.isArray(data)) return;
+      data.forEach(r=>{
+        if(!stats[r.client_id]) stats[r.client_id]={nSess:0, lastSess:null};
+        stats[r.client_id].nSess++;
+        if(!stats[r.client_id].lastSess) stats[r.client_id].lastSess=r.performed_on;
+      });
+    }
     CoachState.coachClientStats=stats; renderCoach();
   }catch(e){ console.error("coachStats",e); }
 }
@@ -117,12 +127,13 @@ export async function openClient(id){
     // Todas las lecturas del cliente salen juntas (antes iban de a una).
     const sb=State.sb;
     const [ws, ss, rt, dl, ck, ci, bl, np, ph] = await Promise.all([
-      sb.from("body_weights").select("*").eq("client_id",id).order("measured_on"),
+      // Las que crecen con el uso, paginadas (ver fetchAll en core/supabase.js).
+      fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",id).order("measured_on")),
       // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
-      sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at"),
+      fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at").order("id")),
       sb.from("routines").select("days").eq("client_id",id).maybeSingle(),
-      sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false}),
-      sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false}),
+      fetchAll(()=>sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false})),
+      fetchAll(()=>sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false})),
       sb.from("client_info").select("*").eq("client_id",id).maybeSingle(),
       sb.from("blocks").select("*").eq("client_id",id).eq("active",true).order("start_date",{ascending:false}).limit(1),
       sb.from("nutrition").select("*").eq("client_id",id).maybeSingle(),
