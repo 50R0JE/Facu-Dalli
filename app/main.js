@@ -9,7 +9,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, tabRipple, today, uid } from './core/utils.js';
 
@@ -397,6 +397,11 @@ document.body.addEventListener("click", e=>{
   showLogin("","up",{name:name, email:email, code:code, role:rb.dataset.authRole});
 });
 
+// Se guarda al tocarla (no al ingresar): así vale también para Google, que se va de la página.
+document.body.addEventListener("change", e=>{
+  if(e.target && e.target.id==="auRemember") setRememberSession(e.target.checked);
+});
+
 document.body.addEventListener("click", e=>{
   const tg=e.target.closest("[data-toggle-pass]"); if(!tg) return;
   const inp=document.getElementById("auPass"); if(!inp) return;
@@ -421,14 +426,27 @@ document.body.addEventListener("click", async e=>{
     if(n>0 && !confirm("Tenés "+n+" registro"+(n>1?"s":"")+" sin sincronizar todavía en este dispositivo. Si cerrás sesión ahora podrías perderlo"+(n>1?"s":"")+". ¿Cerrar sesión igual?")) return;
     try{ await pushLogout(); }catch(e){} // antes del signOut: borrar el dispositivo necesita la sesión
     try{ await State.sb.auth.signOut(); }catch(e){}
-    try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); }catch(e){}
+    try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); localStorage.removeItem("gize_session_ephemeral"); }catch(e){}
     location.reload();
     return;
   }
   // Los errores de join_coach con mensaje propio (plan vencido, cupo lleno) se muestran tal cual.
   const joinErr=er=>(er && er.code==="P0001" && er.message) ? er.message : "";
   if(a==="join"){ const code=((document.getElementById("joinCode")||{}).value||"").trim(); if(!code){ alert("Poné el código de tu coach."); return; } try{ const r=await State.sb.rpc("join_coach",{code:code}); if(r.data===true){ const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); alert("¡Listo! Te vinculaste con tu coach."); renderApp(); } else { alert(joinErr(r.error) || "Código inválido. Revisalo con tu coach."); } }catch(err){ alert("No se pudo vincular: "+((err&&err.message)||err)); } return; }
+  if(a==="google"){
+    const mode = document.getElementById("auRole") ? "up" : "in";
+    const role=((document.getElementById("auRole")||{}).value||"client").trim();
+    const code=((document.getElementById("auCode")||{}).value||"").trim();
+    const V={name:((document.getElementById("auName")||{}).value||"").trim(), email:((document.getElementById("auEmail")||{}).value||"").trim(), code:code, role:role};
+    b.disabled=true; b.lastChild.textContent="Abriendo Google...";
+    if(!State.sb) await ensureSb();
+    if(!State.sb){ showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", mode, V); return; }
+    try{ await signInWithGoogle({role:mode==="up"?role:"client", code:mode==="up"&&role==="client"?code:""}); } // web: la página se va a Google
+    catch(err){ showLogin("No se pudo entrar con Google: "+((err&&err.message)||err), mode, V); }
+    return;
+  }
   if(a==="do-login"||a==="do-signup"){
+    try{ localStorage.removeItem("gize_google_intent"); }catch(e){} // un intento de Google abandonado no aplica acá
     const mode = a==="do-signup"?"up":"in";
     const email=((document.getElementById("auEmail")||{}).value||"").trim();
     const pass=(document.getElementById("auPass")||{}).value||"";

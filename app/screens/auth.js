@@ -4,6 +4,11 @@ import { hideSilkBg, startAuthParticles, stopAuthParticles } from '../ui/backgro
 
 import { esc } from '../core/utils.js';
 
+import { rememberSession } from '../core/supabase.js';
+
+// "G" oficial de Google: las pautas de marca piden los cuatro colores, sin recolorear.
+const googleLogo = '<svg class="auth-google-ic" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
 export function showLogin(msg, mode, vals){
   mode = mode || "in"; vals = vals || {};
   const isUp = mode==="up";
@@ -42,8 +47,15 @@ export function showLogin(msg, mode, vals){
       field("auEmail", auIcoMail, "", "Email (ej: nombre@gmail.com)", "email", "username", vals.email)+
       field("auPass", auIcoLock, "pass", "Contraseña (mínimo 6)", "password", isUp?"new-password":"current-password", "")+
       (isUp&&role==="client"?field("auCode", auIcoTicket, "", "Código de tu coach (opcional)", "text", "off", vals.code):"")+
+      '<label class="auth-remember" style="animation-delay:'+nextDelay()+'">'+
+        '<input id="auRemember" type="checkbox"'+(rememberSession()?" checked":"")+'>'+
+        '<span class="auth-remember-box" aria-hidden="true"></span>'+
+        '<span>Mantener la sesión iniciada</span>'+
+      '</label>'+
       (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+esc(msg)+'</div>':'')+
       '<button class="gize-btn auth-btn" data-auth="'+(isUp?"do-signup":"do-login")+'" style="animation-delay:'+nextDelay()+'">'+(isUp?"Crear cuenta":"Ingresar")+'</button>'+
+      '<div class="auth-or" aria-hidden="true" style="animation-delay:'+nextDelay()+'"><span>o</span></div>'+
+      '<button type="button" class="auth-google" data-auth="google" style="animation-delay:'+nextDelay()+'">'+googleLogo+'<span>Continuar con Google</span></button>'+
       '<div class="auth-switch" data-auth="'+(isUp?"to-login":"to-signup")+'" role="button" tabindex="0" style="animation-delay:'+nextDelay()+'">'+(isUp?"Ya tengo cuenta":"Crear una cuenta nueva")+'</div>'+
       '<button type="button" class="auth-install" data-install style="animation-delay:'+nextDelay()+'">Instalar GIZE en el celular</button>'+
     '</div>';
