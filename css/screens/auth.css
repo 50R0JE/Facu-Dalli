@@ -82,3 +82,37 @@
     .auth-card { padding:28px 20px 22px; max-width:100%; }
     .auth-logo img { height:22px; }
   }
+
+/* Cartel "¡Mail confirmado con éxito!" al volver del link del mail (app/core/supabase.js →
+   showMailConfirmed). Tapa todo como el splash mientras la app se arma por detrás. */
+#mailOk {
+    position:fixed; inset:0; z-index:10000; background:var(--gize-bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; padding:24px 16px; text-align:center;
+    transition:opacity .4s ease, visibility .4s ease;
+  }
+
+#mailOk.out { opacity:0; visibility:hidden; }
+
+#mailOk .mo-check {
+    width:72px; height:72px; border-radius:50%; margin-bottom:10px;
+    display:grid; place-items:center; color:var(--gize-success); background:var(--gize-success-bg);
+    border:1px solid color-mix(in srgb, var(--gize-success) 35%, transparent);
+    animation:moPop .5s cubic-bezier(.3,1.6,.5,1) both;
+  }
+
+#mailOk .mo-check svg { width:36px; height:36px; }
+
+#mailOk .mo-check path { stroke-dasharray:24; stroke-dashoffset:24; animation:moDraw .45s ease .3s forwards; }
+
+#mailOk .mo-title { margin:0; font:700 22px/1.25 var(--gize-font); color:var(--gize-text); animation:authFadeUp .5s ease .15s both; }
+
+#mailOk .mo-sub { margin:0 0 14px; font:500 15px/1.4 var(--gize-font); color:var(--gize-text-2); animation:authFadeUp .5s ease .25s both; }
+
+@keyframes moPop { from { transform:scale(.4); opacity:0; } }
+@keyframes moDraw { to { stroke-dashoffset:0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    #mailOk .mo-check, #mailOk .mo-title, #mailOk .mo-sub { animation:none; }
+    #mailOk .mo-check path { animation:none; stroke-dashoffset:0; }
+  }

@@ -51,5 +51,16 @@
 	<string>GIZE accede a tus fotos para que elijas tu foto de perfil o tus fotos de progreso.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ar.com.gize.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>gize</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
