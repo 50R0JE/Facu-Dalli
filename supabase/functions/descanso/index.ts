@@ -19,13 +19,18 @@ Deno.serve(async () => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   // Tomar y borrar de una los vencidos: si dos llamadas se pisan, cada aviso sale una vez.
   const { data: due, error } = await admin.from("rest_alarms").delete()
-    .lte("send_at", new Date().toISOString()).select("user_id");
+    .lte("send_at", new Date().toISOString()).select("user_id, endpoint");
   if (error) return json({ error: error.message }, 500);
   const users = [...new Set((due || []).map((r) => r.user_id))];
   if (!users.length) return json({ sent: 0 });
 
-  const { data: subs } = await admin.from("push_subscriptions")
-    .select("id, endpoint, p256dh, auth").in("user_id", users).like("endpoint", "https://%");
+  const { data: all } = await admin.from("push_subscriptions")
+    .select("id, user_id, endpoint, p256dh, auth").in("user_id", users).like("endpoint", "https://%");
+  // Si el aviso tiene dispositivo, solo a ese; si no (versión vieja de la app), a todos los del usuario.
+  const subs = (all || []).filter((s) => {
+    const a = (due || []).find((r) => r.user_id === s.user_id);
+    return !a || !a.endpoint || a.endpoint === s.endpoint;
+  });
   const payload = JSON.stringify({ title: "¡Descanso terminado! 💪", body: "Volvé a la próxima serie.", tag: "rest-done", url: "./app/" });
 
   let sent = 0;
