@@ -725,7 +725,9 @@ if (migrateNames(state.days)) save();
 cloudBoot();
 
 resumeRest(); // descanso que quedó corriendo al cerrar la app
-if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(()=>{}); }); }
+// En la app nativa (Capacitor) los archivos ya viajan dentro de la app: no hace falta el service worker.
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+if (!IS_NATIVE && "serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(()=>{}); }); }
 
 // ---- Productos de marca (Open Food Facts) ----
 // Búsqueda con espera de 450 ms desde la última tecla y cancelando la anterior: así no

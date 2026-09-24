@@ -21,7 +21,9 @@
   var ua = navigator.userAgent || "";
   var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   var isAndroid = /android/i.test(ua);
-  function standalone() { return (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true; }
+  // Dentro de la app nativa (Capacitor: Play Store / App Store) ya está "instalada".
+  function isNative() { try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) { return false; } }
+  function standalone() { return isNative() || (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true; }
   var onApp = !(me && me.dataset.app);                  // en la landing se pasa data-app
 
   if (standalone()) document.documentElement.classList.add("is-standalone");
