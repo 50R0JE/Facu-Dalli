@@ -219,10 +219,10 @@ export function renderComida(){
     return `<div><div class="macro-top"><b>${lbl}</b><span>${Math.round(cons)} / ${tgt} g</span></div><div class="bar"><div style="width:${w}%"></div></div></div>`;
   };
   const diary = state.diary.length ? state.diary.map(e=>`
-    <div class="diary-item" data-action="diary-edit" data-id="${e.id}">
+    <div class="diary-item" data-action="diary-edit" data-id="${esc(e.id)}">
       <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${e.p} · C ${e.c} · G ${e.f}</span></div>
       <div class="diary-kcal">${e.kcal} kcal</div>
-      <button class="diary-rm" data-action="diary-remove" data-id="${e.id}" title="Quitar">${xSvg}</button>
+      <button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>
     </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
   return `
     <div class="cal-top">

@@ -4,6 +4,8 @@ import { checkSvg, chevronDownSvg, chevronLeftSvg, chevronRightSvg, copySvg, dow
 
 import { State } from '../../core/state.js';
 
+import { migrateNames } from '../../core/storage.js';
+
 import { esc, mkEx, muscleOf, today } from '../../core/utils.js';
 
 import { coachDatalist, exChart, exSummary, exTable } from './clientes.js';
@@ -24,7 +26,7 @@ export async function loadTpls(){
   try{
     const r=await State.sb.from("routine_templates").select("*").eq("coach_id",State.cloudUser.id).order("name");
     if(r.error){ CoachState.tplsError=r.error.message||String(r.error); CoachState.coachTpls=[]; }
-    else { CoachState.coachTpls=r.data||[]; }
+    else { CoachState.coachTpls=r.data||[]; CoachState.coachTpls.forEach(t=>migrateNames(t.days)); }
   }catch(e){ CoachState.tplsError=(e&&e.message)||String(e); CoachState.coachTpls=[]; console.error("tpls",e); }
 }
 
@@ -203,7 +205,7 @@ export function applyPickerMarkup(){
     else if(!CoachState.coachTpls.length){ opts='<div class="cal-hint">Todavía no tenés rutinas guardadas.<br>Volvé al panel principal → pestaña “Mis rutinas” → creá una o importá el Microciclo 8.</div>'; }
     else { opts=CoachState.coachTpls.map(t=>{
       const nd=(t.days||[]).length;
-      return '<div class="cp-copt" data-coach="ap-tpl" data-id="'+t.id+'">'+esc(t.name)+'<span class="ap-meta">'+nd+' día'+(nd===1?'':'s')+'</span></div>';
+      return '<div class="cp-copt" data-coach="ap-tpl" data-id="'+esc(t.id)+'">'+esc(t.name)+'<span class="ap-meta">'+nd+' día'+(nd===1?'':'s')+'</span></div>';
     }).join(""); }
     return '<div class="cp-title">Aplicar una rutina</div>'+
       '<div class="cp-sub">Elegí cuál de tus rutinas querés usar para este cliente.</div>'+
@@ -276,7 +278,7 @@ function exerciseCard(d, day, ex, i, rt){
   ) : '';
 
   if(!open){
-    return '<div class="co-exc co-exc-collapsed" data-coach="rt-toggle" data-i="'+i+'" data-id="'+ex.id+'">'+
+    return '<div class="co-exc co-exc-collapsed" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
         grip+swatch+
         '<span class="co-exc-cname">'+esc(ex.name||"Sin nombre")+'</span>'+
         badge+
@@ -294,8 +296,8 @@ function exerciseCard(d, day, ex, i, rt){
     '</div>').join("");
   const setsTbl=nSets ? '<div class="co-set-head"><span>Serie</span><span>Reps objetivo</span><span>Peso objetivo</span><span></span></div>'+sets : '';
   const prog=exSummary(d, day.name, ex.name);
-  return '<div class="co-exc co-exc-open" data-id="'+ex.id+'">'+
-      '<div class="co-exc-head" data-coach="rt-toggle" data-i="'+i+'" data-id="'+ex.id+'">'+
+  return '<div class="co-exc co-exc-open" data-id="'+esc(ex.id)+'">'+
+      '<div class="co-exc-head" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
         grip+swatch+
         '<input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
         badge+dup+del+chevron+

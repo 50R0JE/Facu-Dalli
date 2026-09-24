@@ -11,6 +11,10 @@ on:
     paths: ["android/**", "capacitor.config.json", "package.json", "scripts/**", ".github/workflows/android.yml"]
   workflow_dispatch:
 
+# El token de GitHub de la ejecución solo puede leer el repo.
+permissions:
+  contents: read
+
 jobs:
   apk:
     runs-on: ubuntu-latest

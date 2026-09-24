@@ -45,10 +45,10 @@ export function renderHabitos(){
     </div>`;
   }).join("");
   const items = coachItems + state.habits.map(h => `
-    <div class="hb-item" data-action="habit-toggle" data-id="${h.id}">
+    <div class="hb-item" data-action="habit-toggle" data-id="${esc(h.id)}">
       <span class="hb-check${h.done?' on':''}">${h.done?checkSvg:''}</span>
       <span class="hb-name${h.done?' done':''}">${esc(h.name)}</span>
-      <button class="hb-rm" data-action="habit-remove" data-id="${h.id}" title="Eliminar">${xSvg}</button>
+      <button class="hb-rm" data-action="habit-remove" data-id="${esc(h.id)}" title="Eliminar">${xSvg}</button>
     </div>`).join("");
   return `
     <div class="hb-head">

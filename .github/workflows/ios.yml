@@ -21,6 +21,10 @@ on:
         required: true
         default: "1.0.0"
 
+# El token de GitHub de la ejecución solo puede leer el repo.
+permissions:
+  contents: read
+
 jobs:
   ios:
     runs-on: macos-latest

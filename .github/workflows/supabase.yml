@@ -9,6 +9,9 @@
 #                          Edge Function Secrets (read-write), Auth Config (read-write).
 #   MP_ACCESS_TOKEN        opcional. Access Token de producción de Mercado Pago (tarea "secrets").
 #   SMTP_PASSWORD          opcional. Contraseña de aplicación de Gmail (tarea "mails").
+#   DEMO_PASSWORD          para "cuentas-demo". Contraseña de las cuentas demo de Google Play.
+#                          Va como secret y no como dato del formulario: el repo es público y
+#                          los datos del formulario quedan escritos en el log de la ejecución.
 name: Supabase
 
 on:
@@ -28,14 +31,14 @@ on:
         description: "Para 'sql': archivo a correr (ej: supabase/suscripciones.sql)"
         required: false
         default: ""
-      demo_password:
-        description: "Para 'cuentas-demo': contraseña de las cuentas demo"
-        required: false
-        default: ""
       smtp_user:
         description: "Para 'mails': Gmail que manda los mails (ej: tu-mail@gmail.com)"
         required: false
         default: ""
+
+# El token de GitHub de la ejecución solo puede leer el repo.
+permissions:
+  contents: read
 
 env:
   PROJECT_REF: wegptuzhsrwppbknqstf
@@ -88,10 +91,10 @@ jobs:
         if: inputs.tarea == 'sql' || inputs.tarea == 'cuentas-demo'
         env:
           ARCHIVO: ${{ inputs.archivo }}
-          DEMO_PASSWORD: ${{ inputs.demo_password }}
+          DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
         run: |
           if [ "${{ inputs.tarea }}" = "cuentas-demo" ]; then
-            if [ ${#DEMO_PASSWORD} -lt 8 ]; then echo "::error::Poné una contraseña de al menos 8 caracteres en demo_password"; exit 1; fi
+            if [ ${#DEMO_PASSWORD} -lt 8 ]; then echo "::error::Falta el secret DEMO_PASSWORD (al menos 8 caracteres)"; exit 1; fi
             echo "::add-mask::$DEMO_PASSWORD"
             python3 -c 'import os,sys; pw=os.environ["DEMO_PASSWORD"].replace("\x27","\x27\x27"); sys.stdout.write(open("supabase/cuentas-demo.sql").read().replace("__DEMO_PASSWORD__", pw))' > "$RUNNER_TEMP/q.sql"
           else

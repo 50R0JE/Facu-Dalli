@@ -56,20 +56,20 @@ function restRow(ex){
   const open = EntrenoState.restEditEx === ex.id;
   // El tiempo al costado es el que se toca para ajustarlo (antes un lápiz).
   const main = `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span></button>`+
-    `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${ex.id}" title="Ajustar descanso" aria-label="Ajustar descanso, ahora ${esc(r.label)}" aria-expanded="${open}"><span class="rest-edit-t">${esc(r.label)}</span>${chevronDownSvg}</button></div>`;
+    `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${esc(ex.id)}" title="Ajustar descanso" aria-label="Ajustar descanso, ahora ${esc(r.label)}" aria-expanded="${open}"><span class="rest-edit-t">${esc(r.label)}</span>${chevronDownSvg}</button></div>`;
   if(!open) return main;
   const locked = routineLocked();
   const coachTxt = ex.rest ? esc(ex.rest) : "2:00";
   return main + `<div class="rest-editor">
       <div class="re-title">Descanso de este ejercicio</div>
       <div class="re-adj">
-        <button class="re-step" data-action="rest-adj" data-ex="${ex.id}" data-d="-15" aria-label="Restar 15 segundos">−15s</button>
+        <button class="re-step" data-action="rest-adj" data-ex="${esc(ex.id)}" data-d="-15" aria-label="Restar 15 segundos">−15s</button>
         <span class="re-val">${restLabel(sec)}</span>
-        <button class="re-step" data-action="rest-adj" data-ex="${ex.id}" data-d="15" aria-label="Sumar 15 segundos">+15s</button>
+        <button class="re-step" data-action="rest-adj" data-ex="${esc(ex.id)}" data-d="15" aria-label="Sumar 15 segundos">+15s</button>
       </div>
-      <div class="re-presets">${REST_PRESETS.map(p=>`<button class="rest-opt${p===sec?' on':''}" data-action="rest-preset" data-ex="${ex.id}" data-sec="${p}">${restLabel(p)}</button>`).join("")}</div>
-      ${locked ? (r.own ? `<button class="re-reset" data-action="rest-reset" data-ex="${ex.id}">Usar el de tu coach (${coachTxt})</button>` : `<div class="re-hint">Tu coach puso ${coachTxt}. Si lo cambiás, queda solo para vos.</div>`) : ''}
-      <button class="re-done" data-action="rest-edit" data-ex="${ex.id}">Listo</button>
+      <div class="re-presets">${REST_PRESETS.map(p=>`<button class="rest-opt${p===sec?' on':''}" data-action="rest-preset" data-ex="${esc(ex.id)}" data-sec="${p}">${restLabel(p)}</button>`).join("")}</div>
+      ${locked ? (r.own ? `<button class="re-reset" data-action="rest-reset" data-ex="${esc(ex.id)}">Usar el de tu coach (${coachTxt})</button>` : `<div class="re-hint">Tu coach puso ${coachTxt}. Si lo cambiás, queda solo para vos.</div>`) : ''}
+      <button class="re-done" data-action="rest-edit" data-ex="${esc(ex.id)}">Listo</button>
     </div>`;
 }
 
@@ -146,7 +146,7 @@ export function renderDayNotes(d){
   const exN=(d.exercises||[]).filter(x=>x.note);
   if(!d.note && !exN.length) return "";
   const items=exN.map(x=>'<div class="dn-item"><span class="dn-ex">'+esc(x.name)+'</span><span class="dn-tx">'+esc(x.note)+'</span></div>').join("");
-  return '<div class="daynotes" data-reveal="notes-'+d.id+'"><div class="dn-head">Notas de tu coach \u00b7 '+esc(d.name)+'</div>'+
+  return '<div class="daynotes" data-reveal="notes-'+esc(d.id)+'"><div class="dn-head">Notas de tu coach \u00b7 '+esc(d.name)+'</div>'+
     (d.note?'<div class="dn-general">'+esc(d.note)+'</div>':'')+items+'</div>';
 }
 
@@ -156,7 +156,7 @@ export function renderEntreno(){
   const done = d.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);
   const pct = total ? Math.round(done/total*100) : 0;
   const tabs = state.days.map(x =>
-    `<button class="tab${x.id===State.activeId?' active':''}" data-action="tab" data-day="${x.id}">${esc(x.name)}</button>`
+    `<button class="tab${x.id===State.activeId?' active':''}" data-action="tab" data-day="${esc(x.id)}">${esc(x.name)}</button>`
   ).join("") + (routineLocked() ? "" : `<button class="tab tab-add" data-action="addday" title="Agregar día">+</button>`);
   // Un solo ejercicio roto no debe tumbar toda la vista de Entreno: v.innerHTML= es una
   // sola asignación, así que si CUALQUIER ejercicio revienta acá adentro, renderApp() se
@@ -177,7 +177,7 @@ export function renderEntreno(){
       // mostramos el mejor número de reps en su lugar; sin ninguno de los dos, "Completado".
       let bestReps=0; (ex.sets||[]).forEach(s=>{ const r=+s.reps||0; if(r>bestReps) bestReps=r; });
       const bestStr = best ? (best.kg+' kg × '+best.reps) : (bestReps>0 ? bestReps+' reps' : 'Completado');
-      return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${ex.id}">
+      return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${esc(ex.id)}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
         <span class="ex-collapsed-name">${esc(ex.name)}</span>
         <span class="ex-collapsed-best${best||bestReps>0?'':' is-done'}">${bestStr}</span>
@@ -186,20 +186,20 @@ export function renderEntreno(){
     const sets = ex.sets.map((s,i) => `
       <div class="set">
         <span class="idx">${i+1}</span>
-        <div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${ex.id}" data-set="${s.id}"><span class="unit">kg</span></div>
-        <div class="field"><input class="reps" type="text" inputmode="numeric" placeholder="0" value="${esc(s.reps)}" data-action="reps" data-ex="${ex.id}" data-set="${s.id}"><span class="unit">reps</span></div>
+        <div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">kg</span></div>
+        <div class="field"><input class="reps" type="text" inputmode="numeric" placeholder="0" value="${esc(s.reps)}" data-action="reps" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">reps</span></div>
         ${s.target?`<span class="goal" title="Objetivo del coach">${esc(s.target)}</span>`:''}
-        <button class="done${s.done?' on':''}" data-action="toggle" data-ex="${ex.id}" data-set="${s.id}">${s.done?checkSvg:''}</button>
-        ${routineLocked()?'':`<button class="rm" data-action="removeset" data-ex="${ex.id}" data-set="${s.id}" title="Quitar serie">${xSvg}</button>`}
+        <button class="done${s.done?' on':''}" data-action="toggle" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}">${s.done?checkSvg:''}</button>
+        ${routineLocked()?'':`<button class="rm" data-action="removeset" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" title="Quitar serie">${xSvg}</button>`}
       </div>`).join("");
-    return `${insertBtn}<div class="card${exIdx===0?' ex-focused':''}" data-ex-id="${ex.id}">
+    return `${insertBtn}<div class="card${exIdx===0?' ex-focused':''}" data-ex-id="${esc(ex.id)}">
       <div class="card-head">
-        <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${ex.id}" ${routineLocked()?'readonly':''}>
-        ${done?`<button class="icon-mini" data-action="ex-collapse" data-ex="${ex.id}" title="Colapsar">${chevronDownSvg}</button>`:''}
-        ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${ex.id}" title="Cambiar ejercicio">${swapSvg}</button>
-        <button class="trash" data-action="removeex" data-ex="${ex.id}" title="Eliminar ejercicio">${trashSvg}</button>`}
+        <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${esc(ex.id)}" ${routineLocked()?'readonly':''}>
+        ${done?`<button class="icon-mini" data-action="ex-collapse" data-ex="${esc(ex.id)}" title="Colapsar">${chevronDownSvg}</button>`:''}
+        ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${esc(ex.id)}" title="Cambiar ejercicio">${swapSvg}</button>
+        <button class="trash" data-action="removeex" data-ex="${esc(ex.id)}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
-      ${ex.video?`<a class="ex-video" href="${esc(ex.video)}" target="_blank" rel="noopener">${playSvg} Ver video del ejercicio</a>`:''}
+      ${ex.video&&/^https:\/\//i.test(ex.video)?`<a class="ex-video" href="${esc(ex.video)}" target="_blank" rel="noopener">${playSvg} Ver video del ejercicio</a>`:''}
       ${(ex.o||ex.rir||ex.goal)?`<div class="ex-prog">
         ${ex.o?`<span class="ep-ord">${esc(ex.o)}</span>`:''}
         ${ex.rir?`<span class="ep-chip">RIR ${esc(ex.rir)}</span>`:''}
@@ -208,7 +208,7 @@ export function renderEntreno(){
       ${renderLastSession(ex.name)}
       ${sets}
       ${ex.note?`<div class="ex-note"><span class="ex-note-t">Nota de tu coach</span>${esc(ex.note)}</div>`:''}
-      ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${ex.id}">+ Serie</button>`}
+      ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${esc(ex.id)}">+ Serie</button>`}
       ${restRow(ex)}
     </div>`;
   } catch(err) {
@@ -225,7 +225,7 @@ export function renderEntreno(){
     ${renderBlockBanner()}
     ${routineLocked()?'<div class="coach-banner">Rutina asignada por tu coach</div>':''}
     <div class="tabs">${tabs}</div>
-    <div class="day-head" data-reveal="dayhead-${d.id}">
+    <div class="day-head" data-reveal="dayhead-${esc(d.id)}">
       <div class="day-top">
         <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname" ${routineLocked()?'readonly':''}>
         ${routineLocked()?'':`<button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>`}
