@@ -72,9 +72,16 @@ jobs:
         if: inputs.tarea == 'secrets'
         env:
           MP_ACCESS_TOKEN: ${{ secrets.MP_ACCESS_TOKEN }}
+          APNS_KEY_P8: ${{ secrets.APNS_KEY_P8 }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          if [ -z "$MP_ACCESS_TOKEN" ]; then echo "::error::Falta el secret MP_ACCESS_TOKEN en GitHub"; exit 1; fi
-          supabase secrets set --project-ref "$PROJECT_REF" MP_ACCESS_TOKEN="$MP_ACCESS_TOKEN"
+          # Se cargan los que estén en GitHub: Mercado Pago y, para la app de iPhone, la clave de Apple.
+          set -- 
+          [ -n "$MP_ACCESS_TOKEN" ] && set -- "$@" MP_ACCESS_TOKEN="$MP_ACCESS_TOKEN"
+          [ -n "$APNS_KEY_P8" ] && set -- "$@" APNS_KEY_P8="$APNS_KEY_P8" APNS_KEY_ID="$APNS_KEY_ID" APPLE_TEAM_ID="$APPLE_TEAM_ID"
+          if [ $# -eq 0 ]; then echo "::error::No hay secrets para cargar (MP_ACCESS_TOKEN o APNS_KEY_P8)"; exit 1; fi
+          supabase secrets set --project-ref "$PROJECT_REF" "$@"
           supabase secrets list --project-ref "$PROJECT_REF"
 
       - name: Correr SQL
