@@ -246,7 +246,9 @@
 
 @starting-style { .sheet-bg { opacity: 0; } }
 
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; max-width: 540px; margin: 0 auto;
+/* --kb = lo que tapa el teclado (app/ui/keyboard.js): la ventana sube justo arriba de él. */
+.sheet { position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); z-index: 60; max-width: 540px; margin: 0 auto;
+    max-height: calc(100dvh - var(--kb, 0px) - 12px); overflow-y: auto; overscroll-behavior: contain;
     background: var(--card); border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0;
     padding: 22px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.6);
     transform: translateY(0); transition: transform var(--duration-standard) var(--ease-drawer); }
@@ -256,6 +258,9 @@
 @starting-style { .sheet { transform: translateY(100%); } }
 
 @media (prefers-reduced-motion: reduce) { .sheet-bg, .sheet { transition: none; } }
+
+/* Con el teclado abierto, el borde de abajo ya no es el del celular: sin el espacio extra. */
+.kb-open .sheet { padding-bottom: 16px; border-radius: 4px; }
 
 .sheet-title { font-size: 19px; font-weight: 700; margin-bottom: 16px; }
 
@@ -332,7 +337,7 @@
 
 #applyMount .cp-bg, #copyPickerMount .cp-bg { z-index:500; }
 
-.cp-ccard { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%) scale(1); width:min(400px,92vw); max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:22px; z-index:501; box-shadow:0 18px 50px rgba(0,0,0,.35);
+.cp-ccard { position:fixed; left:50%; top:calc((100% - var(--kb, 0px)) / 2); transform:translate(-50%,-50%) scale(1); width:min(400px,92vw); max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; background:var(--card); border:1px solid var(--border); border-radius:8px; padding:22px; z-index:501; box-shadow:0 18px 50px rgba(0,0,0,.35);
     opacity: 1; transition: opacity var(--duration-frequent) var(--ease-drawer), transform var(--duration-frequent) var(--ease-drawer); }
 
 .cp-ccard.closing { opacity: 0; transform: translate(-50%,-50%) scale(.96); pointer-events: none; }
