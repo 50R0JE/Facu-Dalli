@@ -15,6 +15,8 @@
 --     (estadisticas-coach.sql), validación de dispositivos push y de la ruta de la foto
 --     de perfil (validaciones.sql), plan de los coaches y límite de clientes (suscripciones.sql,
 --     que además redefine is_my_client y join_coach).
+--   · Validación de la forma de las rutinas, ruta de las fotos de check-in y funciones solo
+--     para usuarios logueados (seguridad-base.sql).
 --
 -- Si cambiás algo en Supabase, actualizalo también acá.
 --
