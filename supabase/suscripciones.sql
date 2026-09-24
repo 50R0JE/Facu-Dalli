@@ -6,6 +6,7 @@
 --   Plan 10    hasta 10 clientes, $9.300 por mes
 --   Plan 25    hasta 25 clientes, $15.000 por mes
 --   Plan 50    hasta 50 clientes, $20.000 por mes
+--   Gimnasio   hasta 100 clientes, $33.000 por mes (p100, ver plan-gimnasio.sql)
 --   Cortesía   sin vencimiento, hasta 50 clientes (se pone a mano, ver abajo)
 --
 -- Los precios los cobra la función supabase/functions/suscripcion (PLANES): si se cambian,
@@ -24,7 +25,7 @@
 
 create table if not exists public.coach_billing (
   coach_id          uuid primary key references public.profiles(id) on delete cascade,
-  plan              text not null default 'trial' check (plan in ('trial','p10','p25','p50','cortesia')),
+  plan              text not null default 'trial' check (plan in ('trial','p10','p25','p50','p100','cortesia')),
   max_clients       int  not null default 10,
   trial_ends_at     timestamptz not null default now() + interval '14 days',
   paid_until        timestamptz,             -- pagado hasta (con unos días de margen)
