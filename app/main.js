@@ -451,7 +451,7 @@ document.body.addEventListener("click", async e=>{
     try{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
-        const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}, emailRedirectTo:(IS_NATIVE ? "https://gize.ar/app/" : location.origin + location.pathname)}});
+        const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}, emailRedirectTo:(IS_NATIVE ? "gize://confirmado" : location.origin + location.pathname)}}); // gize:// abre la app instalada (core/supabase.js → openAuthLink)
         if(r.error) throw r.error;
         if(code) { try{ localStorage.setItem("jfit_pending_code", code.toUpperCase()); }catch(e){} }
       } else {
@@ -459,7 +459,7 @@ document.body.addEventListener("click", async e=>{
         if(r.error) throw r.error;
       }
       const sess=await State.sb.auth.getSession();
-      if(!sess.data.session){ if(window.coreCancel) window.coreCancel(); showLogin("Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
+      if(!sess.data.session){ if(window.coreCancel) window.coreCancel(); showLogin(IS_NATIVE ? "Listo. Te mandamos un mail para confirmar la cuenta: abrilo en este celular y tocá el link, que te trae de vuelta a la app." : "Listo. Te mandamos un mail para confirmar la cuenta: abrilo, hacé click en el link, y despues volvé y tocá Ingresar.","in",{email:email}); return; }
       await afterLogin(sess.data.session.user);
       if(window.coreEnter) window.coreEnter();
     }catch(err){ if(window.coreCancel) window.coreCancel(); showLogin("No se pudo: "+((err&&err.message)||err), mode, {name:name, email:email, code:code, role:role}); }

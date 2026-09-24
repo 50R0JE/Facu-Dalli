@@ -29,6 +29,34 @@ export const SB_URL = "https://wegptuzhsrwppbknqstf.supabase.co";
 
 export const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZ3B0dXpoc3J3cHBia25xc3RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDkxODgsImV4cCI6MjA5ODU4NTE4OH0.pWBes8juiNcCrFG377w_Ga9IQ4EE37p5AJwUpYs2k8Q";
 
+// El link del mail de confirmación vuelve a la app con #access_token=...&type=signup (o
+// #error_code=... si venció). Se lee acá, al cargar el módulo, porque createClient se
+// come el # apenas arranca y después ya no queda rastro.
+const BOOT_AUTH = new URLSearchParams((location.hash||"").replace(/^#/,"") + "&" + (location.search||"").replace(/^\?/,""));
+const CONFIRM_LANDING = BOOT_AUTH.get("type")==="signup";
+const CONFIRM_ERROR = !!(BOOT_AUTH.get("error_code") || BOOT_AUTH.get("error_description"));
+const CONFIRM_ERROR_MSG = "El link de confirmación venció o ya se usó. Probá ingresar con tu email y contraseña; si no te deja, registrate de nuevo para recibir otro mail.";
+
+// App nativa: quien se registra desde la app recibe un mail cuyo link vuelve con
+// gize://confirmado#access_token=...&refresh_token=... (ver emailRedirectTo en main.js).
+// Android/iPhone abren la app instalada y acá se inicia la sesión con esos tokens.
+const NativeApp = () => { try { return (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.App) || null; } catch (e) { return null; } };
+const AUTH_LINK_USED = "gize_auth_link_used";
+async function openAuthLink(url){
+  if(!url || url.indexOf("gize://confirmado")!==0) return false;
+  const p=new URLSearchParams((url.split("#")[1]||"") + "&" + ((url.split("?")[1]||"").split("#")[0]));
+  // getLaunchUrl() devuelve el mismo link en cada recarga de la app (ej. después de cerrar
+  // sesión): sin esta marca, el logout volvía a entrar solo con los tokens del mail.
+  const mark=(p.get("access_token")||p.get("error_code")||"").slice(-24);
+  try{ if(mark && localStorage.getItem(AUTH_LINK_USED)===mark) return false; localStorage.setItem(AUTH_LINK_USED, mark); }catch(e){}
+  if(p.get("error_code")||p.get("error_description")){ showLogin(CONFIRM_ERROR_MSG,"in"); return true; }
+  const at=p.get("access_token"), rt=p.get("refresh_token"); if(!at||!rt) return false;
+  const r=await State.sb.auth.setSession({access_token:at, refresh_token:rt});
+  if(r.error||!r.data.session){ showLogin(CONFIRM_ERROR_MSG,"in"); return true; }
+  await showMailConfirmed(afterLogin(r.data.session.user));
+  return true;
+}
+
 // supabase-js NO lanza excepción cuando una query falla (RLS, red, columna inexistente):
 // devuelve {data:null, error}. Un try/catch a secas no atrapa nada, y el código seguía
 // como si se hubiera guardado. Envolvé cada escritura con sbOk() para que un error
@@ -643,6 +671,26 @@ export async function cloudDeleteSession(cid){
   catch(e){ console.error("deleteSession",e); return false; }
 }
 
+// Cartel "mail confirmado" al volver del link del mail. La app se arma por detrás
+// (loading) y el cartel se queda al menos lo que tarda la barra, para que se llegue a leer.
+async function showMailConfirmed(loading){
+  try{ history.replaceState(null,"",location.pathname); }catch(e){}
+  if(window.coreCancel) window.coreCancel(); // este cartel reemplaza al splash de arranque
+  const el=document.createElement("div");
+  el.id="mailOk"; el.setAttribute("role","status");
+  el.innerHTML='<div class="mo-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>'
+    +'<h1 class="mo-title">¡Mail confirmado con éxito!</h1>'
+    +'<p class="mo-sub">Te redirigimos a la app en breve.</p>'
+    +'<div class="gize-bar" aria-hidden="true"><i></i></div>';
+  document.body.appendChild(el);
+  const minWait=new Promise(r=>setTimeout(r, matchMedia("(prefers-reduced-motion: reduce)").matches ? 1500 : 2600));
+  try{ await Promise.all([loading, minWait]); }
+  finally{
+    el.classList.add("out");
+    setTimeout(()=>el.remove(), 400);
+  }
+}
+
 export async function cloudBoot(){
   await ensureSb();
   // Sin la librería de Supabase no hay cuenta: antes se mostraba la app igual, "sin
@@ -650,9 +698,22 @@ export async function cloudBoot(){
   // envío. Ahora se pide el login, que al tocar "Ingresar" reintenta la conexión.
   const offlineMsg="No hay conexión con el servidor. Revisá tu internet y tocá Ingresar para reintentar.";
   if(!State.sb){ showLogin(offlineMsg,"in"); if(window.coreEnter) window.coreEnter(); return; }
+  const app=NativeApp();
+  // Con la app ya abierta (en segundo plano) el link del mail llega por acá. Si ya hay una
+  // cuenta adentro se ignora: cambiar de cuenta sin logout mezclaría los datos locales.
+  if(app){ try{ app.addListener("appUrlOpen", e=>{ if(!State.cloudUser) openAuthLink(e && e.url).catch(err=>console.error("authLink",err)); }); }catch(e){} }
   try{
     const sess=await State.sb.auth.getSession();
-    if(sess.data.session){ await afterLogin(sess.data.session.user); }
+    if(sess.data.session){
+      if(CONFIRM_LANDING) await showMailConfirmed(afterLogin(sess.data.session.user));
+      else await afterLogin(sess.data.session.user);
+    }
+    else if(CONFIRM_ERROR){
+      try{ history.replaceState(null,"",location.pathname); }catch(e){}
+      showLogin(CONFIRM_ERROR_MSG,"in");
+    }
+    // La app estaba cerrada y la abrió el link del mail.
+    else if(app && await openAuthLink(((await app.getLaunchUrl().catch(()=>null))||{}).url)){}
     else {
       // Links de la landing: #registro abre "Crear cuenta" y #registro-coach lo abre con
       // "Soy coach" ya elegido. Se limpia el # para que recargar no lo repita.
