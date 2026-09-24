@@ -169,8 +169,13 @@ Deno.serve(async (req) => {
         }),
       });
     } catch (e) {
-      console.error("checkout", (e as Error).message);
-      return json({ error: "Mercado Pago no respondió bien. Revisá que el mail sea el de tu cuenta de Mercado Pago y volvé a intentar." }, 502);
+      const msg = (e as Error).message;
+      console.error("checkout", msg);
+      // Casos comunes: el mail no es de una cuenta de Mercado Pago, o es la misma cuenta que cobra.
+      const same = /same user|mismo usuario|collector/i.test(msg);
+      return json({ error: same
+        ? "Ese mail es el de la cuenta que cobra. Poné el mail de la cuenta de Mercado Pago que va a pagar."
+        : "Mercado Pago rechazó el pedido. Revisá que el mail sea el de la cuenta de Mercado Pago que va a pagar. (Detalle: " + msg.slice(0, 200) + ")" }, 502);
     }
     await db.from("coach_billing").update({ pending_plan: plan, updated_at: new Date().toISOString() }).eq("coach_id", coachId);
     return json({ url: pa.init_point });
