@@ -11,6 +11,7 @@ import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
 import { pushOnHere, enablePush, disablePush, isIOS, isStandalone } from '../core/push.js';
 import { renderApp } from '../main.js';
+import { isLite, setLite } from '../ui/background.js';
 import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg } from '../core/icons.js';
 
 const cameraSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
@@ -22,11 +23,11 @@ function cfgRoleLabel(p) { return (p && p.role === "coach") ? "Coach" : "Cliente
 // whatsapp: solo número con código de país, sin "+" ni espacios ni guiones) y listo,
 // los botones ya redirigen solos — no hace falta tocar nada más de este archivo.
 const LINKS = {
-  terms: "https://TU-DOMINIO.com/terminos-y-condiciones",
-  instagram: "https://instagram.com/TU_USUARIO",
-  website: "https://TU-SITIO.com",
+  terms: "https://gizeapp.github.io/GIZE/terminos-y-condiciones/",
+  instagram: "https://instagram.com/gize.app",
+  website: "https://gizeapp.github.io/GIZE/landing/",
   email: "contacto@TU-DOMINIO.com",
-  whatsapp: "5491100000000",
+  whatsapp: "5493413490705",
 };
 
 function cfgLinkRow(icon, label, href) {
@@ -115,6 +116,18 @@ export function renderConfig() {
       '</div>' +
     '</div>';
 
+  // Modo liviano: lo prende solo index.html en equipos de gama baja; acá se puede forzar.
+  const liteOnNow = isLite();
+  const liteSection = '<div class="card cfg-card">' +
+      '<div class="cfg-notif-row">' +
+        '<div class="cfg-notif-txt">' +
+          '<div class="cfg-notif-label">Modo liviano</div>' +
+          '<div class="cfg-notif-desc">Apaga las animaciones del fondo para que la app vaya más fluida en equipos lentos y gaste menos batería</div>' +
+        '</div>' +
+        '<button class="cfg-switch' + (liteOnNow ? ' on' : '') + '" data-action="cfg-lite-toggle" role="switch" aria-checked="' + liteOnNow + '"><span class="cfg-switch-knob"></span></button>' +
+      '</div>' +
+    '</div>';
+
   const legalSection = '<div class="card cfg-card">' +
       cfgLinkRow(fileTextSvg, "Términos y condiciones", LINKS.terms) +
     '</div>';
@@ -140,7 +153,7 @@ export function renderConfig() {
   const about = '<div class="cfg-about"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>';
 
   return '<div class="hb-head"><div class="hb-title">Configuración</div><div class="title-accent"></div></div>' +
-    account + coachSection + notifSection + legalSection + contactSection + dataSection + dangerSection + about;
+    account + coachSection + notifSection + liteSection + legalSection + contactSection + dataSection + dangerSection + about;
 }
 
 document.body.addEventListener("keydown", function (e) {
@@ -222,6 +235,13 @@ document.body.addEventListener("click", async function (e) {
       if (err) alert(err);
     }
     notifBtn.disabled = false;
+    renderApp();
+    return;
+  }
+
+  const liteBtn = e.target.closest('[data-action="cfg-lite-toggle"]');
+  if (liteBtn) {
+    setLite(!isLite());
     renderApp();
     return;
   }
