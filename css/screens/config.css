@@ -31,11 +31,12 @@
 
 .cfg-edit-name-btn:active { transform:scale(.95); }
 
-/* flex:1 + min-width:0: sin esto un nombre largo no se achica dentro de .cfg-name-row
-     (los flex items no bajan de su ancho de contenido por defecto) y en una pantalla
-     angosta el lápiz de editar terminaba recortado por el overflow:hidden de la card
-     en vez de mostrarse siempre al lado del nombre truncado con "…". */
-.cfg-name { flex:1; min-width:0; font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* flex:0 1 auto + min-width:0: ocupa solo lo que mide el texto (así el lápiz queda pegado
+     al nombre y no empujado al borde derecho contra el badge), pero puede achicarse: sin
+     min-width:0 un nombre largo no baja de su ancho de contenido y en una pantalla angosta
+     el lápiz terminaba recortado por el overflow:hidden de la card en vez de mostrarse
+     al lado del nombre truncado con "…". */
+.cfg-name { flex:0 1 auto; min-width:0; font-size:var(--text-emphasis); font-weight:700; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .cfg-email { font-size:var(--text-meta); color:var(--txt-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
@@ -55,15 +56,21 @@
      una acción (se tiñe de rojo apagado, mismo tono que ya usa .cfg-danger más abajo
      para "Borrar datos"), sin agregar ningún elemento visual nuevo a la pantalla. */
 .cfg-ok { background:none; border:none; padding:0; font:inherit; cursor:pointer;
+    display:inline-flex; align-items:center; gap:5px;
     color:var(--blue-2); font-weight:700; font-size:var(--text-meta); transition:color .15s ease; }
 
-.cfg-ok:hover { color:var(--gize-danger); }
+.cfg-ok svg { width:14px; height:14px; }
 
+.cfg-ok:hover { color:var(--gize-danger); }
 .cfg-sub { font-size:var(--text-meta); color:var(--txt-2); font-weight:600; margin-bottom:2px; }
 
-.cfg-about { display:flex; justify-content:center; margin-top:4px; padding-bottom:8px; }
+.cfg-about { display:flex; justify-content:center; margin-top:12px; padding-bottom:8px; }
 
-.cfg-about img { height:14px; width:auto; display:block; opacity:.55; }
+.cfg-about img { height:18px; width:auto; display:block; opacity:.7; }
+
+/* .logout-btn trae margin-top:24px global, que acá se sumaba al gap:12px de .cfg-card
+     y dejaba ~36px entre el título de la card y su botón. El gap ya separa. */
+.cfg-card .logout-btn { margin-top:0; }
 
 .cfg-danger { border-color:color-mix(in srgb, var(--gize-danger) 35%, transparent) !important; color:var(--gize-danger) !important; }
 

@@ -194,5 +194,5 @@ export function renderProgreso(){
     ${renderDaily()}
     ${renderCheckin()}
     ${renderVolumen()}
-    ${(State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id) ? '<div class="join-box"><div class="join-t">Vinculate a tu coach</div><input id="joinCode" class="form-input" placeholder="Código del coach" style="margin-bottom:10px"><button class="form-save" data-auth="join" style="margin-top:0">Vincular</button></div>' : ''}`;
+    ${(State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id) ? '<div class="join-box"><div class="join-t">Vinculate a tu coach</div><div class="join-row"><input id="joinCode" class="form-input" placeholder="Código del coach"><button class="form-save join-btn" data-auth="join">Vincular</button></div></div>' : ''}`;
 }

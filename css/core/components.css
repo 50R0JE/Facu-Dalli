@@ -362,6 +362,12 @@
 
 .join-t { font-size: var(--text-meta); color:var(--txt-2); margin-bottom:10px; font-weight:600; }
 
+/* Vincular coach (Progreso y Configuración): input + botón en una fila, el botón a la
+     altura del input en vez de una pastilla a todo el ancho. */
+.join-row { display:flex; gap:8px; }
+.join-row .form-input { flex:1; min-width:0; }
+.join-btn { width:auto; flex-shrink:0; margin-top:0; padding:0 20px; font-size:var(--text-body); }
+
 /* ===== Iniciar sesión — misma familia visual que el resto de la app: fondo/partículas
      compartidos con silk-on (ver comentario en #silkCanvas), tarjeta opaca con los mismos
      tokens --card/--border/--txt* que usa cualquier card en modo oscuro, radio 4px. ===== */
