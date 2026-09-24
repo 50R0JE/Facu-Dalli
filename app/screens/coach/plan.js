@@ -27,7 +27,9 @@ const money = n => "$" + Number(n).toLocaleString("es-AR");
 
 // billing: la fila de coach_billing. null + missing = todavía no se corrió el SQL (no se
 // bloquea nada en ese caso, así la app sigue andando mientras se configura).
-const B = { row: null, missing: false, loaded: false, busy: false, open: false, mpEmail: null, confirming: false };
+// mailOpen: el campo del mail de Mercado Pago se muestra solo si el coach quiere usar otro
+// (por defecto va el mail de su cuenta de GIZE, que es el caso más común).
+const B = { row: null, missing: false, loaded: false, busy: false, open: false, mpEmail: null, mailOpen: false, confirming: false };
 
 export async function loadBilling(){
   if(!State.sb || !State.cloudUser) return;
@@ -89,10 +91,13 @@ function planCards(b){
         (current ? "Tu plan actual" : tooSmall ? "Tenés " + b.count + " clientes" : B.busy === p.id ? "Abriendo Mercado Pago…" : "Elegir") + '</button>' +
     '</div>';
   }).join("");
-  return '<div class="cs-field pl-mail"><label>Mail de tu cuenta de Mercado Pago</label>' +
-    '<input class="co-note" type="email" data-plan="mail" value="' + esc(mail) + '" placeholder="tu-mail@ejemplo.com" autocomplete="email">' +
-    '<div class="pl-fine">Tiene que ser el mail con el que entrás a Mercado Pago. Se cobra una vez por mes con tarjeta o dinero en cuenta, y lo podés cancelar cuando quieras.</div></div>' +
-    '<div class="pl-cards">' + cards + '</div>';
+  const mailBox = B.mailOpen
+    ? '<div class="cs-field pl-mail"><label>Mail de tu cuenta de Mercado Pago</label>' +
+      '<input class="co-note" type="email" data-plan="mail" value="' + esc(mail) + '" placeholder="tu-mail@ejemplo.com" autocomplete="email">' +
+      '<div class="pl-fine">Tiene que ser el mail con el que entrás a Mercado Pago para pagar.</div></div>'
+    : '<div class="pl-fine pl-mail-line">Pagás con la cuenta de Mercado Pago de <b>' + esc(mail) + '</b> · <button class="pl-link" data-plan="mail-edit">¿Otro mail?</button></div>';
+  return '<div class="pl-cards">' + cards + '</div>' + mailBox +
+    '<div class="pl-fine">Se cobra una vez por mes con tarjeta o dinero en cuenta, y lo podés cancelar cuando quieras.</div>';
 }
 
 function statusLine(b){
@@ -131,8 +136,8 @@ export function renderPaywall(){
 
 async function choose(plan, btn){
   const input = document.querySelector('[data-plan="mail"]');
-  const mail = ((input && input.value) || "").trim();
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ alert("Poné el mail de tu cuenta de Mercado Pago."); if(input) input.focus(); return; }
+  const mail = ((input ? input.value : (B.mpEmail != null ? B.mpEmail : ((State.cloudUser && State.cloudUser.email) || ""))) || "").trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ B.mailOpen = true; rerender(); alert("Poné el mail de tu cuenta de Mercado Pago."); return; }
   B.mpEmail = mail; B.busy = plan; rerender();
   let err = "";
   try{
@@ -143,7 +148,8 @@ async function choose(plan, btn){
     } else if(r.data && r.data.url){ window.location.href = r.data.url; return; }
     else err = "Mercado Pago no devolvió el link de pago.";
   }catch(e){ err = (e && e.message) || String(e); }
-  B.busy = false; rerender();
+  // Lo más común es que el mail no sea el de su cuenta de Mercado Pago: se muestra el campo.
+  B.busy = false; B.mailOpen = true; rerender();
   alert("No se pudo abrir el pago: " + err);
 }
 
@@ -183,6 +189,7 @@ document.body.addEventListener("click", e => {
   if(a === "close"){ B.open = false; renderPlanSheet(); return; }
   if(a === "choose"){ choose(b.dataset.id, b); return; }
   if(a === "cancel"){ cancelRenewal(); return; }
+  if(a === "mail-edit"){ B.mailOpen = true; rerender(); const i = document.querySelector('[data-plan="mail"]'); if(i){ i.focus(); i.select(); } return; }
 });
 
 document.body.addEventListener("input", e => {
