@@ -6,6 +6,8 @@ import { save } from '../core/storage.js';
 
 import { beep, initAudio } from './audio.js';
 
+import { cancelRestAlert, scheduleRestAlert } from './restnotif.js';
+
 // El descanso se cuenta con la hora de fin (endAt), no restando 1 por segundo: con la
 // app en segundo plano o la pantalla bloqueada el navegador frena los setInterval y el
 // contador se atrasaba. Así, al volver se ve lo que queda de verdad (o que ya terminó).
@@ -41,6 +43,7 @@ export function startRest(sec){
   rest.active=true; rest.total=sec; rest.endAt=Date.now()+sec*1000; rest.remaining=sec;
   if(rest.id) clearInterval(rest.id); rest.id=setInterval(restTick,250);
   persist(); renderRestBar(); save();
+  scheduleRestAlert(rest.endAt); // aviso con la pantalla apagada (ver restnotif.js)
 }
 
 export function restTick(){
@@ -52,6 +55,8 @@ export function restTick(){
 
 export function restFinish(){
   rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } persist();
+  // Con la app a la vista ya suena acá: se cancela el aviso programado para no repetirlo.
+  if(!document.hidden) cancelRestAlert();
   try{ beep(); }catch(e){}
   try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
   // Si la app quedó en segundo plano pero todavía corre, avisa con una notificación
@@ -66,7 +71,7 @@ export function restFinish(){
 // El aviso de terminado queda 6 s (aunque la app se re-dibuje en el medio).
 function showDone(){ rest.doneUntil=Date.now()+6000; renderRestBar(true); setTimeout(()=>{ if(!rest.active) renderRestBar(); }, 6100); }
 
-export function stopRest(){ rest.doneUntil=0; rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } persist(); renderRestBar(); }
+export function stopRest(){ const was=rest.active; rest.doneUntil=0; rest.active=false; if(rest.id){ clearInterval(rest.id); rest.id=null; } persist(); renderRestBar(); if(was) cancelRestAlert(); }
 
 // Al abrir la app: si había un descanso en curso, sigue desde donde va; si terminó hace
 // poco (menos de 1 minuto), muestra el aviso de terminado.

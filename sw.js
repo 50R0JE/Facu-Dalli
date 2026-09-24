@@ -1,6 +1,6 @@
 // GIZE service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v62";
+const CACHE = "core-v63";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
@@ -69,7 +69,8 @@ self.addEventListener("push", e => {
     badge: "./icon-192.png",
     tag: d.tag || "coach",
     renotify: true,
-    vibrate: [80, 40, 80],
+    // El fin de descanso vibra más fuerte (para sentirlo con el celular en el bolsillo).
+    vibrate: d.tag === "rest-done" ? [300, 150, 300, 150, 300] : [80, 40, 80],
     // "./" era la app cuando vivía en la raíz; ahora la app está en app/.
     data: { url: (!d.url || d.url === "./") ? "./app/" : d.url }
   }));
