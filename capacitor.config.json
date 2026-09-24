@@ -3,5 +3,16 @@
   "appName": "GIZE",
   "webDir": "www",
   "backgroundColor": "#000000",
-  "android": { "backgroundColor": "#000000" }
+  "android": {
+    "backgroundColor": "#000000"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
+    }
+  }
 }
