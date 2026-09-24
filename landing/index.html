@@ -204,6 +204,62 @@ h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin
   }
 }
 
+
+/* ---------- estudio: sala oscura, luz de techo y displays LED ----------
+   Estética de foto de campaña hecha con código: techo de chapa con franjas rojas, una
+   lámpara que se prende con parpadeo al llegar y cuyo haz sigue al mouse/dedo, la barra
+   sobre el tapete y displays LED rojos con datos reales de un entreno (peso, reps y un
+   descanso que corre). Todo CSS/SVG: liviano también en el celular. */
+.studio{position:relative;z-index:1;padding:0;overflow:hidden;background:#07070a;isolation:isolate}
+.studio-stage{position:relative;height:max(620px,min(100svh,920px));--aim:0deg;--lit:0}
+.st-wall{position:absolute;inset:0 0 38% 0;background:
+  radial-gradient(120% 90% at 50% 110%,rgba(120,10,14,.55),transparent 60%),
+  repeating-linear-gradient(90deg,rgba(255,40,40,.0) 0 18px,rgba(255,40,40,.16) 18px 20px,rgba(255,40,40,0) 20px 34px),
+  linear-gradient(#0b0508,#1a0609 60%,#12060a);
+  -webkit-mask-image:radial-gradient(140% 120% at 50% 100%,#000 45%,transparent 80%);mask-image:radial-gradient(140% 120% at 50% 100%,#000 45%,transparent 80%);
+  opacity:calc(.55 + var(--lit)*.45);transition:opacity 1.2s ease}
+.st-arch{position:absolute;left:-10%;right:-10%;top:-40%;height:95%;border-radius:0 0 50% 50%/0 0 100% 100%;
+  background:repeating-radial-gradient(ellipse at 50% 0%,transparent 0 22px,rgba(255,50,50,.18) 23px 25px,transparent 26px 40px);opacity:calc(.35 + var(--lit)*.4);filter:blur(.4px)}
+.st-floor{position:absolute;left:-30%;right:-30%;bottom:-6%;height:52%;transform-origin:50% 0;transform:perspective(700px) rotateX(62deg);
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px) 0 0/140px 140px,
+    linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/140px 140px,
+    linear-gradient(#2a2521,#15120f)}
+.st-pool{position:absolute;left:50%;bottom:9%;width:min(760px,120vw);height:min(260px,34vw);transform:translateX(calc(-50% + var(--aimx,0px)));
+  background:radial-gradient(closest-side,rgba(235,242,255,.55),rgba(210,225,255,.18) 55%,transparent);opacity:var(--lit);transition:opacity .25s;mix-blend-mode:screen;filter:blur(6px)}
+.st-lamp{position:absolute;left:50%;top:0;width:2px;height:16%;background:#2a2d33;transform:translateX(-50%)}
+.st-head{position:absolute;left:50%;top:16%;width:74px;height:54px;transform:translate(-50%,-10%) rotate(var(--aim));transform-origin:50% 0}
+.st-head::before{content:"";position:absolute;inset:0;border-radius:14px 14px 30px 30px;background:linear-gradient(#3a3e46,#15171b);box-shadow:inset 0 -3px 0 rgba(255,255,255,.08)}
+.st-head::after{content:"";position:absolute;left:10px;right:10px;bottom:-4px;height:14px;border-radius:50%;background:radial-gradient(closest-side,#fff,rgba(220,235,255,.8) 40%,transparent);opacity:var(--lit);box-shadow:0 0 40px 14px rgba(220,235,255,calc(var(--lit)*.55))}
+.st-beam{position:absolute;left:50%;top:calc(16% + 44px);width:min(900px,160vw);height:70%;transform:translateX(-50%) rotate(var(--aim));transform-origin:50% 0;pointer-events:none;
+  /* Cono con bordes suaves nativos (degradé cónico desde la lámpara), sin blur ni recorte: sin artefactos y más liviano. */
+  background:conic-gradient(from 0deg at 50% 0%,transparent 0deg 156deg,rgba(235,242,255,.5) 168deg 192deg,transparent 204deg 360deg);
+  -webkit-mask-image:linear-gradient(#000,rgba(0,0,0,.35) 70%,transparent);mask-image:linear-gradient(#000,rgba(0,0,0,.35) 70%,transparent);
+  mix-blend-mode:screen;opacity:calc(var(--lit)*.9);transition:opacity .25s}
+.st-dust{position:absolute;inset:0;pointer-events:none;opacity:calc(var(--lit)*.6);background-image:
+  radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 60% 50%,#fff,transparent),radial-gradient(1.5px 1.5px at 40% 70%,#fff,transparent),
+  radial-gradient(1px 1px at 75% 20%,#fff,transparent),radial-gradient(1px 1px at 30% 55%,#fff,transparent);background-size:220px 260px;
+  -webkit-mask-image:radial-gradient(28% 60% at 50% 45%,#000,transparent);mask-image:radial-gradient(28% 60% at 50% 45%,#000,transparent);animation:dust 16s linear infinite}
+@keyframes dust{to{background-position:0 -260px}}
+.st-set{position:absolute;left:50%;bottom:9%;width:min(620px,92vw);transform:translateX(-50%)}
+.st-set svg{display:block;width:100%;height:auto;overflow:visible}
+.st-led{position:absolute;display:flex;align-items:flex-end;gap:6px;font:600 11px 'Outfit',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,80,.7)}
+.st-led svg{height:clamp(26px,4vw,42px);width:auto;filter:drop-shadow(0 0 6px rgba(255,40,30,.8)) drop-shadow(0 0 14px rgba(255,40,30,.45))}
+.st-led .off{fill:rgba(255,40,30,.07)} .st-led .on{fill:#FF3B30}
+.led-kg{left:8%;bottom:30%} .led-reps{left:12%;bottom:15%} .led-rest{right:8%;bottom:24%}
+.st-copy{position:absolute;z-index:3;left:max(16px,4vw);top:clamp(80px,14%,140px);max-width:430px}
+.st-copy h2{margin:12px 0 10px}
+.st-copy p{color:#C3C9D2;line-height:1.6;margin:0}
+.st-grain{position:absolute;inset:0;pointer-events:none;opacity:.12;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.st-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 45%,transparent 50%,rgba(0,0,0,.75))}
+@media (max-width:720px){
+  .st-copy{top:84px;right:16px}
+  .st-lamp{height:32%} .st-head{top:32%} .st-beam{top:calc(32% + 44px);height:52%}
+  .led-kg{left:5%;bottom:36%} .led-reps{left:5%;bottom:25%} .led-rest{right:5%;bottom:34%}
+  .st-set{bottom:12%}
+}
+@media (prefers-reduced-motion:reduce){ .studio-stage{--lit:1} .st-dust{animation:none} }
+
 /* ---------- cierre ---------- */
 .final .cta{justify-content:center}
 .final{position:relative;text-align:center;border-radius:28px;padding:clamp(48px,7vw,84px) clamp(18px,4vw,26px);border:1px solid var(--border);background:var(--surface);overflow:hidden}
@@ -348,6 +404,47 @@ footer a:hover{color:var(--text)}
           <p>Fotos de progreso, entrenos pasados con cada serie y peso, todo ordenado para comparar semana a semana.</p>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="estudio" class="studio" data-fx="c" data-dim=".9" aria-labelledby="estudio-t">
+  <div class="studio-stage" id="studio">
+    <div class="st-arch" aria-hidden="true"></div>
+    <div class="st-wall" aria-hidden="true"></div>
+    <div class="st-floor" aria-hidden="true"></div>
+    <div class="st-pool" aria-hidden="true"></div>
+    <div class="st-dust" aria-hidden="true"></div>
+    <div class="st-beam" aria-hidden="true"></div>
+    <div class="st-lamp" aria-hidden="true"></div>
+    <div class="st-head" aria-hidden="true"></div>
+    <div class="st-set" aria-hidden="true">
+      <svg viewBox="0 0 620 200">
+        <defs>
+          <linearGradient id="bar" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e9edf3"/><stop offset=".5" stop-color="#8b929c"/><stop offset="1" stop-color="#3b3f45"/></linearGradient>
+          <radialGradient id="plate" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#34373d"/><stop offset="1" stop-color="#0d0e10"/></radialGradient>
+        </defs>
+        <polygon points="70,190 550,190 610,118 130,118" fill="#15171b" stroke="#23262c"/>
+        <line x1="340" y1="118" x2="310" y2="190" stroke="#23262c"/><line x1="100" y1="154" x2="580" y2="154" stroke="#23262c"/>
+        <ellipse cx="310" cy="176" rx="230" ry="12" fill="rgba(0,0,0,.6)"/>
+        <rect x="70" y="118" width="480" height="7" rx="3.5" fill="url(#bar)"/>
+        <ellipse cx="150" cy="121" rx="22" ry="54" fill="url(#plate)" stroke="#2c2f35"/>
+        <ellipse cx="150" cy="121" rx="6" ry="15" fill="#9aa1ab"/>
+        <ellipse cx="470" cy="121" rx="22" ry="54" fill="url(#plate)" stroke="#2c2f35"/>
+        <ellipse cx="470" cy="121" rx="6" ry="15" fill="#9aa1ab"/>
+        <ellipse cx="180" cy="121" rx="14" ry="36" fill="url(#plate)" stroke="#2c2f35"/>
+        <ellipse cx="440" cy="121" rx="14" ry="36" fill="url(#plate)" stroke="#2c2f35"/>
+      </svg>
+    </div>
+    <div class="st-led led-kg" aria-hidden="true"><svg data-led="kg" data-w="3"></svg><span>kg</span></div>
+    <div class="st-led led-reps" aria-hidden="true"><svg data-led="reps" data-w="2"></svg><span>reps</span></div>
+    <div class="st-led led-rest" aria-hidden="true"><span>descanso</span><svg data-led="rest" data-w="4" data-colon="1"></svg></div>
+    <div class="st-grain" aria-hidden="true"></div>
+    <div class="st-vig" aria-hidden="true"></div>
+    <div class="st-copy">
+      <span class="eyebrow">Cada serie cuenta</span>
+      <h2 id="estudio-t">Tu entreno, bajo la luz</h2>
+      <p>Registrás el peso, las repeticiones y el descanso de cada serie. Tu coach lo ve al instante y ajusta con datos reales.</p>
     </div>
   </div>
 </section>
@@ -749,6 +846,60 @@ footer a:hover{color:var(--text)}
       } else since=t-Math.min(HOLD,Math.max(0,t-since));
       requestAnimationFrame(loop);
     })(0);
+  }
+})();
+</script>
+<script>
+(function(){
+  // Estudio: displays LED de 7 segmentos, lámpara que se prende y haz que sigue al puntero.
+  var st=document.getElementById('studio'); if(!st) return;
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Segmentos a..g de un dígito de 20×36 (más un separador ":" opcional).
+  var SEG={a:'3,1 17,1 14,4 6,4',b:'18,2 18,17 15,15 15,5',c:'18,19 18,34 15,31 15,21',d:'3,35 17,35 14,32 6,32',e:'2,19 5,21 5,31 2,34',f:'2,2 5,5 5,15 2,17',g:'3,18 6,16 14,16 17,18 14,20 6,20'};
+  var MAP={'0':'abcdef','1':'bc','2':'abged','3':'abgcd','4':'fgbc','5':'afgcd','6':'afgedc','7':'abc','8':'abcdefg','9':'abcdfg',' ':''};
+  function build(svg){
+    var w=+svg.dataset.w, colon=!!svg.dataset.colon, x=0, out='';
+    for(var i=0;i<w;i++){
+      if(colon&&i===w-2){ out+='<g transform="translate('+x+',0)"><circle class="on" cx="3" cy="12" r="2"/><circle class="on" cx="3" cy="25" r="2"/></g>'; x+=8; }
+      out+='<g data-d="'+i+'" transform="translate('+x+',0) skewX(-6)">'+Object.keys(SEG).map(function(k){ return '<polygon data-s="'+k+'" class="off" points="'+SEG[k]+'"/>'; }).join('')+'</g>'; x+=23;
+    }
+    svg.setAttribute('viewBox','0 0 '+x+' 36'); svg.innerHTML=out;
+  }
+  function show(svg,str){
+    var w=+svg.dataset.w; str=String(str); while(str.length<w) str=' '+str;
+    [].forEach.call(svg.querySelectorAll('g[data-d]'),function(g,i){ var on=MAP[str[i]]||''; [].forEach.call(g.children,function(p){ p.setAttribute('class',on.indexOf(p.dataset.s)>=0?'on':'off'); }); });
+  }
+  var L={}; [].forEach.call(st.querySelectorAll('svg[data-led]'),function(s){ build(s); L[s.dataset.led]=s; });
+  show(L.kg,'80'); show(L.reps,'10'); show(L.rest,'200');
+
+  // Descanso que corre (2:00 → 0:00) mientras la sección está a la vista; al terminar, otra serie.
+  var restLeft=120, reps=10, kg=80, timer=null;
+  function tick(){
+    restLeft--; if(restLeft<0){ restLeft=120; reps=reps>=12?8:reps+1; if(reps===8) kg+=2.5; show(L.reps,String(reps)); show(L.kg,String(Math.round(kg))); }
+    show(L.rest,Math.floor(restLeft/60)+String(restLeft%60).padStart(2,'0'));
+  }
+
+  // La lámpara se prende con parpadeo la primera vez que entra en pantalla.
+  var lit=false;
+  function turnOn(){
+    if(lit) return; lit=true;
+    if(reduce){ st.style.setProperty('--lit',1); return; }
+    var seq=[.0,.9,.1,.0,.7,.2,1], i=0;
+    (function step(){ st.style.setProperty('--lit',seq[i]); i++; if(i<seq.length) setTimeout(step,[90,70,120,60,90,160][i-1]||90); })();
+  }
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){ var v=es[0].isIntersecting;
+      if(v){ turnOn(); if(!reduce&&!timer) timer=setInterval(tick,1000); } else if(timer){ clearInterval(timer); timer=null; }
+    },{threshold:.35}).observe(st);
+  } else turnOn();
+
+  // El haz apunta hacia el mouse o el dedo (y vuelve suave al centro).
+  if(!reduce){
+    var aim=0,target=0,raf=0;
+    function upd(){ aim+=(target-aim)*.08; st.style.setProperty('--aim',aim.toFixed(2)+'deg'); st.style.setProperty('--aimx',(-aim*9).toFixed(1)+'px'); if(Math.abs(target-aim)>.05) raf=requestAnimationFrame(upd); else raf=0; }
+    function point(e){ var r=st.getBoundingClientRect(); var x=(e.clientX-r.left)/r.width-.5; target=Math.max(-14,Math.min(14,-x*30)); if(!raf) raf=requestAnimationFrame(upd); }
+    st.addEventListener('pointermove',point,{passive:true});
+    st.addEventListener('pointerleave',function(){ target=0; if(!raf) raf=requestAnimationFrame(upd); });
   }
 })();
 </script>
