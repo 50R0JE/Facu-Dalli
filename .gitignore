@@ -6,3 +6,14 @@
 node_modules/
 .DS_Store
 Thumbs.db
+
+# App nativa (Capacitor): la carpeta www/ se arma con `npm run web` y lo compilado no se sube.
+www/
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+# Llaves de firma: NUNCA al repo.
+*.keystore
+*.jks

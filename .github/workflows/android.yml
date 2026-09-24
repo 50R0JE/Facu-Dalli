@@ -1,0 +1,38 @@
+# Arma la app de Android (APK para probar) en cada cambio a main que toque la app,
+# o a mano desde Actions → "App Android" → Run workflow.
+# El APK queda para descargar en la ejecución, sección "Artifacts" (gize-android-debug).
+name: App Android
+
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "manifest.json", "install.js", "app/**", "css/**", "brand/**", "vendor/**", "android/**", "capacitor.config.json", "package.json", "scripts/**", ".github/workflows/android.yml"]
+  pull_request:
+    paths: ["android/**", "capacitor.config.json", "package.json", "scripts/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Juntar la app web y pasarla al proyecto Android
+        run: npm run android
+      - name: Compilar APK de prueba
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gize-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
