@@ -417,7 +417,7 @@ document.body.addEventListener("click", async e=>{
     try{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
-        const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}}});
+        const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}, emailRedirectTo:(IS_NATIVE ? "https://gize.ar/app/" : location.origin + location.pathname)}});
         if(r.error) throw r.error;
         if(code) { try{ localStorage.setItem("jfit_pending_code", code.toUpperCase()); }catch(e){} }
       } else {

@@ -1,5 +1,5 @@
 /* install.js — "Instalar GIZE" sin tiendas (la app web es instalable).
-   Lo usan la app (index.html) y la landing (landing/index.html). Script común, no módulo,
+   Lo usan la app (app/index.html) y la landing (index.html, raíz del sitio). Script común, no módulo,
    para poder cargarlo temprano en el <head> y no perderse el evento de instalación.
 
    - Android / Chrome / Edge: guarda el evento beforeinstallprompt y, al tocar un botón

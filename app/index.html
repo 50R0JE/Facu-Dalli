@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<!-- La app vive en /app/ pero sus archivos (app/, css/, brand/, sw.js…) están en la raíz del sitio. -->
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GIZE">
+<meta name="theme-color" content="#000000">
+<title>GIZE</title>
+<script>
+// Modo liviano: en celulares/compus de gama baja se apagan los efectos caros (partículas,
+// aurora animada, desenfoques, borde que gira). Va acá arriba, antes del CSS, para que la
+// primera pintada ya salga liviana. "gize_lite" = elección manual en Ajustes ("1"/"0");
+// "gize_lite_auto" lo deja app/ui/background.js si midió que el fondo iba a tirones.
+(function () {
+  try {
+    var o = localStorage.getItem("gize_lite"), n = navigator, c = n.connection || {};
+    var weak = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 2) ||
+      c.saveData === true || localStorage.getItem("gize_lite_auto") === "1";
+    if (o === "1" || (o !== "0" && weak)) document.documentElement.classList.add("lite");
+  } catch (e) {}
+})();
+</script>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <!-- Instalar GIZE sin tiendas (botones [data-install] y aviso para quien usa el navegador). -->
+  <script src="install.js" data-reminder></script>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GIZE">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="brand/logo/gize-icono-negro.svg" type="image/svg+xml">
+  <link rel="icon" href="icon-192.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand/tokens.css">
+<link rel="stylesheet" href="css/core/splash.css">
+<link rel="stylesheet" href="css/core/tokens.css">
+<link rel="stylesheet" href="css/core/components.css">
+<link rel="stylesheet" href="css/core/layout.css">
+<link rel="stylesheet" href="css/ui/background.css">
+<link rel="stylesheet" href="css/ui/sheet.css">
+<link rel="stylesheet" href="css/ui/restbar.css">
+<link rel="stylesheet" href="css/ui/scrollfocus.css">
+<link rel="stylesheet" href="css/ui/theme.css">
+<link rel="stylesheet" href="css/screens/auth.css">
+<link rel="stylesheet" href="css/screens/entreno.css">
+<link rel="stylesheet" href="css/screens/cardio.css">
+<link rel="stylesheet" href="css/screens/comida.css">
+<link rel="stylesheet" href="css/screens/habitos.css">
+<link rel="stylesheet" href="css/screens/progreso.css">
+<link rel="stylesheet" href="css/screens/checkin.css">
+<link rel="stylesheet" href="css/screens/config.css">
+<link rel="stylesheet" href="css/screens/coach/shared.css">
+<link rel="stylesheet" href="css/screens/coach/clientes.css">
+<link rel="stylesheet" href="css/screens/coach/rutinas.css">
+<link rel="stylesheet" href="css/screens/coach/seguimiento.css">
+<link rel="stylesheet" href="css/screens/coach/index.css">
+<link rel="stylesheet" href="css/screens/coach/plan.css">
+<link rel="stylesheet" href="css/ui/botones-rediseno.css">
+<link rel="stylesheet" href="css/ui/gize-surfaces.css">
+<link rel="stylesheet" href="css/ui/lite.css">
+
+</head>
+<body class="is-booting">
+  <template id="splashTpl">
+    <div id="splash" role="status">
+      <!-- Mismas curvas que brand/logo/gize-firma-horizontal.svg, en línea para animar cada parte (css/core/splash.css). -->
+      <svg class="splash-logo" viewBox="0 0 269.4 100" role="img" aria-label="GIZE"><path class="sl-arc" pathLength="1" d="M81.53,62.74 A34,34 0 1 1 67,20.55" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/><circle class="sl-dot" cx="60.5" cy="50" r="9.5" fill="#2FA0FF"/><g class="sl-word"><g transform="translate(143.01,87.00) scale(0.09427,-0.09427)" fill="#FFFFFF"><path transform="translate(0.0,0)" d="M357.5 648.2001953125C357.5 732.0 289.5 800.0 205.7001953125 800.0H162.2998046875C78.5 800.0 10.5 732.0 10.5 648.2001953125V130.900390625C10.5 107.599609375 15.099609375 85.2998046875 23.5 65.0C42.5 18.7998046875 87.599609375 -1.599609375 130.5 -1.599609375C167.599609375 -1.599609375 202.900390625 14.2998046875 218.7001953125 41.599609375H230.7001953125L221.0 13.099609375H357.5V469.599609375H196.0V330.7998046875H218.7001953125V171.7001953125C218.7001953125 153.2998046875 204.400390625 138.2998046875 186.2998046875 137.099609375C166.2001953125 135.7998046875 149.2998046875 152.400390625 149.2998046875 172.599609375V625.900390625C149.2998046875 644.900390625 164.2001953125 660.7998046875 183.099609375 661.2998046875C193.0 661.5 202.0 657.599609375 208.5 651.099609375C214.7998046875 644.900390625 218.7001953125 636.2001953125 218.7001953125 626.599609375V551.099609375H357.5Z"/><path transform="translate(391.6,0)" d="M10.6025390625 13.1298828125H149.3974609375V785.17578125H10.6025390625Z"/><path transform="translate(575.1,0)" d="M160.2998046875 164.900390625 344.5 646.400390625V785.2001953125H23.5V646.400390625H194.7998046875V633.400390625L10.5 150.599609375V13.099609375H357.5V151.900390625H160.2998046875Z"/><path transform="translate(966.7,0)" d="M147.7001953125 646.400390625H321.099609375V785.2001953125H8.900390625V13.099609375H321.099609375V151.900390625H147.7001953125V329.7998046875H298.400390625V468.5H147.7001953125Z"/></g></g></svg>
+      <div class="gize-bar" aria-hidden="true"><i></i></div>
+      <p class="splash-txt">Preparando tu entrenamiento</p>
+    </div>
+  </template>
+  <div id="splashHost"></div>
+  <canvas id="silkCanvas" aria-hidden="true"></canvas>
+  <div class="gize-aurora app-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div id="authHost"></div>
+  <div id="coachHost"></div>
+  <div id="coachModeBadge" aria-hidden="true"><span class="cmb-dot"></span>Modo Coach</div>
+  <div id="coachSheetHost"></div>
+  <div id="fbHost"></div>
+  <div class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE">
+    </div>
+    <div class="client-tag" id="brandTag" style="display:none">
+      <div class="client-name" id="brandName"></div>
+      <div class="client-sub">Tu coach</div>
+    </div>
+  </div>
+
+  <div id="view" class="view"></div>
+
+  <nav class="navbar"><div class="nav-inner">
+    <button class="nav-item" id="nav-entreno" data-view="entreno">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg>
+      <span>Entreno</span>
+    </button>
+    <button class="nav-item" id="nav-habitos" data-view="habitos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>Hábitos</span>
+    </button>
+    <button class="nav-item" id="nav-cardio" data-view="cardio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
+      <span>Cardio</span>
+    </button>
+    <button class="nav-item" id="nav-comida" data-view="comida">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
+      <span>Comida</span>
+    </button>
+    <button class="nav-item" id="nav-progreso" data-view="progreso">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+      <span>Progreso</span>
+    </button>
+    <button class="nav-item" id="nav-config" data-view="config">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Ajustes</span>
+    </button>
+  </div></nav>
+  <div id="sheetHost"></div>
+  <div id="scanHost"></div>
+  <div id="restBar"></div>
+
+<script>
+(function () {
+  var TOTAL_MS = 2600; // duración completa: barra de 2,1 s + salida
+  var MAX_MS = 8000;   // techo de seguridad si la app nunca avisa que está lista
+  var tpl = document.getElementById('splashTpl');
+  var host = document.getElementById('splashHost');
+  var current = null; // splash en pantalla ahora mismo, si hay uno
+
+  function reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  // El splash arranca dentro de un <template> (inerte, sin animar) y se clona
+  // cada vez que hace falta mostrarlo, así las animaciones CSS (que corren una
+  // sola vez) se pueden repetir en cada login sin tener que reconstruirlas a mano.
+  function mount() {
+    host.innerHTML = '';
+    var el = tpl.content.firstElementChild.cloneNode(true);
+    host.appendChild(el);
+    document.body.classList.add('is-booting');
+    var state = { el: el, startTs: Date.now(), done: false, safety: null };
+    state.safety = setTimeout(function () { finish(state); }, reduced() ? 1600 : MAX_MS);
+    current = state;
+    return state;
+  }
+
+  function finish(state) {
+    if (!state || state.done) return;
+    state.done = true;
+    clearTimeout(state.safety);
+    state.el.remove();
+    if (current === state) { document.body.classList.remove('is-booting'); current = null; }
+  }
+
+  // La app llama a esto cuando ya armó la pantalla real (login, app de cliente
+  // o panel de coach) que corresponde al splash activo. No corta la animación
+  // antes de que termine sola: el panel de coach hace varios viajes a Supabase
+  // antes de estar listo y puede tardar más que los 2.6s de la animación.
+  window.coreEnter = function () {
+    var state = current; if (!state) return;
+    if (reduced()) { finish(state); return; }
+    var wait = Math.max(0, TOTAL_MS - (Date.now() - state.startTs));
+    setTimeout(function () { finish(state); }, wait);
+  };
+
+  // Corta el splash activo ya mismo, sin esperar a que termine la animación
+  // (para cuando la "carga" en realidad falló, ej. login incorrecto).
+  window.coreCancel = function () { if (current) finish(current); };
+
+  // Vuelve a mostrar el splash desde cero — se usa en cada login/registro,
+  // no solo en la carga inicial de la página, porque entrar al panel de coach
+  // desde el formulario de login es su propia espera de red.
+  window.coreReplay = function () { if (!current || current.done) mount(); };
+
+  mount(); // splash de arranque de la página
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module" src="app/main.js"></script>
+</body>
+</html>
+

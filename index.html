@@ -1,187 +1,667 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GIZE">
-<meta name="theme-color" content="#000000">
-<title>GIZE</title>
+<meta charset="utf-8">
 <script>
-// Modo liviano: en celulares/compus de gama baja se apagan los efectos caros (partículas,
-// aurora animada, desenfoques, borde que gira). Va acá arriba, antes del CSS, para que la
-// primera pintada ya salga liviana. "gize_lite" = elección manual en Ajustes ("1"/"0");
-// "gize_lite_auto" lo deja app/ui/background.js si midió que el fondo iba a tirones.
+// Esta es la landing (gize.ar). La app está en app/. Van directo a la app: la app instalada
+// (ícono del celular), la vuelta de los mails de Supabase (#access_token…) y la de
+// Mercado Pago (?pago=…).
 (function () {
-  try {
-    var o = localStorage.getItem("gize_lite"), n = navigator, c = n.connection || {};
-    var weak = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 2) ||
-      c.saveData === true || localStorage.getItem("gize_lite_auto") === "1";
-    if (o === "1" || (o !== "0" && weak)) document.documentElement.classList.add("lite");
-  } catch (e) {}
+  var h = location.hash, q = location.search;
+  var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
+  if (standalone || /access_token|error_description|type=(signup|recovery|invite|magiclink)/.test(h) || /[?&]pago=/.test(q))
+    location.replace("app/" + q + h);
 })();
 </script>
-  <meta name="theme-color" content="#000000">
-  <link rel="manifest" href="manifest.json">
-  <!-- Instalar GIZE sin tiendas (botones [data-install] y aviso para quien usa el navegador). -->
-  <script src="install.js" data-reminder></script>
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="GIZE">
-  <meta name="mobile-web-app-capable" content="yes">
-  <link rel="icon" href="brand/logo/gize-icono-negro.svg" type="image/svg+xml">
-  <link rel="icon" href="icon-192.png" type="image/png">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GIZE · Entrená con tu coach</title>
+<meta name="description" content="GIZE conecta a tu coach con tu entrenamiento: rutina, series, hábitos, nutrición y progreso en un solo lugar.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="brand/logo/gize-monograma.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="brand/tokens.css">
-<link rel="stylesheet" href="css/core/splash.css">
-<link rel="stylesheet" href="css/core/tokens.css">
-<link rel="stylesheet" href="css/core/components.css">
-<link rel="stylesheet" href="css/core/layout.css">
-<link rel="stylesheet" href="css/ui/background.css">
-<link rel="stylesheet" href="css/ui/sheet.css">
-<link rel="stylesheet" href="css/ui/restbar.css">
-<link rel="stylesheet" href="css/ui/scrollfocus.css">
-<link rel="stylesheet" href="css/ui/theme.css">
-<link rel="stylesheet" href="css/screens/auth.css">
-<link rel="stylesheet" href="css/screens/entreno.css">
-<link rel="stylesheet" href="css/screens/cardio.css">
-<link rel="stylesheet" href="css/screens/comida.css">
-<link rel="stylesheet" href="css/screens/habitos.css">
-<link rel="stylesheet" href="css/screens/progreso.css">
-<link rel="stylesheet" href="css/screens/checkin.css">
-<link rel="stylesheet" href="css/screens/config.css">
-<link rel="stylesheet" href="css/screens/coach/shared.css">
-<link rel="stylesheet" href="css/screens/coach/clientes.css">
-<link rel="stylesheet" href="css/screens/coach/rutinas.css">
-<link rel="stylesheet" href="css/screens/coach/seguimiento.css">
-<link rel="stylesheet" href="css/screens/coach/index.css">
-<link rel="stylesheet" href="css/screens/coach/plan.css">
-<link rel="stylesheet" href="css/ui/botones-rediseno.css">
-<link rel="stylesheet" href="css/ui/gize-surfaces.css">
-<link rel="stylesheet" href="css/ui/lite.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Paleta de brand/tokens.css. Un solo look (oscuro), a propósito: es la marca. */
+:root{
+  color-scheme:dark;
+  --bg:#000; --surface:#0B0D11; --surface-2:#12151B; --border:#1C2029; --border-hi:#3A4250;
+  --text:#FFFFFF; --text-2:#8F98A6;
+  --el:#2FA0FF;
+  --r1:#2FA0FF; --r2:#A65CFF; --r3:#FF3DAE; --r4:#25E8C8;
+  --ring:conic-gradient(from var(--a),var(--r1),var(--r2),var(--r3),var(--r4),var(--r1));
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,svg{max-width:100%}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--el);outline-offset:3px;border-radius:8px}
+.wrap{width:min(1120px,100%);margin-inline:auto;padding-inline:max(16px,4vw)}
 
+/* ---------- logo (curvas de brand/logo, nunca texto) ---------- */
+.logo{display:inline-flex;align-items:center;gap:.55em;color:var(--text);text-decoration:none}
+.logo .mono{width:1.35em;height:1.35em;flex:none}
+.logo .wm{height:1em;width:1.627em;flex:none}
+.logo--hero{font-size:clamp(46px,9vw,104px)}
+.logo--nav{font-size:24px}
+
+/* ---------- nav ---------- */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(0,0,0,.72);border-bottom:1px solid var(--border)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.nav{display:flex;gap:26px;align-items:center}
+.nav-links{display:flex;gap:26px}
+.nav-links a{color:var(--text-2);text-decoration:none;font-weight:500;white-space:nowrap}
+.nav-links a:hover{color:var(--text)}
+.btn.btn-sm{padding:9px 18px;font-size:15px}
+/* En el celular no entran los tres links: queda el logo y "Entrar". */
+@media (max-width:720px){ .nav-links{display:none} }
+@media (max-width:420px){ .nav{gap:6px} .btn.btn-sm{padding:7px 11px;font-size:13px} .logo--nav{font-size:20px} }
+
+/* ---------- botones ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:16px 30px;border-radius:999px;font-weight:600;font-size:17px;text-decoration:none;border:1px solid transparent;transition:transform .15s ease,box-shadow .25s ease,border-color .15s;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+/* Anillo RGB: gira el COLOR (--a), no la forma. Antes rotaba la pastilla entera y en
+   un botón ancho sobresalía como una barra, además de tapar el fondo blanco. */
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+.btn-rgb{color:#000;border:2px solid transparent;
+  background:linear-gradient(#fff,#fff) padding-box,var(--ring) border-box;
+  animation:spin 5s linear infinite}
+.btn-rgb:hover{box-shadow:0 0 34px rgba(47,160,255,.45)}
+.btn-ghost{color:var(--text);border-color:var(--border);background:rgba(255,255,255,.03)}
+.btn-ghost:hover{border-color:var(--border-hi)}
+@keyframes spin{to{--a:360deg}}
+
+/* ---------- hero: vidrio esmerilado que se limpia ----------
+   Detrás del vidrio (canvas WebGL) está la G gigante con el punto azul encendido y las
+   auroras RGB. El mouse o el dedo lo limpian con un trazo líquido que se vuelve a
+   empañar; si nadie lo toca, una "mano invisible" lo va limpiando sola. */
+.hero{position:relative;z-index:1;min-height:max(560px,min(92svh,900px));display:flex;align-items:flex-end;overflow:hidden;isolation:isolate;touch-action:pan-y}
+/* Fondo vivo fijo detrás de TODA la página: en el hero rota cada 7 s; al scrollear, cada
+   sección pone su propio efecto y el fondo se oscurece lo justo para leer. */
+/* El vidrio (WebGL) vive solo en el hero y deja de dibujarse al salir de pantalla. */
+.hero{background:#050608}
+#fx{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
+/* Resto de la página: auroras RGB que se mueven con CSS (solo transform: la placa de video
+   lo hace casi gratis; nada de blur ni WebGL). */
+.bg-aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#030304}
+.bg-aurora span{position:absolute;width:70vmax;height:70vmax;border-radius:50%;opacity:.22;will-change:transform;animation:au 26s ease-in-out infinite alternate}
+.bg-aurora span:nth-child(1){background:radial-gradient(closest-side,var(--r1),transparent);left:-20vmax;top:-10vmax}
+.bg-aurora span:nth-child(2){background:radial-gradient(closest-side,var(--r2),transparent);right:-25vmax;top:10vmax;animation-duration:32s;animation-delay:-8s}
+.bg-aurora span:nth-child(3){background:radial-gradient(closest-side,var(--r3),transparent);left:10vmax;bottom:-30vmax;animation-duration:29s;animation-delay:-15s;opacity:.16}
+.bg-aurora span:nth-child(4){background:radial-gradient(closest-side,var(--r4),transparent);right:0;bottom:-20vmax;animation-duration:35s;animation-delay:-4s;opacity:.14}
+@keyframes au{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(12vmax,8vmax,0) scale(1.15)}100%{transform:translate3d(-8vmax,-6vmax,0) scale(.92)}}
+.hero-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:
+  linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,.35) 42%,transparent 70%),
+  linear-gradient(to right,rgba(0,0,0,.55),transparent 55%)}
+/* Palabra gigante cortada en el borde, invirtiendo lo que tiene detrás. */
+.hero-wm{position:absolute;z-index:2;right:-3vw;bottom:-1.2vw;height:min(27vw,34vh);aspect-ratio:1.627;color:#fff;mix-blend-mode:difference;pointer-events:none;opacity:.95}
+.hero-copy{position:relative;z-index:3;padding-block:0 clamp(40px,7vh,72px);width:min(1120px,100%)}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--text-2)}
+.eyebrow::before{content:"";width:26px;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4))}
+.hero h1{font-size:clamp(34px,5.4vw,68px);font-weight:600;line-height:1.04;margin:18px 0 0;max-width:15ch;letter-spacing:-.03em;text-wrap:balance}
+.hero p{color:#C3C9D2;font-size:clamp(16px,1.6vw,19px);max-width:46ch;margin:18px 0 0;line-height:1.6}
+.cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
+.hero .cta{justify-content:flex-start}
+.hint{display:inline-flex;align-items:center;gap:8px;margin-top:22px;font-size:13px;color:var(--text-2);transition:opacity .6s}
+.hint svg{width:16px;height:16px}
+.hint.off{opacity:0}
+@media (max-width:720px){
+  .hero{min-height:max(680px,100svh)}
+  .hero-wm{display:none}
+  .hero-shade{background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.6) 46%,transparent 64%)}
+  .hint .mouse{display:none}
+}
+@media (min-width:721px){ .hint .finger{display:none} }
+
+/* ---------- secciones ---------- */
+section{padding-block:clamp(64px,9vw,110px)}
+/* Todo el contenido va por encima del fondo de auroras (que es fijo, z-index 0). */
+section,footer{position:relative;z-index:1}
+h2{font-size:clamp(26px,3.6vw,40px);font-weight:600;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+.lead{color:var(--text-2);font-size:18px;max-width:60ch;line-height:1.6;margin:0 0 42px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr))}
+.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:26px;overflow:hidden}
+.card h3{margin:14px 0 8px;font-size:20px;font-weight:600}
+.card p{margin:0;color:var(--text-2);line-height:1.6}
+.card::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));opacity:.65}
+.num{font-variant-numeric:tabular-nums;font-size:13px;letter-spacing:.14em;color:var(--el);font-weight:600}
+.two{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:clamp(24px,4vw,34px)}
+.panel h3{font-size:24px;margin:0 0 6px}
+.panel ul{list-style:none;padding:0;margin:20px 0 0}
+.panel li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);color:var(--text-2);line-height:1.5}
+.panel li:last-child{border-bottom:0}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:8px;flex:none;background:linear-gradient(135deg,var(--r1),var(--r3))}
+
+/* ---------- lo nuevo ---------- */
+.new{display:grid;gap:18px;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:stretch}
+@media (max-width:860px){ .new{grid-template-columns:1fr} }
+.feature-main{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:clamp(24px,4vw,34px);overflow:hidden;display:flex;flex-direction:column;gap:22px}
+.feature-main h3{font-size:24px;margin:0}
+.feature-main p{margin:0;color:var(--text-2);line-height:1.6}
+.tag{align-self:flex-start;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--r4);border:1px solid rgba(37,232,200,.35);border-radius:999px;padding:5px 12px}
+/* Notificación de ejemplo, como la que llega al celular. */
+.lock{position:relative;border-radius:22px;padding:22px 16px 18px;background:
+  radial-gradient(120% 90% at 20% 0%,rgba(166,92,255,.35),transparent 60%),
+  radial-gradient(90% 80% at 100% 100%,rgba(47,160,255,.3),transparent 60%),#07080b;border:1px solid var(--border)}
+.lock-time{text-align:center;font-size:44px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.lock-date{text-align:center;color:var(--text-2);font-size:14px;margin:4px 0 18px}
+.notif{display:flex;gap:12px;align-items:flex-start;background:rgba(28,32,41,.92);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:12px 14px}
+.notif + .notif{margin-top:8px;opacity:.75}
+.notif-ic{width:34px;height:34px;border-radius:9px;background:#000;display:grid;place-items:center;flex:none;border:1px solid var(--border)}
+.notif-ic svg{width:22px;height:22px}
+.notif-b{min-width:0;flex:1}
+.notif-h{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--text-2)}
+.notif-t{font-weight:600;color:var(--text);font-size:15px;margin-top:2px}
+.notif-m{color:#D5DAE1;font-size:15px;line-height:1.4;margin-top:1px}
+.feat-list{display:grid;gap:12px}
+.feat{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start}
+.feat-ic{grid-row:span 2;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--border);color:var(--el)}
+.feat-ic svg{width:20px;height:20px}
+.feat h3{margin:0;font-size:17px;font-weight:600}
+.feat p{margin:0;color:var(--text-2);line-height:1.5;font-size:15px}
+
+
+/* ---------- cómo funciona: línea de 3 pasos con una pieza de la app en cada uno ----------
+   Todo visible de una (sin fijar ni animar al scrollear). En compu, tres columnas unidas por
+   una barra RGB; en el celular, una línea vertical a la izquierda. */
+.flow{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;position:relative;counter-reset:paso}
+.flow::before{content:"";position:absolute;left:calc(16.66% - 10px);right:calc(16.66% - 10px);top:21px;height:2px;background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4));opacity:.7}
+.fstep{position:relative;display:flex;flex-direction:column;gap:14px}
+.fnum{position:relative;z-index:1;align-self:center;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 16px 'Outfit',system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#fff;
+  background:#07080b;border:2px solid transparent;background:linear-gradient(#07080b,#07080b) padding-box,conic-gradient(from 200deg,var(--r1),var(--r2),var(--r3),var(--r4),var(--r1)) border-box}
+.fcard{flex:1;background:rgba(11,13,17,.82);border:1px solid var(--border);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.fcard h3{margin:0;font-size:21px;font-weight:600;letter-spacing:-.01em}
+.fcard p{margin:0;color:var(--text-2);line-height:1.55;font-size:15.5px}
+/* Piezas de la app (funcionan de verdad) */
+.demo{margin-top:6px;background:#07080b;border:1px solid var(--border);border-radius:16px;padding:14px}
+.d-lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-2);font-weight:600}
+.d-code{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.d-code b{font:700 clamp(18px,5.4vw,22px) ui-monospace,'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--r1)}
+.d-btn{font:600 13px 'Outfit',system-ui,sans-serif;color:#fff;background:rgba(255,255,255,.06);border:1px solid var(--border-hi);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.d-btn:hover{background:rgba(255,255,255,.1)}
+.d-set{display:flex;align-items:center;gap:10px;margin-top:8px}
+.d-idx{width:24px;height:24px;border-radius:7px;background:#12151B;border:1px solid var(--border);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--text-2)}
+.d-val{flex:1;display:flex;gap:6px;align-items:baseline;white-space:nowrap;font-size:clamp(17px,4.6vw,20px);font-weight:700;font-variant-numeric:tabular-nums}
+.d-val small{font-size:12px;font-weight:500;color:var(--text-2)}
+.d-check{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border-hi);background:transparent;display:grid;place-items:center;cursor:pointer;color:transparent;transition:background-color .2s,border-color .2s,color .2s}
+.d-check svg{width:20px;height:20px}
+.d-check[aria-pressed="true"]{background:var(--r4);border-color:var(--r4);color:#04120f}
+.d-ok{margin-top:8px;font-size:13px;color:var(--r4);min-height:1.3em}
+.d-chart{display:flex;align-items:flex-end;gap:8px;height:84px;margin-top:10px;cursor:pointer}
+.d-chart i{flex:1;border-radius:6px 6px 3px 3px;background:linear-gradient(var(--r2),var(--r1));height:var(--h);transform-origin:bottom;transform:scaleY(.35);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.d-chart i:last-child{background:linear-gradient(var(--r3),var(--r2))}
+.d-chart.up i,.d-chart:hover i{transform:none}
+.d-axis{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-2);font-variant-numeric:tabular-nums}
+@media (max-width:860px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:18px;padding-left:58px}
+  .flow::before{left:21px;right:auto;top:22px;bottom:22px;width:2px;height:auto;background:linear-gradient(var(--r1),var(--r2),var(--r3),var(--r4))}
+  .fnum{position:absolute;left:-58px;top:0;align-self:auto}
+}
+@media (prefers-reduced-motion:reduce){ .d-chart i{transition:none} }
+
+/* ---------- franja de palabras que se mueve con el scroll ---------- */
+.marquee{position:relative;z-index:1;overflow:hidden;padding-block:clamp(30px,6vw,70px);display:grid;gap:4px;pointer-events:none;user-select:none}
+.mq-row{white-space:nowrap;font-size:clamp(56px,12vw,190px);font-weight:700;line-height:1;letter-spacing:-.03em;will-change:transform}
+.mq-row.out{color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.4)}
+.mq-row.fill{background:linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4),var(--r1));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- tarjetas de vidrio con brillo que sigue al mouse ---------- */
+.card,.panel,.feat,.feature-main,.final{background:rgba(11,13,17,.78)}
+.panel,.feat{position:relative;overflow:hidden}
+}
+.spot::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(280px circle at var(--mx,50%) var(--my,50%),rgba(47,160,255,.16),rgba(166,92,255,.08) 40%,transparent 70%)}
+.spot:hover::before{opacity:1}
+.spot > *{position:relative}
+
+/* ---------- entradas con desenfoque al scrollear (solo donde el navegador lo soporta) ---------- */
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion:no-preference){
+    .reveal{animation:blur-in linear both;animation-timeline:view();animation-range:entry 0% entry 70%}
+    @keyframes blur-in{from{opacity:0;transform:translateY(46px) scale(.97)}}
+  }
+}
+
+/* ---------- rendimiento en celular: nada de desenfoques animados ---------- */
+@media (pointer:coarse),(max-width:820px){
+}
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion:no-preference) and ((pointer:coarse) or (max-width:820px)){
+    .reveal{animation-name:rise-in}
+    @keyframes rise-in{from{opacity:0;transform:translateY(40px)}}
+  }
+}
+
+/* ---------- cierre ---------- */
+.final .cta{justify-content:center}
+.final{position:relative;text-align:center;border-radius:28px;padding:clamp(48px,7vw,84px) clamp(18px,4vw,26px);border:1px solid var(--border);background:var(--surface);overflow:hidden}
+.final::before{content:"";position:absolute;inset:-40%;background:
+  radial-gradient(closest-side at 30% 40%,rgba(47,160,255,.28),transparent),
+  radial-gradient(closest-side at 70% 60%,rgba(255,61,174,.22),transparent),
+  radial-gradient(closest-side at 50% 30%,rgba(166,92,255,.22),transparent);pointer-events:none}
+.final > *{position:relative}
+footer{border-top:1px solid var(--border);padding-block:34px;color:var(--text-2);font-size:15px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+footer a{color:var(--text-2);text-decoration:none}
+footer a:hover{color:var(--text)}
+@media (prefers-reduced-motion:reduce){
+  .mq-row{transform:none!important}
+  *,*::before,*::after{animation:none!important;transition:none!important} html{scroll-behavior:auto}
+}
+
+/* ---------- precios (mismos valores que app/screens/coach/plan.js) ---------- */
+.prices{display:grid;gap:22px 18px;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;max-width:900px;margin-inline:auto}
+@media (max-width:640px){.prices{grid-template-columns:minmax(0,1fr)}}
+.price .pname{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--r4)}
+.price{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:28px 24px}
+.price.best{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(90deg,var(--r1),var(--r2),var(--r3),var(--r4)) border-box}
+.price .badge{position:absolute;top:-12px;left:22px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--el);color:#000;border-radius:999px;padding:4px 10px}
+.price h3{margin:0;font-size:19px;color:var(--text-2);font-weight:500}
+.price h3 b{color:var(--text);font-size:24px}
+.price .amt{font-size:40px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.price .amt small{font-size:16px;font-weight:500;color:var(--text-2);margin-left:4px}
+.price ul{list-style:none;margin:4px 0 12px;padding:0;color:var(--text-2);font-size:15.5px;line-height:1.9}
+.price .btn{margin-top:auto;justify-content:center;text-align:center}
+.price-note{margin:22px 0 0;color:var(--text-2);font-size:15px;text-align:center}
+.price-note .mp-badge{margin-bottom:12px}
+.mp-badge{display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 7px;border-radius:999px;background:rgba(0,158,227,.10);border:1px solid rgba(0,158,227,.35);color:var(--text-2);font-size:14px}
+.mp-badge b{color:var(--text);font-weight:600}
+.mp-ic{width:26px;height:26px;padding:4px;border-radius:50%;background:#009EE3;color:#fff;flex:none}
+</style>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GIZE">
+<script src="install.js" data-app="app/"></script>
 </head>
-<body class="is-booting">
-  <template id="splashTpl">
-    <div id="splash" role="status">
-      <!-- Mismas curvas que brand/logo/gize-firma-horizontal.svg, en línea para animar cada parte (css/core/splash.css). -->
-      <svg class="splash-logo" viewBox="0 0 269.4 100" role="img" aria-label="GIZE"><path class="sl-arc" pathLength="1" d="M81.53,62.74 A34,34 0 1 1 67,20.55" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/><circle class="sl-dot" cx="60.5" cy="50" r="9.5" fill="#2FA0FF"/><g class="sl-word"><g transform="translate(143.01,87.00) scale(0.09427,-0.09427)" fill="#FFFFFF"><path transform="translate(0.0,0)" d="M357.5 648.2001953125C357.5 732.0 289.5 800.0 205.7001953125 800.0H162.2998046875C78.5 800.0 10.5 732.0 10.5 648.2001953125V130.900390625C10.5 107.599609375 15.099609375 85.2998046875 23.5 65.0C42.5 18.7998046875 87.599609375 -1.599609375 130.5 -1.599609375C167.599609375 -1.599609375 202.900390625 14.2998046875 218.7001953125 41.599609375H230.7001953125L221.0 13.099609375H357.5V469.599609375H196.0V330.7998046875H218.7001953125V171.7001953125C218.7001953125 153.2998046875 204.400390625 138.2998046875 186.2998046875 137.099609375C166.2001953125 135.7998046875 149.2998046875 152.400390625 149.2998046875 172.599609375V625.900390625C149.2998046875 644.900390625 164.2001953125 660.7998046875 183.099609375 661.2998046875C193.0 661.5 202.0 657.599609375 208.5 651.099609375C214.7998046875 644.900390625 218.7001953125 636.2001953125 218.7001953125 626.599609375V551.099609375H357.5Z"/><path transform="translate(391.6,0)" d="M10.6025390625 13.1298828125H149.3974609375V785.17578125H10.6025390625Z"/><path transform="translate(575.1,0)" d="M160.2998046875 164.900390625 344.5 646.400390625V785.2001953125H23.5V646.400390625H194.7998046875V633.400390625L10.5 150.599609375V13.099609375H357.5V151.900390625H160.2998046875Z"/><path transform="translate(966.7,0)" d="M147.7001953125 646.400390625H321.099609375V785.2001953125H8.900390625V13.099609375H321.099609375V151.900390625H147.7001953125V329.7998046875H298.400390625V468.5H147.7001953125Z"/></g></g></svg>
-      <div class="gize-bar" aria-hidden="true"><i></i></div>
-      <p class="splash-txt">Preparando tu entrenamiento</p>
+<body>
+
+<!-- Logo oficial (brand/logo): monograma + palabra, definidos una vez y reusados. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="g-mono" viewBox="0 0 100 100"><path d="M81.53,62.74 A34,34 0 1 1 67,20.55" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round"/><circle cx="60.5" cy="50" r="9.5" fill="#2FA0FF"/></symbol>
+  <symbol id="g-wm" viewBox="0 0 162.7 100"><g transform="translate(-1.34,100) scale(0.12739,-0.12739)" fill="currentColor"><path d="M357.5 648.2C357.5 732 289.5 800 205.7 800H162.3C78.5 800 10.5 732 10.5 648.2V130.9C10.5 107.6 15.1 85.3 23.5 65C42.5 18.8 87.6-1.6 130.5-1.6C167.6-1.6 202.9 14.3 218.7 41.6H230.7L221 13.1H357.5V469.6H196V330.8H218.7V171.7C218.7 153.3 204.4 138.3 186.3 137.1C166.2 135.8 149.3 152.4 149.3 172.6V625.9C149.3 644.9 164.2 660.8 183.1 661.3C193 661.5 202 657.6 208.5 651.1C214.8 644.9 218.7 636.2 218.7 626.6V551.1H357.5Z"/><path transform="translate(391.6,0)" d="M10.6 13.1H149.4V785.2H10.6Z"/><path transform="translate(575.1,0)" d="M160.3 164.9 344.5 646.4V785.2H23.5V646.4H194.8V633.4L10.5 150.6V13.1H357.5V151.9H160.3Z"/><path transform="translate(966.7,0)" d="M147.7 646.4H321.1V785.2H8.9V13.1H321.1V151.9H147.7V329.8H298.4V468.5H147.7Z"/></g></symbol>
+</svg>
+
+<div class="bg-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+<header>
+  <div class="wrap">
+    <a class="logo logo--nav" href="#top" aria-label="GIZE, volver arriba"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></a>
+    <nav class="nav" aria-label="Secciones">
+      <div class="nav-links">
+        <a href="#como">Cómo funciona</a>
+        <a href="#app">La app</a>
+        <a href="#coach">Soy coach</a>
+        <a href="#precios">Precios</a>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="app/#instalar" data-install>Instalar</a>
+      <a class="btn btn-ghost btn-sm" href="app/">Entrar</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero" id="top">
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="hero-shade"></div>
+  <svg class="hero-wm" viewBox="0 0 162.7 100" role="img" aria-label="GIZE"><use href="#g-wm" width="162.7" height="100"/></svg>
+  <div class="wrap hero-copy">
+    <span class="eyebrow">Entrenamiento con coach</span>
+    <h1>Tu coach, tu rutina y tu progreso en un solo lugar</h1>
+    <p>Dejá la planilla. Tu coach arma el plan, vos registrás cada serie y los dos ven la evolución en tiempo real.</p>
+    <div class="cta">
+      <a class="btn btn-rgb" href="app/#registro">Creá tu cuenta</a>
+      <a class="btn btn-ghost" href="#coach">Soy coach</a>
     </div>
-  </template>
-  <div id="splashHost"></div>
-  <canvas id="silkCanvas" aria-hidden="true"></canvas>
-  <div class="gize-aurora app-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-  <div id="authHost"></div>
-  <div id="coachHost"></div>
-  <div id="coachModeBadge" aria-hidden="true"><span class="cmb-dot"></span>Modo Coach</div>
-  <div id="coachSheetHost"></div>
-  <div id="fbHost"></div>
-  <div class="topbar">
-    <div class="brand">
-      <img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE">
-    </div>
-    <div class="client-tag" id="brandTag" style="display:none">
-      <div class="client-name" id="brandName"></div>
-      <div class="client-sub">Tu coach</div>
+    <span class="hint" id="hint" aria-hidden="true"><svg class="mouse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v3"/></svg><svg class="finger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5a2 2 0 0 1 4 0v5M13 10V8.5a2 2 0 0 1 4 0V12M17 11a2 2 0 0 1 4 0v3a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L4.5 14a2 2 0 0 1 3.3-2.2L9 13.5"/></svg><span class="mouse">Pasá el mouse para limpiar el vidrio</span><span class="finger">Deslizá el dedo sobre el vidrio</span></span>
+  </div>
+</div>
+
+<section id="como">
+  <div class="wrap">
+    <h2>Cómo funciona</h2>
+    <p class="lead" style="margin-bottom:0">Tres pasos y estás entrenando con el plan de tu coach en el teléfono. Probalos acá mismo.</p>
+    <ol class="flow">
+      <li class="fstep">
+        <span class="fnum" aria-hidden="true">1</span>
+        <div class="fcard">
+          <h3>Te vinculás</h3>
+          <p>Tu coach te pasa su código de invitación. Lo cargás una vez y quedan conectados.</p>
+          <div class="demo">
+            <span class="d-lbl">Código de tu coach (ejemplo)</span>
+            <div class="d-code"><b id="dCode">C8E2BD</b><button class="d-btn" id="dCopy" type="button">Copiar</button></div>
+          </div>
+        </div>
+      </li>
+      <li class="fstep">
+        <span class="fnum" aria-hidden="true">2</span>
+        <div class="fcard">
+          <h3>Entrenás</h3>
+          <p>Abrís el día que toca, ves la rutina con las notas de tu coach y registrás cada serie.</p>
+          <div class="demo">
+            <span class="d-lbl">Sentadilla · serie 1</span>
+            <div class="d-set"><span class="d-idx">1</span><span class="d-val">80<small>kg</small> × 10<small>reps</small></span>
+              <button class="d-check" id="dCheck" type="button" aria-pressed="false" aria-label="Marcar serie como hecha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+            <div class="d-ok" id="dOk" aria-live="polite">Tocá el tilde para marcarla.</div>
+          </div>
+        </div>
+      </li>
+      <li class="fstep">
+        <span class="fnum" aria-hidden="true">3</span>
+        <div class="fcard">
+          <h3>Progresan juntos</h3>
+          <p>Tu coach ve tu historial, tu volumen semanal y tu check-in, y ajusta el plan con datos.</p>
+          <div class="demo">
+            <span class="d-lbl">Volumen semanal</span>
+            <div class="d-chart" id="dChart" role="button" tabindex="0" aria-label="Ver cómo crece tu volumen semana a semana"><i style="--h:38%"></i><i style="--h:52%"></i><i style="--h:61%"></i><i style="--h:74%"></i><i style="--h:100%"></i></div>
+            <div class="d-axis"><span>sem 1</span><span>sem 5</span></div>
+          </div>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="mq-row out" data-speed=".55">ENTRENÁ · REGISTRÁ · PROGRESÁ · ENTRENÁ · REGISTRÁ · PROGRESÁ ·</div>
+  <div class="mq-row fill" data-speed="-.45">COACH + ATLETA · MÉTODO · DATOS · COACH + ATLETA · MÉTODO · DATOS ·</div>
+</div>
+
+<section id="app">
+  <div class="wrap">
+    <h2 class="reveal">Todo lo que entrenás, en un solo lugar</h2>
+    <p class="lead reveal">Sin planillas, sin capturas de pantalla, sin anotar en el teléfono y perderlo.</p>
+    <div class="grid">
+      <div class="card reveal spot"><h3>Rutina del coach</h3><p>Organizada por grupo muscular, con series, RIR, descansos y notas en cada ejercicio.</p></div>
+      <div class="card reveal spot"><h3>Registro de series</h3><p>Ves lo que levantaste la vez pasada y vas por más. Con cronómetro de descanso incluido.</p></div>
+      <div class="card reveal spot"><h3>Hábitos diarios</h3><p>Tu checklist del día: suplementos, pasos, agua. Lo que sostiene el resultado.</p></div>
+      <div class="card reveal spot"><h3>Cardio</h3><p>Lo que te pide tu coach, con cronómetro y temporizador.</p></div>
+      <div class="card reveal spot"><h3>Nutrición</h3><p>Macros, hidratación y el plan de comidas con opciones para elegir.</p></div>
+      <div class="card reveal spot"><h3>Progreso</h3><p>Volumen semanal por músculo, fotos, peso e historial de cada ejercicio.</p></div>
     </div>
   </div>
+</section>
 
-  <div id="view" class="view"></div>
+<section id="nuevo">
+  <div class="wrap">
+    <h2 class="reveal">Lo nuevo en GIZE</h2>
+    <p class="lead reveal">Lo último que sumamos para que coach y atleta estén más cerca, todos los días.</p>
+    <div class="new">
+      <div class="feature-main reveal spot">
+        <span class="tag">Mensajes del coach</span>
+        <h3>Tu coach te escribe y te llega al celular</h3>
+        <p>Como un mensaje de WhatsApp, aunque tengas la app cerrada. El coach ve si te llegó y tiene el historial de lo que te mandó.</p>
+        <div class="lock" aria-label="Ejemplo de notificación en el celular">
+          <div class="lock-time">07:42</div>
+          <div class="lock-date">jueves 24 de septiembre</div>
+          <div class="notif">
+            <span class="notif-ic"><svg aria-hidden="true" style="color:#fff"><use href="#g-mono"/></svg></span>
+            <div class="notif-b"><div class="notif-h"><span>GIZE</span><span>ahora</span></div>
+              <div class="notif-t">Martina · tu coach</div>
+              <div class="notif-m">Hoy toca pierna. Subile 2,5 kg a la sentadilla, venís muy bien.</div></div>
+          </div>
+          <div class="notif">
+            <span class="notif-ic"><svg aria-hidden="true" style="color:#fff"><use href="#g-mono"/></svg></span>
+            <div class="notif-b"><div class="notif-h"><span>GIZE</span><span>hace 3 min</span></div>
+              <div class="notif-t">¡Descanso terminado! 💪</div>
+              <div class="notif-m">Volvé a la próxima serie.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="feat-list">
+        <div class="feat reveal spot">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10.5 8v8M14 8v8M17 8v8"/></svg></span>
+          <h3>Escaneá lo que comés</h3>
+          <p>Apuntás al código de barras y se carga el producto. Más de 900 alimentos con nombres de acá, y peso crudo o cocido.</p>
+        </div>
+        <div class="feat reveal spot">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+          <h3>Preguntas a tu medida</h3>
+          <p>El coach arma las preguntas del registro diario y del check-in semanal, y ve las respuestas día por día.</p>
+        </div>
+        <div class="feat reveal spot">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></span>
+          <h3>Descanso a tu ritmo</h3>
+          <p>Ajustás el descanso de cada ejercicio y el cronómetro sigue aunque salgas de la app.</p>
+        </div>
+        <div class="feat reveal spot">
+          <span class="feat-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 5l1.5-2h5L16 5"/></svg></span>
+          <h3>Fotos y entrenos por fecha</h3>
+          <p>Fotos de progreso, entrenos pasados con cada serie y peso, todo ordenado para comparar semana a semana.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <nav class="navbar"><div class="nav-inner">
-    <button class="nav-item" id="nav-entreno" data-view="entreno">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M3.5 9v5M17.5 6.5v11M20.5 9v5M6.5 12h11"/></svg>
-      <span>Entreno</span>
-    </button>
-    <button class="nav-item" id="nav-habitos" data-view="habitos">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <span>Hábitos</span>
-    </button>
-    <button class="nav-item" id="nav-cardio" data-view="cardio">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
-      <span>Cardio</span>
-    </button>
-    <button class="nav-item" id="nav-comida" data-view="comida">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>
-      <span>Comida</span>
-    </button>
-    <button class="nav-item" id="nav-progreso" data-view="progreso">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-      <span>Progreso</span>
-    </button>
-    <button class="nav-item" id="nav-config" data-view="config">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 13.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>Ajustes</span>
-    </button>
-  </div></nav>
-  <div id="sheetHost"></div>
-  <div id="scanHost"></div>
-  <div id="restBar"></div>
+<section id="coach">
+  <div class="wrap">
+    <h2 class="reveal">Dos partes, un solo sistema</h2>
+    <p class="lead reveal">GIZE no es una app de ejercicios: es el vínculo entre un coach y su atleta.</p>
+    <div class="two">
+      <div class="panel reveal spot">
+        <h3>Si entrenás</h3>
+        <ul>
+          <li><span class="dot"></span>Sabés exactamente qué hacer hoy, sin preguntar.</li>
+          <li><span class="dot"></span>Registrás cada serie en segundos.</li>
+          <li><span class="dot"></span>Ves tu progreso sin armar una planilla.</li>
+          <li><span class="dot"></span>Tu coach te responde con datos, no con suposiciones.</li>
+        </ul>
+      </div>
+      <div class="panel reveal spot">
+        <h3>Si sos coach</h3>
+        <ul>
+          <li><span class="dot"></span>Todos tus clientes en un panel, vinculados con tu código.</li>
+          <li><span class="dot"></span>Creás rutinas, las importás y las reutilizás como plantillas.</li>
+          <li><span class="dot"></span>Planificás mesociclos y marcás las semanas de descarga.</li>
+          <li><span class="dot"></span>Ves el check-in semanal y la adherencia sin perseguir a nadie.</li>
+          <li><span class="dot"></span>Le escribís a un cliente y le llega al celular en el momento.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="precios">
+  <div class="wrap">
+    <h2 class="reveal">Planes para coaches y gimnasios</h2>
+    <p class="lead reveal">Probá GIZE 14 días gratis, sin tarjeta. Después elegís el plan según cuántos clientes tengas. Para tus clientes la app es gratis.</p>
+    <div class="prices">
+      <div class="price reveal"><h3>Hasta <b>10</b> clientes</h3><div class="amt">$9.300<small>/mes</small></div><ul><li>✓ Rutinas, seguimiento y check-in</li><li>✓ Mensajes al celular del cliente</li><li>✓ Plantillas de rutinas ilimitadas</li></ul><a class="btn btn-ghost" href="app/#registro-coach">Probar 14 días gratis</a></div>
+      <div class="price reveal best"><span class="badge">Más elegido</span><h3>Hasta <b>25</b> clientes</h3><div class="amt">$15.000<small>/mes</small></div><ul><li>✓ Rutinas, seguimiento y check-in</li><li>✓ Mensajes al celular del cliente</li><li>✓ Plantillas de rutinas ilimitadas</li></ul><a class="btn btn-rgb" href="app/#registro-coach">Probar 14 días gratis</a></div>
+      <div class="price reveal"><h3>Hasta <b>50</b> clientes</h3><div class="amt">$20.000<small>/mes</small></div><ul><li>✓ Rutinas, seguimiento y check-in</li><li>✓ Mensajes al celular del cliente</li><li>✓ Plantillas de rutinas ilimitadas</li></ul><a class="btn btn-ghost" href="app/#registro-coach">Probar 14 días gratis</a></div>
+      <div class="price reveal"><span class="pname">Gimnasio</span><h3>Hasta <b>100</b> alumnos</h3><div class="amt">$33.000<small>/mes</small></div><ul><li>✓ Todo lo de los otros planes</li><li>✓ Ideal para gimnasios y equipos</li><li>✓ $330 por alumno</li></ul><a class="btn btn-ghost" href="app/#registro-coach">Probar 14 días gratis</a></div>
+    </div>
+    <p class="price-note reveal"><span class="mp-badge"><svg class="mp-ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M11.115 16.479a.93.927 0 0 1-.939-.886c-.002-.042-.006-.155-.103-.155-.04 0-.074.023-.113.059-.112.103-.254.206-.46.206a.816.814 0 0 1-.305-.066c-.535-.214-.542-.578-.521-.725.006-.038.007-.08-.02-.11l-.032-.03h-.034c-.027 0-.055.012-.093.039a.788.786 0 0 1-.454.16.7.699 0 0 1-.253-.05c-.708-.27-.65-.928-.617-1.126.005-.041-.005-.072-.03-.092l-.05-.04-.047.043a.728.726 0 0 1-.505.203.73.728 0 0 1-.732-.725c0-.4.328-.722.732-.722.364 0 .675.27.721.63l.026.195.11-.165c.01-.018.307-.46.852-.46.102 0 .21.016.316.05.434.13.508.52.519.68.008.094.075.1.09.1.037 0 .064-.024.083-.045a.746.744 0 0 1 .54-.225c.128 0 .263.03.402.09.69.293.379 1.158.374 1.167-.058.144-.061.207-.005.244l.027.013h.02c.03 0 .07-.014.134-.035.093-.032.235-.08.367-.08a.944.942 0 0 1 .94.93.936.934 0 0 1-.94.928zm7.302-4.171c-1.138-.98-3.768-3.24-4.481-3.77-.406-.302-.685-.462-.928-.533a1.559 1.554 0 0 0-.456-.07c-.182 0-.376.032-.58.095-.46.145-.918.505-1.362.854l-.023.018c-.414.324-.84.66-1.164.73a1.986 1.98 0 0 1-.43.049c-.362 0-.687-.104-.81-.258-.02-.025-.007-.066.04-.125l.008-.008 1-1.067c.783-.774 1.525-1.506 3.23-1.545h.085c1.062 0 2.12.469 2.24.524a7.03 7.03 0 0 0 3.056.724c1.076 0 2.188-.263 3.354-.795a9.135 9.11 0 0 0-.405-.317c-1.025.44-2.003.66-2.946.66-.962 0-1.925-.229-2.858-.68-.05-.022-1.22-.567-2.44-.57-.032 0-.065 0-.096.002-1.434.033-2.24.536-2.782.976-.528.013-.982.138-1.388.25-.361.1-.673.186-.979.185-.125 0-.35-.01-.37-.012-.35-.01-2.115-.437-3.518-.962-.143.1-.28.203-.415.31 1.466.593 3.25 1.053 3.812 1.089.157.01.323.027.491.027.372 0 .744-.103 1.104-.203.213-.059.446-.123.692-.17l-.196.194-1.017 1.087c-.08.08-.254.294-.14.557a.705.703 0 0 0 .268.292c.243.162.677.27 1.08.271.152 0 .297-.015.43-.044.427-.095.874-.448 1.349-.82.377-.296.913-.672 1.323-.782a1.494 1.49 0 0 1 .37-.05.611.61 0 0 1 .095.005c.27.034.533.125 1.003.472.835.62 4.531 3.815 4.566 3.846.002.002.238.203.22.537-.007.186-.11.352-.294.466a.902.9 0 0 1-.484.15.804.802 0 0 1-.428-.124c-.014-.01-1.28-1.157-1.746-1.543-.074-.06-.146-.115-.22-.115a.122.122 0 0 0-.096.045c-.073.09.01.212.105.294l1.48 1.47c.002 0 .184.17.204.395.012.244-.106.447-.35.606a.957.955 0 0 1-.526.171.766.764 0 0 1-.42-.127l-.214-.206a21.035 20.978 0 0 0-1.08-1.009c-.072-.058-.148-.112-.221-.112a.127.127 0 0 0-.094.038c-.033.037-.056.103.028.212a.698.696 0 0 0 .075.083l1.078 1.198c.01.01.222.26.024.511l-.038.048a1.18 1.178 0 0 1-.1.096c-.184.15-.43.164-.527.164a.8.798 0 0 1-.147-.012c-.106-.018-.178-.048-.212-.089l-.013-.013c-.06-.06-.602-.609-1.054-.98-.059-.05-.133-.11-.21-.11a.128.128 0 0 0-.096.042c-.09.096.044.24.1.293l.92 1.003a.204.204 0 0 1-.033.062c-.033.044-.144.155-.479.196a.91.907 0 0 1-.122.007c-.345 0-.712-.164-.902-.264a1.343 1.34 0 0 0 .13-.576 1.368 1.365 0 0 0-1.42-1.357c.024-.342-.025-.99-.697-1.274a1.455 1.452 0 0 0-.575-.125c-.146 0-.287.025-.42.075a1.153 1.15 0 0 0-.671-.564 1.52 1.515 0 0 0-.494-.085c-.28 0-.537.08-.767.242a1.168 1.165 0 0 0-.903-.43 1.173 1.17 0 0 0-.82.335c-.287-.217-1.425-.93-4.467-1.613a17.39 17.344 0 0 1-.692-.189 4.822 4.82 0 0 0-.077.494l.67.157c3.108.682 4.136 1.391 4.309 1.525a1.145 1.142 0 0 0-.09.442 1.16 1.158 0 0 0 1.378 1.132c.096.467.406.821.879 1.003a1.165 1.162 0 0 0 .415.08c.09 0 .179-.012.266-.034.086.22.282.493.722.668a1.233 1.23 0 0 0 .457.094c.122 0 .241-.022.355-.063a1.373 1.37 0 0 0 1.269.841c.37.002.726-.147.985-.41.221.121.688.341 1.163.341.06 0 .118-.002.175-.01.47-.059.689-.24.789-.382a.571.57 0 0 0 .048-.078c.11.032.234.058.373.058.255 0 .501-.086.75-.265.244-.174.418-.424.444-.637v-.01c.083.017.167.026.251.026.265 0 .527-.082.773-.242.48-.31.562-.715.554-.98a1.28 1.279 0 0 0 .978-.194 1.04 1.04 0 0 0 .502-.808 1.088 1.085 0 0 0-.16-.653c.804-.342 2.636-1.003 4.795-1.483a4.734 4.721 0 0 0-.067-.492 27.742 27.667 0 0 0-5.049 1.62zm5.123-.763c0 4.027-5.166 7.293-11.537 7.293-6.372 0-11.538-3.266-11.538-7.293 0-4.028 5.165-7.293 11.539-7.293 6.371 0 11.537 3.265 11.537 7.293zm.46.004c0-4.272-5.374-7.755-12-7.755S.002 7.277.002 11.55L0 12.004c0 4.533 4.695 8.203 11.999 8.203 7.347 0 12-3.67 12-8.204z"/></svg><span>Pagás seguro con <b>Mercado Pago</b></span></span><br>Precios en pesos argentinos. Se paga por mes y se cancela cuando quieras.<br>¿Más de 100 alumnos? <a href="mailto:jeronimoperpi@gmail.com?subject=GIZE%20para%20mi%20gimnasio">Escribinos</a> y armamos un plan a medida.</p>
+  </div>
+</section>
+
+<section id="final">
+  <div class="wrap">
+    <div class="final reveal">
+      <span class="logo" role="img" aria-label="GIZE" style="font-size:clamp(34px,6vw,64px)"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></span>
+      <h2 class="reveal" style="margin-top:26px">Empezá a entrenar con método</h2>
+      <p class="lead" style="margin:14px auto 30px;text-align:center">Creá tu cuenta y sumá a tu coach, o invitá a tus clientes si el coach sos vos.</p>
+      <div class="cta" style="margin-top:0">
+        <a class="btn btn-rgb" href="app/#registro">Creá tu cuenta</a>
+        <a class="btn btn-ghost" href="app/#registro-coach">Quiero ser coach GIZE</a>
+      </div>
+      <div class="cta" style="margin-top:14px">
+        <a class="btn btn-ghost" href="app/#instalar" data-install>Instalar la app en tu celular</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="logo" role="img" aria-label="GIZE" style="font-size:20px"><svg class="mono" aria-hidden="true"><use href="#g-mono"/></svg><svg class="wm" aria-hidden="true"><use href="#g-wm"/></svg></span>
+    <a href="app/">Abrir la app</a>
+    <a href="privacidad/">Privacidad</a>
+    <span>© 2026 GIZE · Rosario, Argentina</span>
+  </div>
+</footer>
 
 <script>
-(function () {
-  var TOTAL_MS = 2600; // duración completa: barra de 2,1 s + salida
-  var MAX_MS = 8000;   // techo de seguridad si la app nunca avisa que está lista
-  var tpl = document.getElementById('splashTpl');
-  var host = document.getElementById('splashHost');
-  var current = null; // splash en pantalla ahora mismo, si hay uno
+(function(){
+  var hero=document.getElementById('top'), cv=document.getElementById('fx'), hint=document.getElementById('hint');
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var LOW=matchMedia('(pointer:coarse)').matches||innerWidth<820;
 
-  function reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  // =============== 1) Hero: vidrio esmerilado que se limpia (WebGL) ===============
+  // Solo en el hero; deja de dibujarse cuando sale de pantalla. En celular: menos
+  // resolución, 30 cuadros por segundo y menos muestras. Si igual no llega, baja solo.
+  (function(){
+    if(!hero||!cv) return;
+    var gl=null; try{ gl=cv.getContext('webgl',{antialias:false,alpha:false,premultipliedAlpha:false}); }catch(e){}
+    if(!gl){ cv.style.display='none'; if(hint) hint.style.display='none'; return; }
+    var RS=LOW?.5:Math.min(window.devicePixelRatio||1,1);
+    var sc=document.createElement('canvas'), sx=sc.getContext('2d');
+    var arc=new Path2D('M81.53,62.74 A34,34 0 1 1 67,20.55');
+    var COLS=['#2FA0FF','#A65CFF','#FF3DAE','#25E8C8'];
+    var blobs=[], gLayer, dotSpr, GS=0, DS=0, L=null;
+    function layout(W,H){ var port=H>W*1.05; return port?{S:Math.min(W*.56,H*.27),cx:W*.56,cy:H*.22}:{S:Math.min(H*.8,W*.5),cx:W*.64,cy:H*.47}; }
+    // Lo caro (degradés y resplandores) se dibuja una vez por tamaño.
+    function sprites(){
+      L=layout(sc.width,sc.height); var S=L.S;
+      blobs=COLS.map(function(c){ var b=document.createElement('canvas'); b.width=b.height=128; var x=b.getContext('2d');
+        var g=x.createRadialGradient(64,64,0,64,64,64); g.addColorStop(0,c); g.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=g; x.fillRect(0,0,128,128); return b; });
+      GS=Math.ceil(S*1.3); gLayer=document.createElement('canvas'); gLayer.width=gLayer.height=GS; var gx=gLayer.getContext('2d');
+      gx.translate((GS-S)/2,(GS-S)/2); gx.scale(S/100,S/100); gx.shadowColor='rgba(255,255,255,.35)'; gx.shadowBlur=S*.06;
+      gx.lineWidth=20; gx.lineCap='round'; gx.strokeStyle='#F4F6FA'; gx.stroke(arc);
+      DS=Math.ceil(S*1.1); dotSpr=document.createElement('canvas'); dotSpr.width=dotSpr.height=DS; var dx=dotSpr.getContext('2d');
+      dx.translate(DS/2,DS/2); dx.scale(S/100,S/100); dx.shadowColor='#2FA0FF'; dx.shadowBlur=S*.42; dx.fillStyle='#2FA0FF';
+      for(var k=0;k<3;k++){ dx.beginPath(); dx.arc(0,0,9.5,0,Math.PI*2); dx.fill(); }
+      dx.shadowBlur=0; dx.fillStyle='#8FD0FF'; dx.beginPath(); dx.arc(-1.7,-1.7,3.2,0,Math.PI*2); dx.fill();
+    }
+    function drawScene(t){
+      var W=sc.width,H=sc.height;
+      sx.globalCompositeOperation='source-over'; sx.globalAlpha=1; sx.fillStyle='#050608'; sx.fillRect(0,0,W,H);
+      sx.globalCompositeOperation='lighter'; sx.globalAlpha=.4; var R=Math.max(W,H)*.55;
+      for(var i=0;i<4;i++){ var x=W*(.5+.38*Math.sin(t*.00011*(i+2)+i*1.7)), y=H*(.5+.34*Math.cos(t*.00013*(i+1.5)+i*2.3)); sx.drawImage(blobs[i],x-R,y-R,R*2,R*2); }
+      sx.globalAlpha=1; sx.globalCompositeOperation='source-over';
+      var S=L.S; sx.save(); sx.translate(L.cx,L.cy+Math.sin(t*.0006)*H*.012); sx.rotate(Math.sin(t*.0003)*.05);
+      sx.drawImage(gLayer,-GS/2,-GS/2); var d=DS*(1+.07*Math.sin(t*.0024)); sx.drawImage(dotSpr,S*.105-d/2,-d/2,d,d); sx.restore();
+    }
+    var TAPS=LOW?5:9;
+    var VS='attribute vec2 p;varying vec2 v;void main(){v=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
+    var FS_T='precision mediump float;varying vec2 v;uniform sampler2D prev;uniform vec2 a,b;uniform float r,s,asp,t;'+
+      'float seg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/max(dot(ba,ba),1e-6),0.,1.);return length(pa-ba*h);}'+
+      'void main(){vec2 n=vec2(sin(v.y*11.+t*1.7),cos(v.x*9.-t*1.3))*.0018;float o=texture2D(prev,v+n+vec2(0.,.0004)).r;o=max(o*.988-.0022,0.);'+
+      'float d=seg(vec2(v.x*asp,v.y),vec2(a.x*asp,a.y),vec2(b.x*asp,b.y));o=min(1.,o+smoothstep(r,r*.15,d)*s*.38);gl_FragColor=vec4(o,o,o,1.);}';
+    var FS_O='precision mediump float;varying vec2 v;uniform sampler2D scene,trail;uniform vec2 res,tres;uniform float t,cell;'+
+      'float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}'+
+      'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}'+
+      'vec3 pal(float x){x=fract(x)*4.;vec3 c1=vec3(.184,.627,1.),c2=vec3(.651,.361,1.),c3=vec3(1.,.239,.682),c4=vec3(.145,.91,.784);return x<1.?mix(c1,c2,x):x<2.?mix(c2,c3,x-1.):x<3.?mix(c3,c4,x-2.):mix(c4,c1,x-3.);}'+
+      'void main(){vec2 tp=1./tres;float m=texture2D(trail,v).r;'+
+      'vec2 g=vec2(texture2D(trail,v+vec2(tp.x*2.,0.)).r-texture2D(trail,v-vec2(tp.x*2.,0.)).r,texture2D(trail,v+vec2(0.,tp.y*2.)).r-texture2D(trail,v-vec2(0.,tp.y*2.)).r);'+
+      'vec2 q=v*res/cell;vec2 ug=v+vec2(vn(q)-.5,vn(q+17.3)-.5)*.03;vec3 acc=vec3(0.);float jit=h(v*res+fract(t))*6.2831;'+
+      'for(int i=0;i<'+TAPS+';i++){float fi=float(i);float an=fi*2.39996+jit;float rr=sqrt((fi+.5)/'+TAPS+'.)*.02;acc+=texture2D(scene,ug+vec2(cos(an),sin(an))*rr*vec2(res.y/res.x,1.)).rgb;}'+
+      'vec3 glass=acc/'+TAPS+'.*.86+.045;vec3 sharp=texture2D(scene,v-g*.09).rgb;'+
+      'vec3 col=mix(glass,sharp,smoothstep(.16,.52,m+(vn(v*res/5.)-.5)*.1));'+
+      'col+=smoothstep(.06,.2,m)*(1.-smoothstep(.2,.42,m))*pal(v.x*.5+v.y*.35+t*.05)*.3;'+
+      'col+=(h(v*res+fract(t*7.))-.5)*.04;col*=mix(.72,1.,smoothstep(1.2,.35,length(v-vec2(.55,.5))));gl_FragColor=vec4(col,1.);}';
+    function sh(type,src){ var o=gl.createShader(type); gl.shaderSource(o,src); gl.compileShader(o); if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; }
+    function prog(fs){ var p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs)); gl.bindAttribLocation(p,0,'p'); gl.linkProgram(p); return p; }
+    var pT,pO; try{ pT=prog(FS_T); pO=prog(FS_O); }catch(e){ console.error(e); cv.style.display='none'; return; }
+    function U(p,n){ return gl.getUniformLocation(p,n); }
+    var uT={prev:U(pT,'prev'),a:U(pT,'a'),b:U(pT,'b'),r:U(pT,'r'),s:U(pT,'s'),asp:U(pT,'asp'),t:U(pT,'t')};
+    var uO={scene:U(pO,'scene'),trail:U(pO,'trail'),res:U(pO,'res'),tres:U(pO,'tres'),t:U(pO,'t'),cell:U(pO,'cell')};
+    var buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    function tex(w,h){ var t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      if(w) gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null); return t; }
+    function fbo(t){ var f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0); return f; }
+    var sceneTex=tex(), W=0,H=0,TW=0,TH=0,tA,tB,fA,fB;
+    function fit(){
+      var r=hero.getBoundingClientRect(); W=Math.max(2,Math.round(r.width*RS)); H=Math.max(2,Math.round(r.height*RS)); cv.width=W; cv.height=H;
+      var k=Math.min(1,(LOW?480:900)/W); sc.width=Math.round(W*k); sc.height=Math.round(H*k); sprites();
+      TW=LOW?128:192; TH=Math.max(48,Math.round(TW*H/W)); tA=tex(TW,TH); tB=tex(TW,TH); fA=fbo(tA); fB=fbo(tB); gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    }
+    fit(); var rt; addEventListener('resize',function(){ clearTimeout(rt); rt=setTimeout(fit,150); });
 
-  // El splash arranca dentro de un <template> (inerte, sin animar) y se clona
-  // cada vez que hace falta mostrarlo, así las animaciones CSS (que corren una
-  // sola vez) se pueden repetir en cada login sin tener que reconstruirlas a mano.
-  function mount() {
-    host.innerHTML = '';
-    var el = tpl.content.firstElementChild.cloneNode(true);
-    host.appendChild(el);
-    document.body.classList.add('is-booting');
-    var state = { el: el, startTs: Date.now(), done: false, safety: null };
-    state.safety = setTimeout(function () { finish(state); }, reduced() ? 1600 : MAX_MS);
-    current = state;
-    return state;
+    var ptr=null,last=-1e9,prev=null,touched=false;
+    function setPtr(e){ var r=hero.getBoundingClientRect(); ptr={x:(e.clientX-r.left)/r.width,y:1-(e.clientY-r.top)/r.height}; last=performance.now();
+      if(!touched){ touched=true; if(hint) setTimeout(function(){ hint.classList.add('off'); },1400); } }
+    hero.addEventListener('pointermove',setPtr,{passive:true}); hero.addEventListener('pointerdown',setPtr,{passive:true});
+    function auto(t){ var s=t*.001, port=H>W*1.05; return {x:(port?.55:.62)+(port?.3:.26)*Math.sin(s*.53)+.07*Math.sin(s*1.7), y:(port?.74:.5)+(port?.16:.26)*Math.sin(s*.71+1.)+.06*Math.cos(s*1.9)}; }
+
+    function draw(t){
+      var user=(t-last)<2200&&ptr, cur=user?ptr:auto(t); if(!prev) prev=cur;
+      drawScene(t); gl.bindTexture(gl.TEXTURE_2D,sceneTex); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,sc);
+      gl.useProgram(pT); gl.bindFramebuffer(gl.FRAMEBUFFER,fB); gl.viewport(0,0,TW,TH);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tA); gl.uniform1i(uT.prev,0);
+      gl.uniform2f(uT.a,prev.x,prev.y); gl.uniform2f(uT.b,cur.x,cur.y); gl.uniform1f(uT.r,H>W?.11:.085); gl.uniform1f(uT.s,user?1:.8);
+      gl.uniform1f(uT.asp,W/H); gl.uniform1f(uT.t,t*.001); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      var x=tA; tA=tB; tB=x; x=fA; fA=fB; fB=x;
+      gl.useProgram(pO); gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,H);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,sceneTex); gl.uniform1i(uO.scene,0);
+      gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,tA); gl.uniform1i(uO.trail,1);
+      gl.uniform2f(uO.res,W,H); gl.uniform2f(uO.tres,TW,TH); gl.uniform1f(uO.t,t*.001); gl.uniform1f(uO.cell,16*RS);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4); prev=cur;
+    }
+    if(reduce){ for(var i=0;i<90;i++) draw(4000+i*33); if(hint) hint.style.display='none'; return; }
+    // Solo se anima mientras el hero se ve y la pestaña está abierta.
+    var on=true, running=false, lastDraw=0, slow=0, frames=0;
+    function loop(t){
+      if(!on||document.hidden){ running=false; return; }
+      if(!LOW||t-lastDraw>=30){
+        var dt=lastDraw?t-lastDraw:0; lastDraw=t; draw(t);
+        if(dt){ frames++; if(dt>(LOW?50:34)) slow++; if(frames>=60){ if(slow>30&&RS>.35){ RS=Math.max(.35,RS*.8); fit(); } frames=0; slow=0; } }
+      }
+      requestAnimationFrame(loop);
+    }
+    function start(){ if(!running&&on&&!document.hidden){ running=true; lastDraw=0; requestAnimationFrame(loop); } }
+    if('IntersectionObserver' in window) new IntersectionObserver(function(es){ on=es[0].isIntersecting; start(); }).observe(hero);
+    document.addEventListener('visibilitychange',start); start();
+  })();
+
+  // =============== 2) Scroll: franja de palabras ===============
+  // Solo trabaja cuando se scrollea (no en cada cuadro) y con posiciones medidas al
+  // cambiar el tamaño, sin pedirle al navegador que mida la página a cada rato.
+  var rows=[].slice.call(document.querySelectorAll('.mq-row'));
+  var geo=null, ticking=false;
+  function measure(){
+    var y=scrollY, R=function(el){ var r=el.getBoundingClientRect(); return {top:r.top+y,bottom:r.bottom+y,h:r.height}; };
+    geo={rows:rows.map(function(r){ return {top:R(r).top,w:r.scrollWidth}; })}; update();
   }
-
-  function finish(state) {
-    if (!state || state.done) return;
-    state.done = true;
-    clearTimeout(state.safety);
-    state.el.remove();
-    if (current === state) { document.body.classList.remove('is-booting'); current = null; }
+  function update(){
+    ticking=false; if(!geo||reduce) return;
+    var y=scrollY, vh=innerHeight;
+    rows.forEach(function(row,k){ var g=geo.rows[k], sp=+row.dataset.speed; if(Math.abs(g.top-y-vh*.5)>vh*1.5) return;
+      row.style.transform='translate3d('+((g.top-y-vh)*sp-(sp>0?0:g.w*.25))+'px,0,0)'; });
   }
+  addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(update); } },{passive:true});
+  var mt; addEventListener('resize',function(){ clearTimeout(mt); mt=setTimeout(measure,150); });
+  addEventListener('load',measure); if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);
+  measure();
 
-  // La app llama a esto cuando ya armó la pantalla real (login, app de cliente
-  // o panel de coach) que corresponde al splash activo. No corta la animación
-  // antes de que termine sola: el panel de coach hace varios viajes a Supabase
-  // antes de estar listo y puede tardar más que los 2.6s de la animación.
-  window.coreEnter = function () {
-    var state = current; if (!state) return;
-    if (reduced()) { finish(state); return; }
-    var wait = Math.max(0, TOTAL_MS - (Date.now() - state.startTs));
-    setTimeout(function () { finish(state); }, wait);
-  };
+  // =============== Cómo funciona: piezas de la app que se pueden tocar ===============
+  var dCopy=document.getElementById('dCopy'), dCode=document.getElementById('dCode');
+  if(dCopy&&dCode) dCopy.addEventListener('click',function(){
+    var done=function(){ dCopy.textContent='¡Copiado!'; setTimeout(function(){ dCopy.textContent='Copiar'; },1600); };
+    try{ navigator.clipboard.writeText(dCode.textContent).then(done,function(){ selectCode(); }); }catch(e){ selectCode(); }
+    function selectCode(){ var r=document.createRange(); r.selectNodeContents(dCode); var sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); dCopy.textContent='Seleccionado'; setTimeout(function(){ dCopy.textContent='Copiar'; },1600); }
+  });
+  var dCheck=document.getElementById('dCheck'), dOk=document.getElementById('dOk');
+  if(dCheck) dCheck.addEventListener('click',function(){ var on=dCheck.getAttribute('aria-pressed')!=='true'; dCheck.setAttribute('aria-pressed',String(on));
+    if(dOk) dOk.textContent=on?'¡Serie hecha! Tu coach ya la ve.':'Tocá el tilde para marcarla.'; if(on&&navigator.vibrate) navigator.vibrate(30); });
+  var dChart=document.getElementById('dChart');
+  if(dChart){ var tog=function(){ dChart.classList.toggle('up'); }; dChart.addEventListener('click',tog); dChart.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tog(); } }); }
 
-  // Corta el splash activo ya mismo, sin esperar a que termine la animación
-  // (para cuando la "carga" en realidad falló, ej. login incorrecto).
-  window.coreCancel = function () { if (current) finish(current); };
-
-  // Vuelve a mostrar el splash desde cero — se usa en cada login/registro,
-  // no solo en la carga inicial de la página, porque entrar al panel de coach
-  // desde el formulario de login es su propia espera de red.
-  window.coreReplay = function () { if (!current || current.done) mount(); };
-
-  mount(); // splash de arranque de la página
+  // =============== 3) Brillo que sigue al mouse en las tarjetas (solo con mouse) ===============
+  if(matchMedia('(hover:hover)').matches) document.addEventListener('pointermove',function(e){ var c=e.target.closest&&e.target.closest('.spot'); if(!c) return;
+    var r=c.getBoundingClientRect(); c.style.setProperty('--mx',(e.clientX-r.left)+'px'); c.style.setProperty('--my',(e.clientY-r.top)+'px'); },{passive:true});
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script type="module" src="app/main.js"></script>
+<script>
+// El service worker de la app (scope /GIZE/) también cubre la landing: así Chrome permite
+// instalar GIZE desde acá (el ícono abre la app, start_url del manifest).
+if("serviceWorker" in navigator) addEventListener("load",function(){ navigator.serviceWorker.register("sw.js",{scope:"./",updateViaCache:"none"}).catch(function(){}); });
+</script>
 </body>
 </html>
-
