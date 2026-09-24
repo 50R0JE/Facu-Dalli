@@ -59,12 +59,8 @@ export function restFinish(){
   if(!document.hidden) cancelRestAlert();
   try{ beep(); }catch(e){}
   try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){}
-  // Si la app quedó en segundo plano pero todavía corre, avisa con una notificación
-  // (solo si ya se dieron permisos de notificaciones en Configuración).
-  try{
-    if(document.hidden && typeof Notification!=="undefined" && Notification.permission==="granted" && navigator.serviceWorker)
-      navigator.serviceWorker.ready.then(r=>r.showNotification("¡Descanso terminado! 💪",{body:"Volvé a la próxima serie.",icon:"./icon-192.png",badge:"./icon-192.png",tag:"rest-done",renotify:true,vibrate:[200,100,200]})).catch(()=>{});
-  }catch(e){}
+  // Con la app en segundo plano el aviso lo manda el servidor (web) o el celular (apps):
+  // ver restnotif.js. Antes también se mostraba uno desde acá y llegaban dos.
   showDone();
 }
 

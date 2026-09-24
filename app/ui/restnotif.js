@@ -2,8 +2,8 @@
 //
 //   · Apps de las tiendas (Capacitor): el celular programa una notificación con sonido
 //     para la hora de fin (plugin LocalNotifications), sin internet. En Android además se
-//     muestra una notificación fija con la cuenta regresiva (plugin propio RestTimer,
-//     android/…/RestTimerPlugin.java), que se borra sola al terminar.
+//     muestra una notificación fija con una barra que se va llenando y el tiempo que queda
+//     (plugin propio RestTimer, android/…/RestTimerService.java), que se va sola al terminar.
 //   · Web / app instalada desde el navegador: el navegador no puede sonar con la pantalla
 //     apagada, así que se le pide al servidor que mande una notificación push a la hora de
 //     fin (supabase/descanso.sql + función "descanso"). Solo si ya activó las
@@ -43,7 +43,7 @@ async function nativeSchedule(C, endAt){
     iconColor: "#2FA0FF",
   }] });
   const RT = C.Plugins.RestTimer;
-  if (RT) RT.show({ endAt, title: "Descanso · termina " + hhmm(endAt) }).catch(() => {});
+  if (RT) RT.show({ endAt, total: Math.max(1, Math.round((endAt - Date.now()) / 1000)), title: "Descanso · termina " + hhmm(endAt) }).catch(() => {});
 }
 
 async function nativeCancel(C){
@@ -57,8 +57,20 @@ export function scheduleRestAlert(endAt){
   const C = cap();
   if (C) { nativeSchedule(C, endAt).catch(e => console.error("rest notif", e)); return; }
   if (!State.sb || !State.cloudUser || !pushOnHere()) return;
-  const secs = Math.max(1, Math.round((endAt - Date.now()) / 1000));
-  Promise.resolve(State.sb.rpc("schedule_rest_alarm", { p_seconds: secs })).catch(() => {});
+  // Solo a este dispositivo: el usuario puede tener varios registrados (otro celular, la
+  // compu, o el registro del dominio viejo) y el aviso le llegaba repetido.
+  webEndpoint().then(ep => {
+    if (!ep) return;
+    const secs = Math.max(1, Math.round((endAt - Date.now()) / 1000));
+    return State.sb.rpc("schedule_rest_alarm", { p_seconds: secs, p_endpoint: ep });
+  }).catch(() => {});
+}
+
+async function webEndpoint(){
+  if (!("serviceWorker" in navigator)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.getSubscription();
+  return sub ? sub.endpoint : null;
 }
 
 // Llamar al saltear el descanso, o al terminar con la app a la vista (no hace falta avisar).
