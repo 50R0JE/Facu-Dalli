@@ -1,10 +1,10 @@
 // GIZE service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v59";
+const CACHE = "core-v60";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
-const ASSETS = ["./", "./index.html", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png",
+const ASSETS = ["./app/", "./app/index.html", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png",
   "./brand/tokens.css", "./brand/logo/gize-firma-horizontal.svg", "./brand/logo/gize-monograma.svg",
   "./brand/logo/gize-logotipo.svg", "./brand/logo/gize-icono-negro.svg", "./manifest.json"];
 
@@ -49,8 +49,10 @@ self.addEventListener("fetch", e => {
         caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
         return res;
       })
-      // Sin internet: lo que haya en caché; si no hay, la app (salvo la landing, que no es la app).
-      .catch(() => caches.match(req).then(r => r || (isSbLib || url.pathname.indexOf("/landing") >= 0 ? Response.error() : caches.match("./index.html"))))
+      // Sin internet: lo que haya en caché; si no hay y es una pantalla de la app (/app/…),
+      // la app. La landing (raíz del sitio) no tiene versión sin conexión.
+      .catch(() => caches.match(req).then(r => r || (!isSbLib && req.mode === "navigate" && url.pathname.indexOf("/app") === 0
+        ? caches.match("./app/").then(a => a || caches.match("./app/index.html")) : Response.error())))
   );
 });
 
@@ -68,16 +70,17 @@ self.addEventListener("push", e => {
     tag: d.tag || "coach",
     renotify: true,
     vibrate: [80, 40, 80],
-    data: { url: d.url || "./" }
+    // "./" era la app cuando vivía en la raíz; ahora la app está en app/.
+    data: { url: (!d.url || d.url === "./") ? "./app/" : d.url }
   }));
 });
 
 // Tocar la notificación abre la app (o la trae al frente si ya estaba abierta).
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const target = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope).href;
+  const target = new URL((e.notification.data && e.notification.data.url) || "./app/", self.registration.scope).href;
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
-    for (const c of list) { if (c.url.startsWith(self.registration.scope) && "focus" in c) return c.focus(); }
+    for (const c of list) { if (c.url.startsWith(target) && "focus" in c) return c.focus(); }
     return self.clients.openWindow ? self.clients.openWindow(target) : null;
   }));
 });

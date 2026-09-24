@@ -1,5 +1,5 @@
 {
-  "id": "./",
+  "id": "./app/",
   "name": "GIZE",
   "short_name": "GIZE",
   "description": "Tu coach, tu rutina y tu progreso en un solo lugar: registrá cada serie, tus hábitos y tu nutrición, y recibí los mensajes de tu coach.",
@@ -10,8 +10,8 @@
     "fitness",
     "sports"
   ],
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "./app/",
+  "scope": "./app/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#000000",

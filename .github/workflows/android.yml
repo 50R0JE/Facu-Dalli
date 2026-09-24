@@ -6,7 +6,7 @@ name: App Android
 on:
   push:
     branches: [main]
-    paths: ["index.html", "manifest.json", "install.js", "app/**", "css/**", "brand/**", "vendor/**", "android/**", "capacitor.config.json", "package.json", "scripts/**", ".github/workflows/android.yml"]
+    paths: ["manifest.json", "install.js", "app/**", "css/**", "brand/**", "vendor/**", "android/**", "capacitor.config.json", "package.json", "scripts/**", ".github/workflows/android.yml"]
   pull_request:
     paths: ["android/**", "capacitor.config.json", "package.json", "scripts/**", ".github/workflows/android.yml"]
   workflow_dispatch:
