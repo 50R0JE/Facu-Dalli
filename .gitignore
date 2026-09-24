@@ -17,3 +17,10 @@ android/capacitor-cordova-android-plugins/build/
 # Llaves de firma: NUNCA al repo.
 *.keystore
 *.jks
+# Claves de Apple, certificados y variables de entorno: tampoco.
+*.p8
+*.p12
+*.pem
+*.mobileprovision
+.env
+.env.*
