@@ -9,7 +9,7 @@ import { State, state } from './state.js';
 
 import { migrateNames, save } from './storage.js';
 
-import { today, ymd } from './utils.js';
+import { storageErrorText, today, ymd } from './utils.js';
 
 import { renderApp } from '../main.js';
 
@@ -376,13 +376,36 @@ export async function signedUrls(paths){
   return out;
 }
 
+// Lo que acepta el bucket "checkins" (supabase/endurecer-base.sql): mismos tipos y tamaño.
+const PHOTO_MAX_MB=15;
+const PHOTO_TYPES={jpg:"image/jpeg", jpeg:"image/jpeg", png:"image/png", webp:"image/webp", heic:"image/heic", heif:"image/heif"};
+
+// Lanza un Error con el texto para el usuario (en castellano) si la foto no se puede subir.
 export async function cloudUploadPhoto(file){
   if(!State.sb||!State.cloudUser) return;
-  const ext=(file.name.split(".").pop()||"jpg").toLowerCase();
+  const ext0=(file.name.split(".").pop()||"").toLowerCase();
+  // El tipo lo informa el navegador; algunas compus lo mandan vacío (fotos HEIC del
+  // iPhone pasadas a Windows, por ejemplo) y el bucket rechaza un archivo sin tipo, así
+  // que ahí se deduce por la extensión. "image/jpg" no es estándar: es image/jpeg.
+  let type=(file.type||PHOTO_TYPES[ext0]||"").toLowerCase();
+  if(type==="image/jpg") type="image/jpeg";
+  const types=Object.values(PHOTO_TYPES);
+  // Se avisa antes de subir (sin gastar datos) con el mismo texto que daría el bucket.
+  if(types.indexOf(type)<0) throw new Error(storageErrorText({statusCode:"415"}));
+  if(file.size>PHOTO_MAX_MB*1024*1024) throw new Error(storageErrorText({statusCode:"413"}, PHOTO_MAX_MB));
+  const ext=PHOTO_TYPES[ext0]===type ? ext0 : Object.keys(PHOTO_TYPES).find(k=>PHOTO_TYPES[k]===type);
   const path=State.cloudUser.id+"/"+Date.now()+"."+ext;
-  const up=await State.sb.storage.from("checkins").upload(path, file, {upsert:false});
-  if(up.error) throw up.error;
-  sbOk(await State.sb.from("checkin_photos").insert({client_id:State.cloudUser.id, path:path, taken_on:today()}));
+  // Con un Blob, supabase-js manda el tipo del propio archivo (no el contentType): si el
+  // navegador no lo puso, se re-envuelve con el tipo correcto (no copia la foto).
+  const body=(file.type===type) ? file : new Blob([file], {type:type});
+  const up=await State.sb.storage.from("checkins").upload(path, body, {upsert:false, contentType:type});
+  if(up.error) throw new Error(storageErrorText(up.error, PHOTO_MAX_MB));
+  const ins=await State.sb.from("checkin_photos").insert({client_id:State.cloudUser.id, path:path, taken_on:today()});
+  if(ins.error){
+    // Sin la fila, la foto no aparece en ningún lado: se borra el archivo recién subido.
+    State.sb.storage.from("checkins").remove([path]).catch(()=>{});
+    throw ins.error;
+  }
   await loadMyPhotos(); renderApp();
 }
 
