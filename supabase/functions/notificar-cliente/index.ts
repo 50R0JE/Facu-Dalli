@@ -1,6 +1,7 @@
 // Supabase Edge Function "notificar-cliente": el coach le manda un mensaje a un cliente
 // y le llega como notificación al celular, como un mensaje de WhatsApp: Web Push para la
-// app instalada desde el navegador y Firebase (FCM) para la app de Android.
+// app instalada desde el navegador, Firebase (FCM) para la app de Android y el servicio
+// de Apple (APNs) para la app de iPhone.
 //
 // Cómo publicarla (una sola vez):
 //   1. Supabase → Edge Functions → Deploy a new function → Via Editor.
@@ -12,6 +13,8 @@
 //        VAPID_PUBLIC_KEY   (la misma que está en app/core/push.js)
 //        VAPID_PRIVATE_KEY  (la privada, nunca va en el código de la app)
 //        VAPID_SUBJECT      mailto:tu-mail@ejemplo.com
+//        APNS_KEY_P8 / APNS_KEY_ID / APPLE_TEAM_ID  clave de Apple para la app de iPhone
+//                             (developer.apple.com → Keys → Apple Push Notifications service).
 //        FCM_SERVICE_ACCOUNT  el JSON entero de la cuenta de servicio de Firebase
 //                             (Configuración del proyecto → Cuentas de servicio →
 //                             Generar nueva clave privada). Es para la app de Android.
@@ -59,6 +62,17 @@ async function fcmAccessToken(sa: ServiceAccount): Promise<string> {
   return j.access_token;
 }
 
+// La app de iPhone guarda su token de Apple como endpoint "apns:<token>". Se manda por la
+// API HTTP/2 de APNs con un JWT firmado con la clave .p8 (vale hasta 1 hora).
+const APNS_TOPIC = "ar.com.gize.app";
+async function apnsJwt(): Promise<string | null> {
+  const p8 = Deno.env.get("APNS_KEY_P8"), kid = Deno.env.get("APNS_KEY_ID"), team = Deno.env.get("APPLE_TEAM_ID");
+  if (!p8 || !kid || !team) return null;
+  const key = await importPKCS8(p8, "ES256");
+  return await new SignJWT({}).setProtectedHeader({ alg: "ES256", kid })
+    .setIssuer(team).setIssuedAt().sign(key);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -100,9 +114,10 @@ Deno.serve(async (req) => {
   const payload = JSON.stringify({ title, body, tag: "coach-" + Date.now(), url: "./app/" });
 
   const all = subs || [];
-  const web = all.filter((s) => !s.endpoint.startsWith("fcm:"));
+  const web = all.filter((s) => s.endpoint.startsWith("https://"));
   const fcm = all.filter((s) => s.endpoint.startsWith("fcm:"));
-  if (web.length && !hasVapid && !fcm.length) return json({ error: "Faltan las claves VAPID en los Secrets de la función" }, 500);
+  const apns = all.filter((s) => s.endpoint.startsWith("apns:"));
+  if (web.length && !hasVapid && !fcm.length && !apns.length) return json({ error: "Faltan las claves VAPID en los Secrets de la función" }, 500);
 
   let delivered = 0;
   const gone: string[] = [];
@@ -138,6 +153,28 @@ Deno.serve(async (req) => {
       // 404/UNREGISTERED: desinstaló la app o el token ya no vale.
       if (r.status === 404 || t.includes("UNREGISTERED")) gone.push(s.id);
       else console.error("fcm", r.status, t);
+    }));
+  }
+
+  if (apns.length) {
+    let jwt: string | null = null;
+    try { jwt = await apnsJwt(); } catch (e) { console.error("apns jwt", (e as Error).message); }
+    if (!jwt) console.error("apns: faltan APNS_KEY_P8 / APNS_KEY_ID / APPLE_TEAM_ID");
+    else await Promise.all(apns.map(async (s) => {
+      const r = await fetch("https://api.push.apple.com/3/device/" + s.endpoint.slice(5), {
+        method: "POST",
+        headers: {
+          authorization: "bearer " + jwt, "apns-topic": APNS_TOPIC, "apns-push-type": "alert",
+          "apns-priority": "10", "apns-expiration": String(Math.floor(Date.now() / 1000) + 86400),
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ aps: { alert: { title, body }, sound: "default" } }),
+      });
+      if (r.ok) { delivered++; return; }
+      const t = await r.text();
+      // 410 / BadDeviceToken / Unregistered: la app se desinstaló o el token ya no vale.
+      if (r.status === 410 || /BadDeviceToken|Unregistered|DeviceTokenNotForTopic/.test(t)) gone.push(s.id);
+      else console.error("apns", r.status, t);
     }));
   }
   if (gone.length) await admin.from("push_subscriptions").delete().in("id", gone);

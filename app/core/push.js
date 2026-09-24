@@ -10,9 +10,10 @@
 // En iPhone solo funciona con la app agregada a la pantalla de inicio (iOS 16.4+).
 // Todo lo de la base está en supabase/notificaciones.sql.
 //
-// Dentro de la app nativa (Capacitor, Play Store) no hay Web Push: se usa el plugin de
-// notificaciones nativas (Firebase Cloud Messaging). El token del celular se guarda en la
-// misma tabla con endpoint "fcm:<token>" y la función de Supabase lo manda por FCM.
+// Dentro de las apps de las tiendas (Capacitor) no hay Web Push: se usa el plugin de
+// notificaciones nativas. El token del celular se guarda en la misma tabla, con endpoint
+// "fcm:<token>" en Android (Firebase) o "apns:<token>" en iPhone (Apple), y la función de
+// Supabase manda por el servicio que corresponde.
 
 import { State } from './state.js';
 
@@ -66,9 +67,16 @@ function nativeForeground(PN){
     document.body.appendChild(box); setTimeout(() => box.remove(), 7000);
   });
 }
+// Android da un token de Firebase (fcm:); iPhone, uno de Apple (apns:). La función de
+// Supabase manda por el servicio que corresponde según el prefijo.
+function nativeEndpoint(token){
+  let ios = false; try { ios = window.Capacitor.getPlatform() === "ios"; } catch (e) {}
+  return (ios ? "apns:" : "fcm:") + token;
+}
 async function saveNative(token){
   if (!State.sb || !State.cloudUser) return "Tenés que iniciar sesión.";
-  const r = await State.sb.rpc("save_push_subscription", { p_endpoint: "fcm:" + token, p_p256dh: "fcm", p_auth: "fcm" });
+  const kind = nativeEndpoint("").replace(":", "");
+  const r = await State.sb.rpc("save_push_subscription", { p_endpoint: nativeEndpoint(token), p_p256dh: kind, p_auth: kind });
   if (r.error) return "No se pudo guardar este dispositivo: " + (r.error.message || r.error);
   try { localStorage.setItem(NATIVE_KEY, token); } catch (e) {}
   return "";
@@ -83,7 +91,7 @@ async function enableNative(PN){
 }
 async function dropNative(PN){
   let tk = null; try { tk = localStorage.getItem(NATIVE_KEY); localStorage.removeItem(NATIVE_KEY); } catch (e) {}
-  try { if (tk && State.sb && State.cloudUser) await State.sb.rpc("delete_push_subscription", { p_endpoint: "fcm:" + tk }); } catch (e) {}
+  try { if (tk && State.sb && State.cloudUser) await State.sb.rpc("delete_push_subscription", { p_endpoint: nativeEndpoint(tk) }); } catch (e) {}
   try { await PN.unregister(); } catch (e) {}
 }
 
