@@ -9,7 +9,7 @@ import glifos
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, '../..'))
 FOTO = os.path.join(HERE, 'foto.webp')
-OUT = os.path.join(HERE, 'salida')
+OUT = os.path.join(HERE, 'salida', '3x4')
 os.makedirs(OUT, exist_ok=True)
 
 TW, TH = 1080, 1440
@@ -164,6 +164,7 @@ base.alpha_composite(g, (int(TW * 1.5 - 32), TH - 150))
 
 # ---------- 6. salida ----------
 full = base.convert('RGB')
+full.save(os.path.join(OUT, 'triptico-completo.png'))
 names = ['1-izquierda-ENER', '2-centro', '3-derecha-GIZE']
 for i, n in enumerate(names):
     full.crop((i * TW, 0, (i + 1) * TW, TH)).save(os.path.join(OUT, f'post-{n}.jpg'), quality=95, subsampling=0)
