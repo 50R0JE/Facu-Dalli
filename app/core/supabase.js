@@ -7,7 +7,7 @@ import { loadCoachQuestions } from '../screens/coach/preguntas.js';
 
 import { State, state } from './state.js';
 
-import { migrateNames, save } from './storage.js';
+import { KEY, migrateNames, save } from './storage.js';
 
 import { storageErrorText, today, ymd } from './utils.js';
 
@@ -43,18 +43,53 @@ const CONFIRM_ERROR_MSG = "El link de confirmación venció o ya se usó. Probá
 const NativeApp = () => { try { return (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.App) || null; } catch (e) { return null; } };
 const AUTH_LINK_USED = "gize_auth_link_used";
 async function openAuthLink(url){
-  if(!url || url.indexOf("gize://confirmado")!==0) return false;
+  const isGoogle = !!url && url.indexOf("gize://login")===0;
+  if(!url || (!isGoogle && url.indexOf("gize://confirmado")!==0)) return false;
   const p=new URLSearchParams((url.split("#")[1]||"") + "&" + ((url.split("?")[1]||"").split("#")[0]));
   // getLaunchUrl() devuelve el mismo link en cada recarga de la app (ej. después de cerrar
   // sesión): sin esta marca, el logout volvía a entrar solo con los tokens del mail.
   const mark=(p.get("access_token")||p.get("error_code")||"").slice(-24);
   try{ if(mark && localStorage.getItem(AUTH_LINK_USED)===mark) return false; localStorage.setItem(AUTH_LINK_USED, mark); }catch(e){}
-  if(p.get("error_code")||p.get("error_description")){ showLogin(CONFIRM_ERROR_MSG,"in"); return true; }
+  const failMsg = isGoogle ? GOOGLE_ERROR_MSG : CONFIRM_ERROR_MSG;
+  if(p.get("error")||p.get("error_code")||p.get("error_description")){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
   const at=p.get("access_token"), rt=p.get("refresh_token"); if(!at||!rt) return false;
   const r=await State.sb.auth.setSession({access_token:at, refresh_token:rt});
-  if(r.error||!r.data.session){ showLogin(CONFIRM_ERROR_MSG,"in"); return true; }
-  await showMailConfirmed(afterLogin(r.data.session.user));
+  if(r.error||!r.data.session){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
+  if(isGoogle){
+    if(window.coreReplay) window.coreReplay();
+    try{ await afterLogin(r.data.session.user); } finally { if(window.coreEnter) window.coreEnter(); }
+  }
+  else await showMailConfirmed(afterLogin(r.data.session.user));
   return true;
+}
+
+// Login con Google. En la web Supabase redirige a Google y vuelve a esta misma página con
+// #access_token=... (createClient lo levanta solo). En la app nativa Google no deja loguearse
+// dentro del WebView: se abre el navegador del sistema y vuelve por gize://login (openAuthLink).
+// Lo elegido en la pantalla (rol, código del coach) se guarda antes de irse porque no viaja
+// por Google; afterLogin() lo aplica al volver.
+const GOOGLE_INTENT = "gize_google_intent";
+const GOOGLE_ERROR_MSG = "No se pudo entrar con Google. Probá de nuevo o ingresá con tu email y contraseña.";
+function clearGoogleIntent(){ try{ localStorage.removeItem(GOOGLE_INTENT); }catch(e){} }
+function takeGoogleIntent(){
+  try{ const v=JSON.parse(localStorage.getItem(GOOGLE_INTENT)||"null"); localStorage.removeItem(GOOGLE_INTENT); return v; }catch(e){ return null; }
+}
+export async function signInWithGoogle(opts){
+  opts = opts || {};
+  try{ localStorage.setItem(GOOGLE_INTENT, JSON.stringify({role:opts.role==="coach"?"coach":"client", t:Date.now()})); }catch(e){}
+  if(opts.code){ try{ localStorage.setItem("jfit_pending_code", opts.code.toUpperCase()); }catch(e){} }
+  const native = NativeApp();
+  const r = await State.sb.auth.signInWithOAuth({provider:"google", options:{
+    redirectTo: native ? "gize://login" : location.origin + location.pathname,
+    skipBrowserRedirect: !!native,
+    queryParams: {prompt:"select_account"}
+  }});
+  if(r.error) throw r.error;
+  if(native){
+    const Browser = window.Capacitor.Plugins.Browser;
+    if(Browser) await Browser.open({url:r.data.url, presentationStyle:"popover"});
+    else location.href = r.data.url; // sin el plugin, Capacitor abre las URLs externas en el navegador
+  }
 }
 
 // supabase-js NO lanza excepción cuando una query falla (RLS, red, columna inexistente):
@@ -114,12 +149,30 @@ export function applyBrand(){
 // Si el script del CDN directamente no cargó (sin internet y todavía sin copia en el
 // caché del service worker), se vuelve a pedir en el próximo intento, que es cuando el
 // usuario toca "Ingresar". Antes el primer fracaso quedaba guardado para siempre.
+// "Mantener la sesión iniciada" (casilla del login). Tildada, la sesión va a localStorage y
+// sobrevive a cerrar el navegador o la app, como siempre. Destildada va a sessionStorage, que
+// se borra al cerrar la pestaña o matar la app. Supabase lee con getItem, así que se busca en
+// los dos lados: las sesiones que ya estaban guardadas en localStorage siguen andando.
+export const REMEMBER_KEY = "gize_remember";
+const EPHEMERAL_KEY = "gize_session_ephemeral";
+export function rememberSession(){ try{ return localStorage.getItem(REMEMBER_KEY)!=="0"; }catch(e){ return true; } }
+export function setRememberSession(on){ try{ localStorage.setItem(REMEMBER_KEY, on ? "1" : "0"); }catch(e){} }
+const authStorage = {
+  getItem(k){ try{ const s=sessionStorage.getItem(k); if(s!=null) return s; }catch(e){} try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  setItem(k, v){
+    const keep=rememberSession();
+    try{ (keep ? localStorage : sessionStorage).setItem(k, v); }catch(e){}
+    try{ (keep ? sessionStorage : localStorage).removeItem(k); }catch(e){}
+  },
+  removeItem(k){ try{ sessionStorage.removeItem(k); }catch(e){} try{ localStorage.removeItem(k); }catch(e){} }
+};
+
 let _sbReady = null, _sbFailed = false;
 export function ensureSb(){
   if (State.sb) return Promise.resolve(State.sb);
   if (_sbReady) return _sbReady;
   const tryInit = () => {
-    if (!State.sb && window.supabase) { try { State.sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e){} }
+    if (!State.sb && window.supabase) { try { State.sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{storage:authStorage}}); } catch(e){} }
     return !!State.sb;
   };
   if (_sbFailed && !window.supabase) reloadSbScript();
@@ -168,6 +221,9 @@ export async function afterLogin(sessionUser){
   // red (lee la sesión guardada en el dispositivo), así que arrancamos con ESE y solo
   // lo reemplazamos por la versión fresca del servidor si getUser() llega a responder.
   State.cloudUser = sessionUser || State.cloudUser || null;
+  // Sesión sin "mantener iniciada": se anota para limpiar los datos locales la próxima vez
+  // que la app abra y la sesión ya no esté (ver cloudBoot).
+  try{ if(rememberSession()) localStorage.removeItem(EPHEMERAL_KEY); else localStorage.setItem(EPHEMERAL_KEY, "1"); }catch(e){}
   try { const r=await State.sb.auth.getUser(); if(r.data.user) State.cloudUser=r.data.user; } catch(e){}
   // Primero se envía lo que quedó pendiente de otra sesión (sin conexión, app cerrada):
   // loadCloud() reemplaza entrenos/registros locales por los de la nube.
@@ -176,6 +232,14 @@ export async function afterLogin(sessionUser){
   let coachNameP=Promise.resolve(State.sb.rpc("my_coach_name")).catch(()=>({data:null}));
   await loadCloud();
   if(!State.cloudProfile) State.cloudProfile=cachedProfile(); // sin conexión: el último perfil conocido
+  // Registro con Google eligiendo "Soy coach": la cuenta nace como cliente (ver login-google.sql).
+  const gi=takeGoogleIntent();
+  if(gi && gi.role==="coach" && Date.now()-gi.t < 15*60*1000 && State.cloudProfile && State.cloudProfile.role!=="coach"){
+    try{
+      const rc=await State.sb.rpc("become_coach_new_account");
+      if(rc.data===true){ try{ localStorage.removeItem("jfit_pending_code"); }catch(e){} await loadCloud(); }
+    }catch(e){ console.error("become coach",e); }
+  }
   try{
     const pc=localStorage.getItem("jfit_pending_code");
     if(pc && State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id){
@@ -701,16 +765,29 @@ export async function cloudBoot(){
   const app=NativeApp();
   // Con la app ya abierta (en segundo plano) el link del mail llega por acá. Si ya hay una
   // cuenta adentro se ignora: cambiar de cuenta sin logout mezclaría los datos locales.
-  if(app){ try{ app.addListener("appUrlOpen", e=>{ if(!State.cloudUser) openAuthLink(e && e.url).catch(err=>console.error("authLink",err)); }); }catch(e){} }
+  if(app){ try{ app.addListener("appUrlOpen", e=>{
+    const B=window.Capacitor.Plugins.Browser; if(B && e && e.url && e.url.indexOf("gize://login")===0) B.close().catch(()=>{});
+    if(!State.cloudUser) openAuthLink(e && e.url).catch(err=>console.error("authLink",err));
+  }); }catch(e){} }
+  // Si se cierra el navegador de Google sin terminar, el botón quedaba en "Abriendo Google...".
+  const Br=app && window.Capacitor.Plugins.Browser;
+  if(Br){ try{ Br.addListener("browserFinished", ()=>{ setTimeout(()=>{ const g=document.querySelector('[data-auth="google"]'); if(!State.cloudUser && g && g.disabled) showLogin("","in"); }, 800); }); }catch(e){} }
   try{
     const sess=await State.sb.auth.getSession();
+    // La sesión anterior era sin "mantener iniciada" y ya se borró al cerrar: se limpian los
+    // datos locales como en el logout (main.js), para que otra persona que entre en este
+    // dispositivo no herede la rutina ni el diario. La cola de envío queda: va por usuario.
+    let wiped=false;
+    try{ if(!sess.data.session && localStorage.getItem(EPHEMERAL_KEY)==="1"){ localStorage.removeItem(EPHEMERAL_KEY); localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); wiped=true; } }catch(e){}
+    if(wiped){ location.reload(); return; } // el estado en memoria se armó con los datos viejos
     if(sess.data.session){
       if(CONFIRM_LANDING) await showMailConfirmed(afterLogin(sess.data.session.user));
       else await afterLogin(sess.data.session.user);
     }
     else if(CONFIRM_ERROR){
       try{ history.replaceState(null,"",location.pathname); }catch(e){}
-      showLogin(CONFIRM_ERROR_MSG,"in");
+      // Volvió de Google con error (canceló, o el proveedor falló): no es el link del mail.
+      showLogin(takeGoogleIntent() ? GOOGLE_ERROR_MSG : CONFIRM_ERROR_MSG,"in");
     }
     // La app estaba cerrada y la abrió el link del mail.
     else if(app && await openAuthLink(((await app.getLaunchUrl().catch(()=>null))||{}).url)){}

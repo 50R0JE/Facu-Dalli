@@ -408,6 +408,27 @@
 
 .auth-btn:disabled { opacity:.7; cursor:progress; transform:none; }
 
+/* "Mantener la sesión iniciada": el checkbox real queda invisible encima de la caja
+   dibujada, así sigue andando con teclado y lector de pantalla. */
+.auth-remember { position:relative; display:flex; align-items:center; gap:10px; align-self:flex-start; padding:4px 2px; color:var(--gize-text-2); font-size:var(--text-meta); font-weight:600; cursor:pointer; user-select:none; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-remember input { position:absolute; opacity:0; width:1px; height:1px; margin:0; }
+.auth-remember-box { width:18px; height:18px; flex:none; border:1.5px solid rgba(255,255,255,.32); border-radius:5px; display:grid; place-items:center; transition:background .15s, border-color .15s; }
+.auth-remember-box::after { content:""; width:5px; height:9px; border:solid #fff; border-width:0 2px 2px 0; transform:translateY(-1px) rotate(45deg) scale(0); transition:transform .15s; }
+.auth-remember input:checked + .auth-remember-box { background:var(--gize-blue); border-color:var(--gize-blue); }
+.auth-remember input:checked + .auth-remember-box::after { transform:translateY(-1px) rotate(45deg) scale(1); }
+.auth-remember input:focus-visible + .auth-remember-box { outline:2px solid var(--gize-blue); outline-offset:3px; }
+.auth-remember:hover { color:var(--gize-text); }
+
+/* "Continuar con Google": variante oscura de las pautas de Google (fondo #131314, borde
+   #8E918F), así no compite con el botón blanco de "Ingresar". */
+.auth-or { display:flex; align-items:center; gap:12px; margin:2px 0; color:var(--gize-text-2); font-size:var(--text-meta); opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-or::before, .auth-or::after { content:""; flex:1; height:1px; background:rgba(255,255,255,.14); }
+.auth-google { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; min-height:48px; padding:0 16px; background:#131314; border:1px solid #8E918F; border-radius:999px; color:#E3E3E3; font:600 15px var(--gize-font); cursor:pointer; transition:background .15s, border-color .15s; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-google:hover { background:#1f1f21; border-color:#b4b7b5; }
+.auth-google:focus-visible { outline:2px solid var(--gize-blue); outline-offset:4px; }
+.auth-google:disabled { opacity:.7; cursor:progress; }
+.auth-google-ic { width:20px; height:20px; flex:none; }
+
 .auth-switch {
     text-align:center; font-size: var(--text-meta); font-weight:600; color: var(--green-2); cursor:pointer; margin-top:2px; padding:4px; border-radius:4px;
     transition:color .15s; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards;
@@ -420,7 +441,7 @@
 .auth-install:hover { color:var(--gize-text); border-color:rgba(255,255,255,.34); }
 
 @media (prefers-reduced-motion: reduce) {
-    .auth-card, .auth-brand-ic, .auth-logo, .auth-sub, .auth-field, .auth-btn, .auth-switch, .auth-msg { animation:none !important; opacity:1 !important; transform:none !important; }
+    .auth-card, .auth-brand-ic, .auth-logo, .auth-sub, .auth-field, .auth-btn, .auth-remember, .auth-or, .auth-google, .auth-switch, .auth-msg { animation:none !important; opacity:1 !important; transform:none !important; }
   }
 
 .logout-btn { display:block; width:100%; margin:24px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size: var(--text-meta); padding:11px; border-radius:4px; cursor:pointer; }
