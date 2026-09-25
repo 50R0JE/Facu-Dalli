@@ -214,14 +214,14 @@ export function renderEntreno(){
       </div>`).join("");
     return `${insertBtn}<div class="card${exIdx===0?' ex-focused':''}" data-ex-id="${esc(ex.id)}">
       <div class="card-head">
+        <span class="ex-num" aria-label="Ejercicio ${exIdx+1}">${exIdx+1}</span>
         <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${esc(ex.id)}" ${routineLocked()?'readonly':''}>
         ${done?`<button class="icon-mini" data-action="ex-collapse" data-ex="${esc(ex.id)}" title="Colapsar">${chevronDownSvg}</button>`:''}
         ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${esc(ex.id)}" title="Cambiar ejercicio">${swapSvg}</button>
         <button class="trash" data-action="removeex" data-ex="${esc(ex.id)}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
       ${ex.video&&/^https:\/\//i.test(ex.video)?`<a class="ex-video" href="${esc(ex.video)}" target="_blank" rel="noopener">${playSvg} Ver video del ejercicio</a>`:''}
-      ${(ex.o||ex.rir||ex.goal)?`<div class="ex-prog">
-        ${ex.o?`<span class="ep-ord">${esc(ex.o)}</span>`:''}
+      ${(ex.rir||ex.goal)?`<div class="ex-prog">
         ${ex.rir?`<span class="ep-chip">RIR ${esc(ex.rir)}</span>`:''}
         ${ex.goal?`<span class="ep-goal">${esc(ex.goal)}</span>`:''}
       </div>`:''}
