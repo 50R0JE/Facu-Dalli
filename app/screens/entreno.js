@@ -15,6 +15,7 @@ import { esc, fmtSecs, isTimedEx, norm, parseSecs, setText, today } from '../cor
 import { renderApp } from '../main.js';
 
 import { allSetsDone, bestKgBefore, bestSetOf, renderLastSession } from './progreso.js';
+import { prSets } from '../ui/festejo.js';
 
 import { parseRest } from '../ui/restbar.js';
 
@@ -197,7 +198,7 @@ export function renderEntreno(){
       const kgField = (s.targetKg || String(s.kg||"") !== "") ? `<div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">kg</span></div>` : '';
       return `
       <div class="set timed">
-        <span class="idx">${i+1}</span>
+        <span class="idx${prSets.has(s.id)?' has-pr':''}">${prSets.has(s.id)?`<span class="pr-mark">${trophySvg}</span>`:''}${i+1}</span>
         ${kgField}
         <div class="field"><input class="secs" type="text" inputmode="numeric" placeholder="${tg||0}" value="${esc(s.secs||"")}" data-action="secs" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" aria-label="Segundos, serie ${i+1}"><span class="unit">seg</span></div>
         <button class="tmr" data-action="set-timer" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" aria-label="Cronómetro de la serie ${i+1}">${playSvg}<span class="tmr-t">${esc(timerText(s.id, tg))}</span></button>
@@ -207,7 +208,7 @@ export function renderEntreno(){
     };
     const sets = timed ? ex.sets.map(setRow).join("") : ex.sets.map((s,i) => `
       <div class="set">
-        <span class="idx">${i+1}</span>
+        <span class="idx${prSets.has(s.id)?' has-pr':''}">${prSets.has(s.id)?`<span class="pr-mark">${trophySvg}</span>`:''}${i+1}</span>
         <div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">kg</span></div>
         <div class="field"><input class="reps" type="text" inputmode="numeric" placeholder="0" value="${esc(s.reps)}" data-action="reps" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">reps</span></div>
         ${s.target?`<span class="goal" title="Objetivo del coach">${esc(s.target)}</span>`:''}
