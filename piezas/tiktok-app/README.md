@@ -9,3 +9,8 @@ Respeta las zonas que tapa TikTok en anuncios: arriba 160 px, abajo 480 px, dere
 ```bash
 python3 tiktok.py salida.mp4     # usa las grabaciones src/in.mp4 y src/in3.mp4
 ```
+
+## Versión con titulares en Bigger Display (`tiktok-bigger.py`)
+
+~17,8 s, escenas de 2,1 s, sin glitch: los titulares usan el alfabeto de
+`../triptico-energize/bigger.py` (G, I, Z, E del logotipo y el resto construido con sus medidas).
