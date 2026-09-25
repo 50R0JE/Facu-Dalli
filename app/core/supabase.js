@@ -484,7 +484,7 @@ export async function afterLogin(sessionUser){
     else { const cn=await coachNameP; State.brandName=cn.data||""; }
   }catch(e){ State.brandName=""; }
   applyBrand();
-  if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); checkPaymentReturn(); }
+  if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); checkPaymentReturn(); syncPush(); }
   else { renderApp(); syncPush(); } // sin await: no demora la entrada
 }
 

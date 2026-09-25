@@ -2,7 +2,7 @@ import './ui/keyboard.js';
 
 import { DEFAULT, PPL_DAYS } from './core/data.js';
 
-import { pushLogout } from './core/push.js';
+import { disablePush, enablePush, pushLogout } from './core/push.js';
 import { auIcoEye, auIcoEyeOff, checkSvg } from './core/icons.js';
 
 import { State, state } from './core/state.js';
@@ -614,6 +614,13 @@ document.body.addEventListener("click", async e => {
     b.innerHTML=checkSvg+' ¡Copiado!'; b.classList.add("copied");
     setTimeout(()=>{ b.innerHTML=prevHtml; b.classList.remove("copied"); }, 1600);
     return;
+  }
+  if(a==="notif-toggle"){
+    if(b.disabled) return;
+    b.disabled=true;
+    if(b.classList.contains("on")) await disablePush();
+    else { const err=await enablePush(); if(err) alert(err); }
+    renderCoachSettings(); return;
   }
   if(a==="rotate-invite"){
     if(!confirm("¿Cambiar tu código de invitación?\n\nEl código actual deja de servir: nadie más se va a poder vincular con él. Tus clientes ya vinculados siguen igual.")) return;

@@ -196,3 +196,4 @@ select.co-select { cursor:pointer; }
 .nt-msg-meta .ok { color:var(--gize-success); }
 .nt-msg-meta .warn { color:var(--gize-warning); }
 @media (prefers-reduced-motion: reduce) { .nt-dot { animation:none; } }
+.cs-notif.on { border-color:color-mix(in srgb, var(--green) 45%, transparent); color:var(--green); }
