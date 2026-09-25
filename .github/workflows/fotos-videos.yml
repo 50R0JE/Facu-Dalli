@@ -17,7 +17,10 @@ jobs:
   fotos:
     runs-on: ubuntu-latest
     steps:
+      # Sin dejar el token guardado en el checkout: el script procesa páginas de YouTube.
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -29,10 +32,13 @@ jobs:
           case "$ARCHIVO" in *..*|/*) echo "::error::Ruta inválida"; exit 1;; esac
           python3 scripts/fotos-videos.py "$ARCHIVO" "$RUNNER_TEMP/out"
       - name: Subir a la rama revision-videos
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           cd "$RUNNER_TEMP/out"
           git init -q -b revision-videos
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A && git commit -qm "Hojas de revisión de videos"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" revision-videos
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" revision-videos

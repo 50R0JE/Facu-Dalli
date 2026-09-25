@@ -35,10 +35,27 @@ export const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // #error_code=... si venció). Se lee acá, al cargar el módulo, porque createClient se
 // come el # apenas arranca y después ya no queda rastro.
 const BOOT_AUTH = new URLSearchParams((location.hash||"").replace(/^#/,"") + "&" + (location.search||"").replace(/^\?/,""));
-const CONFIRM_LANDING = BOOT_AUTH.get("type")==="signup";
+// Login por link (web): supabase-js acepta cualquier #access_token=... que venga en la URL,
+// así que un link armado por otra persona podía dejarte adentro de SU cuenta (y todo lo que
+// cargaras le llegaba a ella). Solo se acepta si este navegador pidió ese link hace poco
+// (registro, "olvidé mi contraseña" o Google por redirección: expectAuthLink). Si no, se saca
+// de la URL antes de que la librería lo lea y se explica qué hacer.
+const AUTH_EXPECT = "gize_auth_expect";
+export function expectAuthLink(){ try{ localStorage.setItem(AUTH_EXPECT, String(Date.now())); }catch(e){} }
+const BOOT_HASH = new URLSearchParams((location.hash||"").replace(/^#/,""));
+let LINK_REFUSED = "";
+if(BOOT_HASH.get("access_token")){
+  let t=0; try{ t=+localStorage.getItem(AUTH_EXPECT)||0; }catch(e){}
+  if(t && Date.now()-t < 7*86400000){ try{ localStorage.removeItem(AUTH_EXPECT); }catch(e){} }
+  else { LINK_REFUSED = BOOT_HASH.get("type") || "login"; try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} }
+}
+// El tipo sale solo del # (donde lo pone Supabase) y solo si el link se aceptó: con
+// ?type=recovery en la URL no se abre la pantalla de contraseña nueva.
+const LINK_TYPE = LINK_REFUSED ? "" : (BOOT_HASH.get("type")||"");
+const CONFIRM_LANDING = LINK_TYPE==="signup";
 // Link del mail de "olvidé mi contraseña" en la web (#access_token=...&type=recovery): entra
 // con una sesión de recuperación y hay que pedir la contraseña nueva antes de abrir la app.
-const RECOVERY_LANDING = BOOT_AUTH.get("type")==="recovery";
+const RECOVERY_LANDING = LINK_TYPE==="recovery";
 // En la app el link vuelve por gize://confirmado (el único que Android abre además del de
 // Google), así que se marca en el celular que se pidió recuperar la contraseña.
 export const RECOVERY_REQ = "gize_recovery_req";
@@ -101,6 +118,23 @@ function authErrDetail(desc){
   d=d.split(":")[0].trim().slice(0,120);
   return d ? " (Detalle: "+d+")" : "";
 }
+// Código del coach elegido al registrarse: se aplica al primer ingreso. Vence a las 2 horas y
+// se borra al cerrar sesión, para que no le quede a OTRA persona que entre en este dispositivo.
+const PENDING_CODE = "jfit_pending_code";
+export function setPendingCode(code){ try{ localStorage.setItem(PENDING_CODE, JSON.stringify({c:String(code).toUpperCase(), t:Date.now()})); }catch(e){} }
+function takePendingCode(){
+  let v=null; try{ v=JSON.parse(localStorage.getItem(PENDING_CODE)||"null"); }catch(e){}
+  try{ localStorage.removeItem(PENDING_CODE); }catch(e){}
+  return (v && v.c && Date.now()-(v.t||0) < 2*3600000) ? v.c : null;
+}
+// Al cerrar sesión o borrar la cuenta: lo que quedó de esa cuenta en el dispositivo además de
+// los datos (cola de envío propia, intentos de login, código de coach, alarma de descanso).
+export function clearAccountLeftovers(uid){
+  try{
+    [PENDING_CODE, GOOGLE_INTENT, AUTH_EXPECT, RECOVERY_REQ, "gize_auth_link_used", "gize_rest_timer"].forEach(k=>localStorage.removeItem(k));
+    if(uid){ [OUTBOX_KEY, OUTBOX_FAILED_KEY].forEach(k=>{ const q=readQueue(k).filter(i=>i.uid!==uid); if(q.length) writeQueue(k,q); else localStorage.removeItem(k); }); }
+  }catch(e){}
+}
 function clearGoogleIntent(){ try{ localStorage.removeItem(GOOGLE_INTENT); }catch(e){} }
 function takeGoogleIntent(){
   try{ const v=JSON.parse(localStorage.getItem(GOOGLE_INTENT)||"null"); localStorage.removeItem(GOOGLE_INTENT); return v; }catch(e){ return null; }
@@ -108,12 +142,13 @@ function takeGoogleIntent(){
 export async function signInWithGoogle(opts){
   opts = opts || {};
   try{ localStorage.setItem(GOOGLE_INTENT, JSON.stringify({role:opts.role==="coach"?"coach":"client", mode:opts.mode==="up"?"up":"in", t:Date.now()})); }catch(e){}
-  if(opts.code){ try{ localStorage.setItem("jfit_pending_code", opts.code.toUpperCase()); }catch(e){} }
+  if(opts.code) setPendingCode(opts.code);
   // Android: la cuenta de Google del teléfono, con la ventana del sistema (dice "GIZE").
   // Si no se puede (sin cuentas en el teléfono, versión instalada fuera de Play, etc.), sigue
   // el navegador de siempre.
   if(await nativeGoogleLogin(opts)) return;
   const native = NativeApp();
+  if(!native) expectAuthLink();
   const r = await State.sb.auth.signInWithOAuth({provider:"google", options:{
     redirectTo: native ? "gize://login" : location.origin + location.pathname,
     skipBrowserRedirect: !!native,
@@ -249,7 +284,7 @@ async function googleCredentialLogin(resp, rawNonce){
   const V = { role, code, name: ((document.getElementById("auName") || {}).value || "").trim(), email: ((document.getElementById("auEmail") || {}).value || "").trim() };
   // Lo mismo que guarda signInWithGoogle antes de irse: afterLogin lo aplica (coach / código).
   try { localStorage.setItem(GOOGLE_INTENT, JSON.stringify({ role: isUp && role === "coach" ? "coach" : "client", mode: isUp ? "up" : "in", t: Date.now() })); } catch (e) {}
-  if (isUp && role === "client" && code) { try { localStorage.setItem("jfit_pending_code", code.toUpperCase()); } catch (e) {} }
+  if (isUp && role === "client" && code) setPendingCode(code);
   if (window.coreReplay) window.coreReplay();
   if (!State.sb) await ensureSb();
   if (!State.sb) { if (window.coreCancel) window.coreCancel(); clearGoogleIntent(); showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", isUp ? "up" : "in", V); return; }
@@ -363,7 +398,7 @@ export function ensureSb(){
 }
 
 function reloadSbScript(){
-  const old=document.querySelector('script[src*="supabase-js"]'); if(!old) return;
+  const old=document.querySelector('script[src*="supabase"]'); if(!old) return;
   const s=document.createElement("script"); s.src=old.src;
   old.replaceWith(s);
 }
@@ -435,12 +470,9 @@ export async function afterLogin(sessionUser){
     }catch(e){ console.error("become coach",e); }
   }
   try{
-    const pc=localStorage.getItem("jfit_pending_code");
+    // takePendingCode lo saca del dispositivo pase lo que pase (y si venció no lo usa).
+    const pc=takePendingCode();
     if(pc && State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id){
-      // Se saca del localStorage pase lo que pase (código inválido o válido), no solo si
-      // funcionó: si no, un código viejo o mal tipeado queda dando vueltas en el dispositivo
-      // y se lo intenta aplicar a la cuenta de OTRA persona que después inicie sesión ahí.
-      localStorage.removeItem("jfit_pending_code");
       const r2=await State.sb.rpc("join_coach",{code:pc});
       if(r2.error && r2.error.code==="P0001" && r2.error.message){ const m=r2.error.message; setTimeout(()=>alert(m+" Podés poner el código después en Configuración."), 600); }
       if(r2.data===true){ coachNameP=Promise.resolve(State.sb.rpc("my_coach_name")).catch(()=>({data:null})); const pr=await State.sb.from("profiles").select("*").eq("id",State.cloudUser.id).maybeSingle(); if(pr.data) State.cloudProfile=pr.data; await loadCloud(); }
@@ -1051,7 +1083,12 @@ export async function cloudBoot(){
     // celular, y con eso lo que todavía no se había subido (un tester perdió su rutina así).
     // Ahora quedan detrás del login: si vuelve a entrar la misma cuenta se suben, y si entra
     // otra, afterLogin() arranca de cero (state.ownerUid).
-    if(sess.data.session && RECOVERY_LANDING){
+    if(LINK_REFUSED && !sess.data.session){
+      if(LINK_REFUSED==="recovery") showLogin("Por seguridad, abrí el link del mail en el mismo navegador donde pediste cambiar la contraseña. Si no, pedí uno nuevo acá.","forgot");
+      else if(LINK_REFUSED==="signup") showLogin("Listo, tu mail quedó confirmado. Ingresá con tu mail y tu contraseña.","in");
+      else showLogin("No se pudo completar el ingreso desde ese link. Ingresá con tu mail y contraseña o con Google.","in");
+    }
+    else if(sess.data.session && RECOVERY_LANDING){
       try{ history.replaceState(null,"",location.pathname); }catch(e){}
       showLogin("", "newpass");
     }

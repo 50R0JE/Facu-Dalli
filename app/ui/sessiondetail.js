@@ -38,8 +38,8 @@ function exerciseBlock(ex){
 
 function feedbackChips(se){
   const chips = [];
-  if (se.rpe) chips.push('<span class="sd-chip">Fatiga <b>' + se.rpe + '/5</b></span>');
-  if (se.pump) chips.push('<span class="sd-chip">Pump <b>' + se.pump + '/5</b></span>');
+  if (se.rpe) chips.push('<span class="sd-chip">Fatiga <b>' + (parseInt(se.rpe) || 0) + '/5</b></span>');
+  if (se.pump) chips.push('<span class="sd-chip">Pump <b>' + (parseInt(se.pump) || 0) + '/5</b></span>');
   if (typeof se.joint === "boolean") chips.push('<span class="sd-chip' + (se.joint ? ' warn' : '') + '">Dolor articular <b>' + (se.joint ? "Sí" : "No") + '</b></span>');
   return chips.length ? '<div class="sd-fb">' + chips.join("") + '</div>' : "";
 }

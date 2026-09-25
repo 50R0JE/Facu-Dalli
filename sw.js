@@ -1,12 +1,12 @@
 // GIZE service worker — "network-first" para que SIEMPRE veas la última versión,
 // y cache de respaldo para poder abrir la app sin internet.
-const CACHE = "core-v83";
+const CACHE = "core-v84";
 // El CSS y el JS ahora viven repartidos en muchos archivos chiquitos (css/**, app/**),
 // así que no se listan todos acá a mano: quedan cacheados solos por el fetch handler
 // de abajo apenas se piden la primera vez (mismo criterio "network-first" de siempre).
 const ASSETS = ["./app/", "./app/index.html", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png",
   "./brand/tokens.css", "./brand/logo/gize-firma-horizontal.svg", "./brand/logo/gize-monograma.svg",
-  "./brand/logo/gize-logotipo.svg", "./brand/logo/gize-icono-negro.svg", "./manifest.json"];
+  "./brand/logo/gize-logotipo.svg", "./brand/logo/gize-icono-negro.svg", "./manifest.json", "./vendor/supabase-2.117.1.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})).then(()=>self.skipWaiting()));

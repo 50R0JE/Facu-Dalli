@@ -72,7 +72,7 @@ export function renderCoachCheckins(d){
   const a=c.answers||{};
   // La adherencia tiene su propia columna y se muestra en el encabezado.
   const qs=answeredQuestions("checkin", a, coachOwnQuestions("checkin")).filter(q=>q.id!=="adherence");
-  const adh=c.adherence?'<span class="ck-adh">Adherencia: <b>'+c.adherence+'/10</b></span>':'';
+  const adh=c.adherence?'<span class="ck-adh">Adherencia: <b>'+(parseInt(c.adherence)||0)+'/10</b></span>':'';
   return pick+
     '<div class="ck-card"><div class="ck-head">Semana del '+fmtDate(c.week_start)+' '+adh+'</div>'+(qs.length?qaList(qs):'<div class="cal-hint">Sin respuestas.</div>')+'</div>';
 }
@@ -88,5 +88,5 @@ export function renderCoachPhotos(d){
   const sel=dates.indexOf(CoachState.coachPhotoSel)>=0 ? CoachState.coachPhotoSel : "";
   const pick=picker("photo-pick-date", dates.map(k=>{ const n=byDate[k].length; return {v:k, t:(k?dayLabel(k):"Sin fecha")+" \u00b7 "+n+(n===1?" foto":" fotos")}; }), sel, "Fecha");
   if(!sel) return pick;
-  return pick+'<div class="ph-grid big">'+byDate[sel].map(p=>'<a class="ph-thumb" href="'+p.url+'" target="_blank"><img src="'+p.url+'"><span class="ph-date">'+fmtDate(p.taken_on)+'</span></a>').join("")+'</div>';
+  return pick+'<div class="ph-grid big">'+byDate[sel].map(p=>'<a class="ph-thumb" href="'+esc(p.url)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(p.url)+'"><span class="ph-date">'+fmtDate(p.taken_on)+'</span></a>').join("")+'</div>';
 }

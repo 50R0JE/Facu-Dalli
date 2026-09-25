@@ -209,7 +209,7 @@ export function renderComida(){
   // todo ese texto de referencia. Ahora el uso diario queda arriba sin interrupciones y
   // el plan completo del coach como lectura al final.
   const planFull = (state.coachPlan && state.coachPlan.plan) ? renderClientPlan(state.coachPlan.plan) : '';
-  const planBanner = state.coachPlan ? `<div class="plan-banner"><div class="plan-t">Plan de tu coach</div><div class="plan-macros"><span><b>${state.coachPlan.kcal||"-"}</b> kcal</span><span><b>${state.coachPlan.protein||"-"}</b>P</span><span><b>${state.coachPlan.carbs||"-"}</b>C</span><span><b>${state.coachPlan.fat||"-"}</b>G</span></div>${state.coachPlan.notes?`<div class="plan-notes">${esc(state.coachPlan.notes)}</div>`:''}</div>` : '';
+  const planBanner = state.coachPlan ? `<div class="plan-banner"><div class="plan-t">Plan de tu coach</div><div class="plan-macros"><span><b>${(+state.coachPlan.kcal||0)||"-"}</b> kcal</span><span><b>${(+state.coachPlan.protein||0)||"-"}</b>P</span><span><b>${(+state.coachPlan.carbs||0)||"-"}</b>C</span><span><b>${(+state.coachPlan.fat||0)||"-"}</b>G</span></div>${state.coachPlan.notes?`<div class="plan-notes">${esc(state.coachPlan.notes)}</div>`:''}</div>` : '';
   const wml = state.water||0, wgoal = state.waterGoal||3000, wpct = wgoal?Math.min(Math.round(wml/wgoal*100),100):0;
   const Lstr = v => (v/1000).toLocaleString("es-AR",{maximumFractionDigits:2});
   const pct = t ? Math.min(tot.kcal/t, 1) : 0;
