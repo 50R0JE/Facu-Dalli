@@ -216,3 +216,20 @@ button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer
 
 /* Historial: título de cada comida */
 .fh-meal { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--gize-text-2); margin: 12px 0 6px; }
+
+/* ---- Días en Comida: ‹ Hoy › arriba; deslizando cambia el día (main.js, goDay) ---- */
+.day-nav { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+.day-lbl { flex: 1; min-width: 0; text-align: center; display: flex; flex-direction: column; }
+.day-lbl b { font-size: 18px; font-weight: 700; }
+.day-lbl span { font-size: 12px; color: var(--gize-text-2); }
+.day-arrow { width: 40px; height: 40px; flex: none; border-radius: 12px; border: 1px solid var(--gize-border); background: var(--gize-surface);
+  color: var(--gize-text); font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.day-arrow:disabled { opacity: .25; cursor: default; }
+.cal-top { justify-content: center; }
+.diary-item.ro { cursor: default; }
+.day-today { margin: 4px auto 18px; display: block; }
+.day-in-left { animation: day-in-l .2s ease-out; }
+.day-in-right { animation: day-in-r .2s ease-out; }
+@keyframes day-in-l { from { opacity: .4; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
+@keyframes day-in-r { from { opacity: .4; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .day-in-left, .day-in-right { animation: none; } }

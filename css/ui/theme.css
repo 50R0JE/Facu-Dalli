@@ -159,5 +159,4 @@ body.silk-coach .topbar { display: none; }
      propio, la nav de abajo se seguía viendo/tocando por debajo del panel del coach. */
 body.silk-coach .navbar { display: none; }
 
-body.silk-coach #coachModeBadge { display: flex; }
 
