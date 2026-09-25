@@ -23,6 +23,14 @@
 //   · Desde Mercado Pago (?webhook=1): el aviso de un cambio. No se confía en lo que dice
 //     el aviso: se vuelve a pedir la suscripción a la API de Mercado Pago con el token,
 //     así que un aviso falso no puede dar acceso.
+//
+// Avisos de pagos a los socios: con cada cobro (aprobado o rechazado) y cada suscripción
+// nueva, cancelada o pausada, se manda un mail a todos los de AVISOS_PAGOS a la vez, desde
+// soporte@gize.ar (Resend). Sale del servidor, así que les llega a todos igual.
+//   Secrets: RESEND_API_KEY (clave de Resend con "Sending access") y AVISOS_PAGOS (mails
+//   separados por coma). Sin ellos, los pagos se procesan igual y no se manda nada.
+//   Mercado Pago reintenta los avisos: public.mp_avisos (supabase/avisos-pagos.sql) guarda
+//   cuáles ya se mandaron para no repetirlos.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -58,14 +66,71 @@ const admin = () => createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SU
 
 function addMonth(d: Date) { const x = new Date(d); x.setMonth(x.getMonth() + 1); return x; }
 
+// ---- Avisos de pagos por mail ----
+const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+const pesos = (n: unknown) => "$" + Number(n || 0).toLocaleString("es-AR", { maximumFractionDigits: 2 });
+const fecha = (d: unknown) => new Date(d ? String(d) : Date.now()).toLocaleString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", dateStyle: "short", timeStyle: "short" });
+
+async function coachInfo(coachId: string) {
+  const db = admin();
+  const { data: prof } = await db.from("profiles").select("full_name").eq("id", coachId).maybeSingle();
+  const { data: u } = await db.auth.admin.getUserById(coachId);
+  return { name: (prof && prof.full_name) || "Sin nombre", email: (u && u.user && u.user.email) || "" };
+}
+
+// Manda el aviso una sola vez por clave (Mercado Pago reintenta los webhooks).
+async function avisar(clave: string, asunto: string, color: string, filas: [string, string][]) {
+  const key = Deno.env.get("RESEND_API_KEY");
+  const to = String(Deno.env.get("AVISOS_PAGOS") || "").split(",").map((x) => x.trim()).filter(Boolean);
+  if (!key || !to.length) return;
+  const db = admin();
+  const { error: dup } = await db.from("mp_avisos").insert({ clave });
+  if (dup) { if (dup.code !== "23505") console.error("mp_avisos", dup.message); return; } // 23505 = ya avisado
+  const html = '<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0B0D11">'
+    + '<div style="height:4px;background:' + color + ';border-radius:4px"></div>'
+    + '<h2 style="margin:20px 0 12px;font-size:20px">' + esc(asunto) + '</h2>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:15px">'
+    + filas.map(([k, v]) => '<tr><td style="padding:8px 0;color:#6B7280;border-bottom:1px solid #EEF0F3">' + esc(k)
+      + '</td><td style="padding:8px 0;text-align:right;font-weight:600;border-bottom:1px solid #EEF0F3">' + esc(v) + '</td></tr>').join("")
+    + '</table><p style="margin-top:20px;font-size:12px;color:#9CA3AF">Aviso automático de GIZE a los socios. Llega a: ' + esc(to.join(", ")) + '</p></div>';
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: "GIZE <soporte@gize.ar>", to, subject: "GIZE · " + asunto, html }),
+    });
+    if (!r.ok) {
+      console.error("aviso de pago", r.status, await r.text());
+      await db.from("mp_avisos").delete().eq("clave", clave); // que el próximo reintento lo mande
+    }
+  } catch (e) {
+    console.error("aviso de pago", (e as Error).message);
+    await db.from("mp_avisos").delete().eq("clave", clave);
+  }
+}
+
 // Trae la suscripción de Mercado Pago y actualiza coach_billing.
 async function syncPreapproval(id: string) {
   const pa = await mp("/preapproval/" + encodeURIComponent(id));
   const [coachId, plan] = String(pa.external_reference || "").split("|");
-  if (!coachId || !PLANES[plan]) { console.error("preapproval sin referencia GIZE", id); return; }
+  if (!coachId || !PLANES[plan]) { console.error("preapproval sin referencia GIZE", id); return null; }
   const db = admin();
   const { data: cur } = await db.from("coach_billing").select("*").eq("coach_id", coachId).maybeSingle();
-  if (!cur) { console.error("coach sin coach_billing", coachId); return; }
+  if (!cur) { console.error("coach sin coach_billing", coachId); return null; }
+
+  // Aviso a los socios de los cambios de la suscripción (una vez por suscripción y estado).
+  const estados: Record<string, [string, string]> = {
+    authorized: ["Suscripción nueva", "#25E8C8"], cancelled: ["Suscripción cancelada", "#FF4D4D"], paused: ["Suscripción pausada", "#FFB020"],
+  };
+  const est = estados[String(pa.status)];
+  if (est) {
+    const c = await coachInfo(coachId);
+    await avisar("pa:" + id + ":" + pa.status, est[0] + " · " + PLANES[plan].name.replace("GIZE ", ""), est[1], [
+      ["Coach", c.name], ["Mail", c.email], ["Plan", PLANES[plan].name],
+      ["Monto mensual", pesos(pa.auto_recurring && pa.auto_recurring.transaction_amount)],
+      ["Fecha", fecha(pa.last_modified || pa.date_created)], ["Suscripción MP", id],
+    ]);
+  }
 
   if (pa.status === "authorized") {
     // Pagado hasta: un mes después del último cobro (o la fecha del próximo), más el margen.
@@ -89,6 +154,7 @@ async function syncPreapproval(id: string) {
     // paused / cancelled de la suscripción vigente: queda activo hasta paid_until.
     await db.from("coach_billing").update({ mp_status: pa.status, updated_at: new Date().toISOString() }).eq("coach_id", coachId);
   }
+  return { coachId, plan };
 }
 
 async function webhook(req: Request, url: URL) {
@@ -101,7 +167,20 @@ async function webhook(req: Request, url: URL) {
     if (type.includes("authorized_payment")) {
       // Aviso de un cobro mensual: se busca a qué suscripción pertenece.
       const ap = await mp("/authorized_payments/" + encodeURIComponent(id));
-      if (ap.preapproval_id) await syncPreapproval(String(ap.preapproval_id));
+      const ref = ap.preapproval_id ? await syncPreapproval(String(ap.preapproval_id)) : null;
+      // Aviso a los socios de cada cobro, aprobado o rechazado (una vez por cobro y estado).
+      const pst = String((ap.payment && ap.payment.status) || "");
+      if (ref && (pst === "approved" || pst === "rejected")) {
+        const c = await coachInfo(ref.coachId);
+        const ok = pst === "approved";
+        await avisar("ap:" + ap.id + ":" + pst, (ok ? "Cobro recibido " : "Cobro rechazado ") + pesos(ap.transaction_amount),
+          ok ? "#2FA0FF" : "#FF4D4D", [
+            ["Coach", c.name], ["Mail", c.email], ["Plan", PLANES[ref.plan].name],
+            ["Monto", pesos(ap.transaction_amount) + " " + (ap.currency_id || "ARS")],
+            ["Estado", ok ? "Aprobado" : "Rechazado" + (ap.payment.status_detail ? " (" + ap.payment.status_detail + ")" : "")],
+            ["Fecha", fecha(ap.debit_date || ap.date_created)], ["Cobro MP", String(ap.id)],
+          ]);
+      }
     } else if (type.includes("preapproval")) {
       await syncPreapproval(id);
     }
