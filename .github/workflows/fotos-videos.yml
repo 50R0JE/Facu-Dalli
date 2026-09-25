@@ -1,0 +1,38 @@
+# Hojas de contacto de los videos de ejercicios (4 fotogramas por video) para revisarlos a ojo,
+# y búsqueda de Shorts nuevos. Deja el resultado en la rama "revision-videos" (se pisa cada vez).
+# A mano: Actions → "Fotos de videos" → Run workflow.
+name: Fotos de videos
+
+on:
+  workflow_dispatch:
+    inputs:
+      archivo:
+        description: "JSON con los ejercicios, sus videos y búsquedas"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  fotos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Armar hojas
+        env:
+          ARCHIVO: ${{ inputs.archivo }}
+        run: |
+          case "$ARCHIVO" in *..*|/*) echo "::error::Ruta inválida"; exit 1;; esac
+          python3 scripts/fotos-videos.py "$ARCHIVO" "$RUNNER_TEMP/out"
+      - name: Subir a la rama revision-videos
+        run: |
+          cd "$RUNNER_TEMP/out"
+          git init -q -b revision-videos
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "Hojas de revisión de videos"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" revision-videos
