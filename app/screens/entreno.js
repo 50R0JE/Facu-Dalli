@@ -1,3 +1,5 @@
+import { exVideo } from '../core/videos.js';
+
 import { EX_CATS, EX_DB, RC } from '../core/data.js';
 
 import { checkSvg, chevronDownSvg, pencilSvg, playSvg, resetSvg, searchSvg, swapSvg, trashSvg, trophySvg, xSvg } from '../core/icons.js';
@@ -220,7 +222,7 @@ export function renderEntreno(){
         ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${esc(ex.id)}" title="Cambiar ejercicio">${swapSvg}</button>
         <button class="trash" data-action="removeex" data-ex="${esc(ex.id)}" title="Eliminar ejercicio">${trashSvg}</button>`}
       </div>
-      ${ex.video&&/^https:\/\//i.test(ex.video)?`<a class="ex-video" href="${esc(ex.video)}" target="_blank" rel="noopener">${playSvg} Ver video del ejercicio</a>`:''}
+      ${(()=>{ const v=exVideo(ex); return v?`<a class="ex-video" href="${esc(v.url)}" target="_blank" rel="noopener">${playSvg} Ver video del ejercicio${v.channel?`<span class="ex-video-by">· ${esc(v.channel)}</span>`:''}</a>`:''; })()}
       ${(ex.rir||ex.goal)?`<div class="ex-prog">
         ${ex.rir?`<span class="ep-chip">RIR ${esc(ex.rir)}</span>`:''}
         ${ex.goal?`<span class="ep-goal">${esc(ex.goal)}</span>`:''}
