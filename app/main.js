@@ -3,7 +3,7 @@ import './ui/keyboard.js';
 import { DEFAULT, PPL_DAYS } from './core/data.js';
 
 import { disablePush, enablePush, pushLogout } from './core/push.js';
-import { checkSetPR, playPR, prSets, PR_HOLD_MS } from './ui/festejo.js';
+import { checkSetPR, forgetPR, playPR, suspiciousKg, PR_HOLD_MS } from './ui/festejo.js';
 import { auIcoEye, auIcoEyeOff, checkSvg } from './core/icons.js';
 
 import { State, state } from './core/state.js';
@@ -137,6 +137,7 @@ document.body.addEventListener("input", async e => {
     if(s){
       s[a]=t.value;
       if(a === "kg"){
+        forgetPR(s.id); // si era la serie del récord y corrige el peso, puede volver a festejar
         // El peso casi siempre se repite: se copia a las series de abajo que están vacías o
         // que se completaron solas antes (si el cliente cambia una a mano, esa ya no se toca).
         autoKg.delete(s.id);
@@ -369,8 +370,17 @@ document.body.addEventListener("click", async e => {
   if (a === "toggle") {
     const s=ex.sets.find(x=>x.id===el.dataset.set);
     const wasDone=allSetsDone(ex);
+    // Peso que parece mal escrito (625 en vez de 62,5): se pregunta antes de tildar, así no
+    // queda guardado como mejor marca y le tapa los récords de verdad.
+    if(!s.done){
+      const prev=suspiciousKg(ex, s);
+      if(prev!==null && !confirm("¿Seguro que son "+String(s.kg).replace(".",",")+" kg?"+(prev?" Tu mejor marca en este ejercicio es "+String(prev).replace(".",",")+" kg.":"")+"\n\nSi lo escribiste mal, tocá Cancelar y corregilo.")){
+        const inp=document.querySelector('input.kg[data-set="'+CSS.escape(s.id)+'"]'); if(inp){ inp.focus(); inp.select(); }
+        return;
+      }
+    }
     s.done=!s.done;
-    if(!s.done) prSets.delete(s.id);
+    if(!s.done) forgetPR(s.id);
     const prDiff=checkSetPR(ex, s);
     save();
     const nowDone=allSetsDone(ex);
