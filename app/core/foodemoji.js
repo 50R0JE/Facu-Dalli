@@ -63,9 +63,11 @@ const memo = new Map();
 export function foodEmoji(name, cat) {
   const key = name + "|" + (cat || "");
   if (memo.has(key)) return memo.get(key);
-  const n = " " + norm(String(name || "")) + " ";
-  let e = null;
-  for (const [re, em] of RULES) { if (re.test(n)) { e = em; break; } }
+  const full = " " + norm(String(name || "")) + " ";
+  // En "Avena con leche" o "Arroz con pollo" manda lo que va antes del "con".
+  const head = full.split(" con ")[0] + " ";
+  const match = n => { for (const [re, em] of RULES) if (re.test(n)) return em; return null; };
+  let e = match(head) || match(full);
   if (!e) e = CAT[cat || catOf(name)] || "🍽️";
   memo.set(key, e);
   return e;

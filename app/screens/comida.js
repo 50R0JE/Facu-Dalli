@@ -8,7 +8,9 @@ import { flameSvg, searchSvg, xSvg } from '../core/icons.js';
 
 import { state } from '../core/state.js';
 
-import { esc, norm, ymd } from '../core/utils.js';
+import { esc, norm, today, ymd } from '../core/utils.js';
+
+import { addDays, dayLabel, dayShort, pastDay } from './comida-historial.js';
 
 import { foodEmoji } from '../core/foodemoji.js';
 
@@ -30,6 +32,9 @@ export const ComidaState = {
 
   // Comida a la que se agregan los alimentos (null = la de la hora, ver mealNow).
   meal: null,
+
+  // Día que se está mirando (null = hoy). Los anteriores son solo para ver.
+  viewDate: null,
 
   // Hidratación con todas sus opciones a la vista.
   waterOpen: false,
@@ -222,7 +227,17 @@ export function renderComida(){
       <button class="ctrl primary" style="max-width:240px;margin:0 auto" data-action="cal-open">Configurar meta</button>
     </div>`;
   }
-  const t = (state.coachPlan && state.coachPlan.kcal) ? state.coachPlan.kcal : state.calTarget, tot = diaryTotals(), mt = macroTargets();
+  const t = (state.coachPlan && state.coachPlan.kcal) ? state.coachPlan.kcal : state.calTarget, mt = macroTargets();
+  // Día que se mira: hoy (se carga y se edita) o uno anterior (solo para ver, de la nube).
+  const td = today(), vd = (ComidaState.viewDate && ComidaState.viewDate < td) ? ComidaState.viewDate : td, past = vd !== td;
+  const pd = past ? pastDay(vd) : null;
+  const items = past ? pd.items : state.diary;
+  const tot = past ? items.reduce((a,e)=>({kcal:a.kcal+(Number(e.kcal)||0), p:a.p+(Number(e.p)||0), c:a.c+(Number(e.c)||0), f:a.f+(Number(e.f)||0)}), {kcal:0,p:0,c:0,f:0}) : diaryTotals();
+  const dayNav = `<div class="day-nav">
+      <button class="day-arrow" data-action="day-prev" aria-label="Día anterior">‹</button>
+      <div class="day-lbl"><b>${dayLabel(vd)}</b><span>${vd===td ? dayShort(vd) : "Deslizá para cambiar de día"}</span></div>
+      <button class="day-arrow" data-action="day-next" aria-label="Día siguiente"${past?'':' disabled'}>›</button>
+    </div>`;
   // planFull/planBanner se calculan acá (ya con coachPlan cargado) pero se insertan al
   // final del return, no acá arriba: el plan escrito por el coach puede ser largo
   // (varias tablas de comidas, opciones, reemplazos) y antes iba primero en la pantalla,
@@ -239,25 +254,27 @@ export function renderComida(){
     const w = tgt ? Math.min(Math.round(cons/tgt*100),100) : 0;
     return `<div><div class="macro-top"><b>${lbl}</b><span>${Math.round(cons)} / ${tgt} g</span></div><div class="bar"><div style="width:${w}%"></div></div></div>`;
   };
+  const r1 = n => (Math.round((Number(n)||0)*10)/10).toLocaleString("es-AR");
   const item = e=>`
-    <div class="diary-item" data-action="diary-edit" data-id="${esc(e.id)}">
+    <div class="diary-item${past?' ro':''}"${past?'':` data-action="diary-edit" data-id="${esc(e.id)}"`}>
       <span class="food-emo" aria-hidden="true">${foodEmoji(e.name)}</span>
-      <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${e.p} · C ${e.c} · G ${e.f}</span></div>
+      <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${r1(e.p)} · C ${r1(e.c)} · G ${r1(e.f)}</span></div>
       <div class="diary-kcal">${e.kcal} kcal</div>
-      <button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>
+      ${past?'':`<button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>`}
     </div>`;
   const known = new Set(MEALS.map(m=>m[0]));
-  const sections = MEALS.concat(state.diary.some(e=>!known.has(e.meal)) ? [["otras","Otras comidas","🍴"]] : []).map(m=>{
-    const list = state.diary.filter(e=> m[0]==="otras" ? !known.has(e.meal) : e.meal===m[0]);
+  const sections = (past && pd.status!=="done") ? `<div class="cal-hint">${pd.status==="loading" ? "Cargando…" : esc(pd.msg)}</div>` : MEALS.concat(items.some(e=>!known.has(e.meal)) ? [["otras","Otras comidas","🍴"]] : []).map(m=>{
+    const list = items.filter(e=> m[0]==="otras" ? !known.has(e.meal) : e.meal===m[0]);
     const kc = list.reduce((a,e)=>a+(Number(e.kcal)||0),0);
     return `<section class="meal">
       <div class="meal-head"><span class="meal-ic" aria-hidden="true">${m[2]}</span><span class="meal-t">${m[1]}</span><span class="meal-k">${kc ? kc.toLocaleString("es-AR")+" kcal" : ""}</span>
-        ${m[0]!=="otras" ? `<button class="meal-add" data-action="meal-add" data-meal="${m[0]}" aria-label="Agregar a ${m[1]}">+</button>` : ""}</div>
-      ${list.length ? list.map(item).join("") : `<div class="meal-empty">Todavía nada</div>`}
+        ${(m[0]!=="otras" && !past) ? `<button class="meal-add" data-action="meal-add" data-meal="${m[0]}" aria-label="Agregar a ${m[1]}">+</button>` : ""}</div>
+      ${list.length ? list.map(item).join("") : `<div class="meal-empty">${past?"Nada anotado":"Todavía nada"}</div>`}
     </section>`;
   }).join("");
-  const curMeal = ComidaState.meal || mealNow();
   return `
+    <div class="day-swipe">
+    ${dayNav}
     <div class="cal-top">
     <div class="ring-wrap">
       <svg class="ring" viewBox="0 0 120 120">
@@ -270,15 +287,16 @@ export function renderComida(){
         <div class="ring-lbl">de ${t} kcal</div>
       </div>
     </div>
-    ${renderWeekAvg(t)}
     </div>
     <div class="macros">
       ${mbar("Proteína", tot.p, mt.p)}
       ${mbar("Carbos", tot.c, mt.c)}
       ${mbar("Grasas", tot.f, mt.f)}
     </div>
+    ${past ? `<div class="meals">${sections}</div>
+    <button class="ctrl day-today" data-action="day-today">Volver a hoy</button>
+    </div>` : `
     <button class="cal-edit" data-action="cal-open">Editar meta</button>
-    <div class="add-to"><span class="add-to-t">Agregar a</span>${mealChips(curMeal, "meal-pick")}</div>
     <div class="food-search-row">
       <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Buscar alimento o marca…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
       <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
@@ -302,7 +320,8 @@ export function renderComida(){
       </div>` : ""}
     </div>
     ${planBanner}
-    ${planFull}`;
+    ${planFull}
+    </div>`}`;
 }
 
 // ---- Crudo / cocido ----
@@ -351,23 +370,3 @@ export function weekKcal(){
   return vals.length ? { avg: Math.round(vals.reduce((a,b)=>a+b,0)/vals.length), days: vals.length } : null;
 }
 
-// Recuadro chico al lado del anillo de calorías. Con los datos del cliente (Mifflin-St
-// Jeor, ver calcTarget) se compara con su mantenimiento: déficit / superávit. Si la meta
-// la puso el coach o se cargó a mano, no se sabe el mantenimiento y se compara con la meta.
-function renderWeekAvg(target){
-  const w = weekKcal();
-  if(!w) return `<button class="wk-avg empty" data-action="food-hist-open"><span class="wk-t">Promedio 7 días</span><span class="wk-hint">Registrá lo que comés unos días para verlo</span><span class="wk-go">Ver días anteriores ›</span></button>`;
-  const prof = state.calProfile, useMaint = !state.coachPlan && prof && +prof.age>0 && +prof.height>0 && +prof.weight>0;
-  const ref = useMaint ? calcTarget(Object.assign({}, prof, {goal:"mantener"})) : target;
-  const diff = w.avg - ref, band = ref * 0.05;
-  const st = !ref ? "" : Math.abs(diff) <= band ? "eq" : (diff < 0 ? "down" : "up");
-  const lbl = { eq: useMaint ? "Mantenimiento" : "En tu meta", down: useMaint ? "Déficit" : "Debajo de la meta", up: useMaint ? "Superávit" : "Arriba de la meta" }[st] || "";
-  const sign = diff > 0 ? "+" : diff < 0 ? "−" : "";
-  return `<button class="wk-avg ${st}" data-action="food-hist-open" title="Promedio de los días registrados de la última semana, comparado con ${useMaint?"tu mantenimiento ("+ref+" kcal)":"tu meta ("+ref+" kcal)"}">
-    <span class="wk-t">Promedio 7 días</span>
-    <span class="wk-n">${w.avg.toLocaleString("es-AR")}<small> kcal/día</small></span>
-    ${st ? `<span class="wk-st">${lbl}</span><span class="wk-d">${sign}${Math.abs(Math.round(diff)).toLocaleString("es-AR")} kcal vs ${useMaint?"mantenim.":"meta"}</span>` : ""}
-    <span class="wk-days">${w.days} de 7 días registrados</span>
-    <span class="wk-go">Ver lo que comiste ›</span>
-  </button>`;
-}

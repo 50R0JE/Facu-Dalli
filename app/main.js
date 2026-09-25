@@ -59,7 +59,7 @@ import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
 
 import { productByCode, searchOFF } from './core/off.js';
 
-import { HistState, goFoodHist, openFoodHist, renderFoodHist, stepFoodHist } from './screens/comida-historial.js';
+import { addDays, loadDay, retryDay } from './screens/comida-historial.js';
 import { EditState, cleanSessionEdit, openSessionEdit, removeSessionEditSet, renderSessionEdit, setSessionEditVal } from './ui/sessionedit.js';
 import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
 
@@ -95,19 +95,41 @@ export function renderApp(){
   initScrollReveal();
   setupExerciseFocus();
   renderRestBar();
-  const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="comida" && HistState.open) ? renderFoodHist() : (State.view==="progreso" && EditState.se) ? renderSessionEdit() : "");
+  const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="progreso" && EditState.se) ? renderSessionEdit() : "");
   if (State.view==="habitos" && HabitosState.pendingFocusHabit) { const i=document.getElementById("habitInput"); if(i) i.focus(); HabitosState.pendingFocusHabit=false; }
   if (State.view==="entreno" && HabitosState.pendingFocusDay) { const i=v.querySelector(".day-name"); if(i){ i.focus(); i.select(); } HabitosState.pendingFocusDay=false; }
 }
 
-// "Lo que comiste": con la ventana ya abierta se cambia solo su contenido (redibujar todo
-// volvía a animarla como si se abriera de nuevo al pasar de un día a otro).
-function paintFoodHist(){
-  const card=document.querySelector("#sheetHost .fh-sheet");
-  if(!card){ renderApp(); return; }
-  const tmp=document.createElement("div"); tmp.innerHTML=renderFoodHist();
-  const fresh=tmp.querySelector(".fh-sheet"); if(fresh) card.innerHTML=fresh.innerHTML;
+// Comida: cambiar el día que se mira (n = -1 anterior, 1 siguiente, 0 hoy). Los anteriores
+// se traen de la nube la primera vez; no se puede pasar de hoy.
+function goDay(n){
+  const td=today(), cur=ComidaState.viewDate||td;
+  const d = n===0 ? td : addDays(cur, n);
+  if(d>td || d===cur) return;
+  ComidaState.viewDate = d===td ? null : d;
+  if(d!==td){ retryDay(d); loadDay(d, ()=>{ if(State.view==="comida" && ComidaState.viewDate===d) renderApp(); }); }
+  renderApp();
+  const box=document.querySelector("#view .day-swipe");
+  if(box){ box.classList.add(n<0 ? "day-in-left" : "day-in-right"); }
 }
+
+// Deslizar en Comida cambia de día (como en Fitia): hacia la izquierda, el día anterior;
+// hacia la derecha, se vuelve hacia hoy. Solo gestos claramente horizontales, y no sobre
+// campos de texto ni con una ventana abierta.
+let _sw=null;
+document.addEventListener("touchstart", e=>{
+  if(State.view!=="comida" || e.touches.length!==1) { _sw=null; return; }
+  const t=e.target;
+  if(!t.closest || !t.closest("#view .day-swipe") || t.closest("input, textarea, select, .sheet, .meal-chips")) { _sw=null; return; }
+  _sw={x:e.touches[0].clientX, y:e.touches[0].clientY, t:Date.now()};
+}, {passive:true});
+document.addEventListener("touchend", e=>{
+  if(!_sw) return;
+  const dx=e.changedTouches[0].clientX-_sw.x, dy=e.changedTouches[0].clientY-_sw.y, dt=Date.now()-_sw.t; _sw=null;
+  if(Math.abs(dx)<60 || Math.abs(dy)>Math.abs(dx)*0.6 || dt>800) return;
+  if(document.querySelector("#sheetHost .sheet")) return;
+  goDay(dx<0 ? -1 : 1);
+}, {passive:true});
 
 // Editar entreno: al quitar una serie se redibuja solo el contenido de la ventana.
 function paintSessionEdit(){
@@ -284,11 +306,9 @@ document.body.addEventListener("click", async e => {
     else { ComidaState.sheetGrams = String(Math.round(n*unit)); renderApp(); }
     return;
   }
-  if (a === "food-hist-open") { openFoodHist(paintFoodHist); return; }
-  if (a === "food-hist-close") { closeSheet(()=>{ HistState.open=false; renderApp(); }); return; }
-  if (a === "food-hist-day") { goFoodHist(el.dataset.date, paintFoodHist); return; }
-  if (a === "food-hist-prev") { stepFoodHist(-1, paintFoodHist); return; }
-  if (a === "food-hist-next") { stepFoodHist(1, paintFoodHist); return; }
+  if (a === "day-prev") { goDay(-1); return; }
+  if (a === "day-next") { goDay(1); return; }
+  if (a === "day-today") { goDay(0); return; }
   if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return; }
   // Comida elegida: se marca el botón en el lugar, sin redibujar (no se pierde lo escrito en
   // el buscador ni se vuelve a animar la hoja del alimento).
@@ -313,6 +333,7 @@ document.body.addEventListener("click", async e => {
     const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
     rememberOffProduct(f0);
     state.diary.push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
+    ComidaState.meal=null;
     save(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
