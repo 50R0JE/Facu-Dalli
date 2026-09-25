@@ -27,6 +27,7 @@ jobs:
       - name: Revisar videos
         env:
           ARCHIVO: ${{ inputs.archivo || 'app/core/videos.js' }}
+          DEBUG_LANG: ${{ inputs.archivo && '1' || '' }}
         run: |
           case "$ARCHIVO" in *..*) echo "::error::Ruta inválida"; exit 1;; esac
           node scripts/verificar-videos.mjs "$ARCHIVO"

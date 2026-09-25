@@ -27,11 +27,12 @@ async function check(id){
   // Idioma hablado: YouTube genera subtítulos automáticos en el idioma que detecta en el
   // audio (pista "asr", vssId "a.<idioma>"). Si no hay, se toma el idioma del video.
   try{
-    const w = await fetch("https://www.youtube.com/watch?v=" + id, { headers: UA });
+    const w = await fetch("https://www.youtube.com/watch?v=" + id + "&hl=es", { headers: { ...UA, Cookie: "CONSENT=YES+1; SOCS=CAI" } });
     const h = await w.text();
     const asr = h.match(/"vssId":"a\.([A-Za-z-]+)"/);
     const def = h.match(/"defaultAudioLanguage":"([A-Za-z-]+)"/);
     r.lang = asr ? asr[1] : (def ? def[1] : "");
+    if(!r.lang && process.env.DEBUG_LANG) r.debug = w.status + " len " + h.length + (h.includes("captionTracks") ? " captions" : "") + (/not a bot|LOGIN_REQUIRED|UNPLAYABLE/.test(h) ? " botwall" : "") + " " + (h.match(/"playabilityStatus":\{"status":"([A-Z_]+)"/)||[])[1];
   }catch(e){ r.lang = ""; }
   r.ok = r.oembed === 200 && r.short === true;
   return r;
@@ -42,7 +43,7 @@ for(let i = 0; i < ids.length; i += 6){
   out.push(...await Promise.all(ids.slice(i, i + 6).map(check)));
 }
 fs.writeFileSync("videos-resultado.json", JSON.stringify(out, null, 1));
-for(const r of out) console.log((r.ok ? "OK   " : "MAL  ") + r.id + " | " + (r.lang || "??") + " | " + (r.channel || "-") + " | " + (r.title || "") + (r.ok ? "" : " | oembed " + r.oembed + " short " + (r.shortStatus || r.short)));
+for(const r of out) console.log((r.ok ? "OK   " : "MAL  ") + r.id + " | " + (r.lang || "??") + " | " + (r.channel || "-") + " | " + (r.title || "") + (r.debug ? " | " + r.debug : "") + (r.ok ? "" : " | oembed " + r.oembed + " short " + (r.shortStatus || r.short)));
 console.log(`\n${out.filter(r => r.ok).length} de ${out.length} bien`);
 // Sobre la biblioteca de la app, un video roto hace fallar el workflow (GitHub avisa por mail).
 if(file.endsWith("videos.js") && out.some(r => !r.ok)) process.exitCode = 1;
