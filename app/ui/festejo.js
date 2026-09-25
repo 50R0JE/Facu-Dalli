@@ -5,13 +5,12 @@
 // sesión (no se guarda en la rutina).
 import { state } from '../core/state.js';
 import { today } from '../core/utils.js';
-import { bestKgBefore } from '../screens/progreso.js';
 import { trophySvg } from '../core/icons.js';
 
 // Series que fueron récord en esta sesión (para el trofeo junto al número de serie).
 export const prSets = new Set();
-// Ejercicios ya festejados hoy: "fecha|nombre".
-const celebrated = new Set();
+// Ejercicios ya festejados hoy: "fecha|nombre" → la serie que lo ganó.
+const celebrated = new Map();
 
 const fmtKg = n => (Math.round(n * 10) / 10).toLocaleString("es-AR", { maximumFractionDigits: 1 });
 
@@ -23,13 +22,52 @@ export function checkSetPR(ex, s) {
   if (kg <= 0 || reps <= 0) return null;
   const key = today() + "|" + ex.name;
   if (celebrated.has(key)) return null;
-  // Los entrenos de hoy ya guardados no cuentan como "antes" (si guardó y sigue cargando).
-  const t = today();
-  const prev = bestKgBefore(ex.name, (state.sessions || []).filter(se => se.date !== t));
+  const prev = prevBest(ex);
   if (prev === null || kg <= prev) return null;
-  celebrated.add(key);
+  celebrated.set(key, s.id);
   prSets.add(s.id);
   return kg - prev;
+}
+
+// Mejor marca de entrenos anteriores. Los de hoy ya guardados no cuentan como "antes" (si
+// guardó y sigue cargando). Una marca suelta muy por encima de todas las demás (625 kg
+// cuando el resto anda por 60) es un error de tipeo que quedó guardado: se usa la
+// siguiente, si no el alumno no volvía a ver un récord hasta superar el número mal escrito.
+function prevBest(ex) {
+  const t = today();
+  const kgs = [];
+  (state.sessions || []).forEach(se => {
+    if (se.date === t) return;
+    (se.exercises || []).forEach(e => {
+      if (e.name !== ex.name) return;
+      (e.sets || []).forEach(x => { const kg = +x.kg || 0; if (kg > 0) kgs.push(kg); });
+    });
+  });
+  if (!kgs.length) return null;
+  kgs.sort((a, b) => b - a);
+  const [top, next] = kgs;
+  // Solo saltos de error de tipeo (coma o cero de más: ~10 veces más), no progresiones reales.
+  if (next !== undefined && top >= next * 2.5 && top - next >= 20) return next;
+  return top;
+}
+
+// ¿El peso es tanto más que su mejor marca que parece mal escrito (625 en vez de 62,5)?
+// Devuelve la mejor marca para mostrarla en la pregunta, o null si el peso es creíble.
+export function suspiciousKg(ex, s) {
+  const kg = +s.kg || 0;
+  if (kg <= 0) return null;
+  const prev = prevBest(ex);
+  if (prev === null) return kg > 400 ? 0 : null;
+  // Casi el doble de su mejor marca (y 20 kg más) o más de 400 kg: pregunta. Una subida
+  // normal (60 → 65, 40 → 60) no pregunta nada.
+  return (kg >= prev * 1.8 && kg - prev >= 20) || kg > 400 ? prev : null;
+}
+
+// La serie que ganó el festejo se destildó o se le cambió el peso (se había escrito mal):
+// se devuelve el festejo del ejercicio para que pueda volver a salir con el peso bien.
+export function forgetPR(setId) {
+  if (!prSets.delete(setId)) return;
+  for (const [k, id] of celebrated) if (id === setId) celebrated.delete(k);
 }
 
 // Anima la fila de la serie (ya dibujada). Sin movimiento si el celular pide reducirlo.
