@@ -427,6 +427,8 @@
 .auth-google:hover { background:#1f1f21; border-color:#b4b7b5; }
 .auth-google:focus-visible { outline:2px solid var(--gize-blue); outline-offset:4px; }
 .auth-google:disabled { opacity:.7; cursor:progress; }
+/* El botón propio queda en la página como respaldo cuando está el de Google: [hidden] solo no alcanza porque .auth-google tiene display:flex. */
+.auth-google[hidden] { display:none; }
 .auth-google-ic { width:20px; height:20px; flex:none; }
 /* Botón oficial de Google (web): lo dibuja Google en un iframe; acá solo se centra y entra con la misma animación. */
 .auth-google-gis { display:flex; justify-content:center; min-height:44px; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }

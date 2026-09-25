@@ -170,22 +170,32 @@ export async function mountGoogleButton(){
     own.hidden = true; // queda en la página por si hace falta volver al flujo de siempre
   } catch (e) { console.error("google button", e); }
 }
+let _gisBusy = false;
 async function onGoogleCredential(resp, rawNonce){
+  // Un login a la vez: si afterLogin tarda más que el splash, el login vuelve a verse y un
+  // segundo toque arrancaba otro en paralelo (dos canjes, dos cargas, coach aplicado dos veces).
+  if (_gisBusy || State.cloudUser) return;
+  _gisBusy = true;
+  try { await googleCredentialLogin(resp, rawNonce); } finally { _gisBusy = false; }
+}
+async function googleCredentialLogin(resp, rawNonce){
   const isUp = !!document.getElementById("auRole");
   const role = ((document.getElementById("auRole") || {}).value || "client").trim();
   const code = ((document.getElementById("auCode") || {}).value || "").trim();
+  // Si algo falla, el login vuelve como estaba (modo, "Soy coach", código y lo escrito).
+  const V = { role, code, name: ((document.getElementById("auName") || {}).value || "").trim(), email: ((document.getElementById("auEmail") || {}).value || "").trim() };
   // Lo mismo que guarda signInWithGoogle antes de irse: afterLogin lo aplica (coach / código).
   try { localStorage.setItem(GOOGLE_INTENT, JSON.stringify({ role: isUp && role === "coach" ? "coach" : "client", t: Date.now() })); } catch (e) {}
   if (isUp && role === "client" && code) { try { localStorage.setItem("jfit_pending_code", code.toUpperCase()); } catch (e) {} }
   if (window.coreReplay) window.coreReplay();
   if (!State.sb) await ensureSb();
-  if (!State.sb) { if (window.coreCancel) window.coreCancel(); clearGoogleIntent(); showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", isUp ? "up" : "in"); return; }
+  if (!State.sb) { if (window.coreCancel) window.coreCancel(); clearGoogleIntent(); showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", isUp ? "up" : "in", V); return; }
   let r;
   try { r = await State.sb.auth.signInWithIdToken({ provider: "google", token: resp && resp.credential, nonce: rawNonce }); }
   catch (e) { r = { error: e }; }
   if (r.error || !r.data || !r.data.session) {
     clearGoogleIntent(); if (window.coreCancel) window.coreCancel();
-    showLogin(GOOGLE_ERROR_MSG + authErrDetail(r.error && r.error.message), "in"); return;
+    showLogin(GOOGLE_ERROR_MSG + authErrDetail(r.error && r.error.message), isUp ? "up" : "in", V); return;
   }
   try { await afterLogin(r.data.session.user); } finally { if (window.coreEnter) window.coreEnter(); }
 }
