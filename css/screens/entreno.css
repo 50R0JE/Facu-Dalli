@@ -156,3 +156,4 @@
 .re-hint { font-size:var(--text-meta); color:var(--gize-text-2); text-align:center; line-height:1.4; }
 .re-reset { align-self:center; background:none; border:0; color:var(--gize-blue); font-weight:600; font-size:var(--text-meta); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
 @media (prefers-reduced-motion: reduce) { .rest-edit svg { transition:none; } }
+.ex-video-by { font-weight:500; color:var(--txt-3); }

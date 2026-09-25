@@ -1,3 +1,5 @@
+import { libVideo } from '../../core/videos.js';
+
 import { EX_CATS, EX_DB } from '../../core/data.js';
 
 import { checkSvg, chevronDownSvg, chevronLeftSvg, chevronRightSvg, copySvg, downloadSvg, gripSvg, saveSvg, searchSvg, swapSvg, trashSvg, xSvg } from '../../core/icons.js';
@@ -259,6 +261,14 @@ function rirRestSummary(ex){
   return bits.join(" \u00b7 ");
 }
 
+// Sin link propio, el cliente ve el Short de la biblioteca de GIZE (si hay uno para ese
+// ejercicio): se le avisa al coach cuál es y que pegando el suyo lo reemplaza.
+function libVideoHint(ex){
+  if(ex.video) return '';
+  const v=libVideo(ex.name); if(!v) return '';
+  return '<div class="co-vid-lib">El cliente ve un video sugerido por GIZE (canal '+esc(v.channel)+'). <a href="'+esc(v.url)+'" target="_blank" rel="noopener">Verlo</a> \u00b7 Peg\u00e1 tu link para reemplazarlo.</div>';
+}
+
 // Tarjeta de un ejercicio en el editor de rutina del coach. Pensada para el celular:
 // cerrada muestra el nombre completo (hasta 2 renglones) y las series; abierta, una barra
 // de acciones con botones grandes y con texto (subir, bajar, cambiar, duplicar, quitar) en
@@ -326,7 +336,7 @@ function exerciseCard(d, day, ex, i, rt){
         setsTbl+
         '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><textarea class="co-note co-note-area" rows="2" data-coach="rt-note" data-i="'+i+'" placeholder="Técnica, tempo, qué cuidar…">'+esc(ex.note||"")+'</textarea></div>'+
-        '<div class="co-note-wrap"><span class="co-note-lbl">Link de video</span><input class="co-note" type="url" inputmode="url" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="Pegá el link de YouTube o Instagram"></div>'+
+        '<div class="co-note-wrap"><span class="co-note-lbl">Link de video</span><input class="co-note" type="url" inputmode="url" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="Pegá el link de YouTube o Instagram">'+libVideoHint(ex)+'</div>'+
         '<details class="co-exc-fold"><summary>Ver progreso'+(prog?' <span class="co-exc-fold-hint">('+esc(prog)+')</span>':'')+'</summary><div class="co-exc-prog">'+exChart(d, day.name, ex.name)+'</div><div class="co-exc-tbl">'+exTable(d, day.name, ex.name)+'</div></details>'+
       '</div>'+
     '</div>';

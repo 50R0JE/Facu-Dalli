@@ -2,13 +2,13 @@
 // que existan, que sean Shorts, que se puedan mostrar en otras páginas y de qué canal son.
 // Se corre en GitHub Actions (workflow "Videos"): desde ahí YouTube responde normal.
 //   node scripts/verificar-videos.mjs <archivo>
-// Toma todos los ids que encuentre en el archivo (links /shorts/<id> o "id":"<id>").
+// Toma todos los ids que encuentre en el archivo (links /shorts/<id>, "id":"<id>" o "Ejercicio": ["<id>", …]).
 import fs from "fs";
 
 const file = process.argv[2] || "app/core/videos.js";
 if(!fs.existsSync(file)){ console.log("No existe " + file + ": nada para revisar."); fs.writeFileSync("videos-resultado.json", "[]"); process.exit(0); }
 const txt = fs.readFileSync(file, "utf8");
-const ids = [...new Set([...txt.matchAll(/(?:shorts\/|"id"\s*:\s*")([\w-]{11})/g)].map(m => m[1]))];
+const ids = [...new Set([...txt.matchAll(/(?:shorts\/|"id"\s*:\s*"|:\s*\[")([\w-]{11})/g)].map(m => m[1]))];
 const UA = { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36", "Accept-Language": "es-AR,es;q=0.9" };
 
 async function check(id){

@@ -311,3 +311,7 @@
 .co-day-mv svg { width:var(--icon-md); height:var(--icon-md); flex-shrink:0; color:var(--blue-2); }
 .co-day-mv:disabled { opacity:.35; cursor:default; }
 .co-day-move .co-day-del { min-height:40px; }
+
+/* Aviso del video de la biblioteca debajo del link de video. */
+.co-vid-lib { margin-top:6px; font-size:var(--text-meta); line-height:1.45; color:var(--txt-3); }
+.co-vid-lib a { color:var(--blue-2); font-weight:700; text-decoration:none; }
