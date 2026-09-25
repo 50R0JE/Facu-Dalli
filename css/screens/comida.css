@@ -141,3 +141,31 @@ body.scan-open { overflow:hidden; }
   .cal-top { flex-direction:column; }
   .wk-avg { flex-basis:auto; width:100%; max-width:260px; }
 }
+
+/* "Promedio 7 días" ahora es un botón que abre "Lo que comiste" (comida-historial.js). */
+button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer; appearance: none; }
+.wk-go { font-size: 11px; font-weight: 600; color: var(--gize-blue); margin-top: 2px; }
+
+/* "Lo que comiste" */
+.fh-sheet { max-height: min(78dvh, calc(100dvh - var(--kb, 0px) - 12px)); }
+.fh-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.fh-title { flex: 1; min-width: 0; text-align: center; display: flex; flex-direction: column; }
+.fh-title .sheet-title { margin: 0; }
+.fh-sub { font-size: 12px; color: var(--gize-text-2); }
+.fh-arrow { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--gize-border); background: var(--gize-surface-2);
+  color: var(--gize-text); font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.fh-arrow:disabled { opacity: .3; cursor: default; }
+.fh-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
+.fh-day { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 7px; border-radius: 12px;
+  border: 1px solid var(--gize-border); background: transparent; color: var(--gize-text-2); font: inherit; cursor: pointer; min-width: 0; }
+.fh-day.on { border-color: var(--gize-blue); background: color-mix(in srgb, var(--gize-blue) 12%, transparent); color: var(--gize-text); }
+.fh-bar { width: 8px; height: 34px; border-radius: 4px; background: var(--gize-surface-2); display: flex; align-items: flex-end; overflow: hidden; }
+.fh-bar i { display: block; width: 100%; border-radius: 4px; background: var(--gize-blue); }
+.fh-dn { font-size: 11px; font-weight: 600; }
+.fh-dk { font-size: 10px; font-family: var(--gize-font-data); font-variant-numeric: tabular-nums; }
+.fh-tot { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 2px 12px;
+  border-bottom: 1px solid var(--gize-border); margin-bottom: 8px; }
+.fh-tot b { font-size: 18px; }
+.fh-tot span { font-size: 12.5px; color: var(--gize-text-2); }
+.fh-item { cursor: default; }
+.fh-close { margin-top: 14px; width: 100%; max-width: none; }
