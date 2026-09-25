@@ -55,11 +55,11 @@ async function openAuthLink(url){
   const mark=(p.get("code")||p.get("access_token")||p.get("error_code")||"").slice(-24);
   try{ if(mark && localStorage.getItem(AUTH_LINK_USED)===mark) return false; localStorage.setItem(AUTH_LINK_USED, mark); }catch(e){}
   const failMsg = isGoogle ? GOOGLE_ERROR_MSG : CONFIRM_ERROR_MSG;
-  if(p.get("error")||p.get("error_code")||p.get("error_description")){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
+  if(p.get("error")||p.get("error_code")||p.get("error_description")){ clearGoogleIntent(); showLogin(failMsg+authErrDetail(p.get("error_description")||p.get("error")),"in"); return true; }
   // Solo el código PKCE: un link con tokens sueltos (#access_token=...) se ignora.
   const code=p.get("code"); if(!code) return false;
   const r=await State.sb.auth.exchangeCodeForSession(code);
-  if(r.error||!r.data.session){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
+  if(r.error||!r.data.session){ clearGoogleIntent(); showLogin(failMsg+authErrDetail(r.error && r.error.message),"in"); return true; }
   if(isGoogle){
     if(window.coreReplay) window.coreReplay();
     try{ await afterLogin(r.data.session.user); } finally { if(window.coreEnter) window.coreEnter(); }
@@ -75,6 +75,15 @@ async function openAuthLink(url){
 // por Google; afterLogin() lo aplica al volver.
 const GOOGLE_INTENT = "gize_google_intent";
 const GOOGLE_ERROR_MSG = "No se pudo entrar con Google. Probá de nuevo o ingresá con tu email y contraseña.";
+// El motivo que manda Supabase, para el cartel (ej. "Unable to exchange external code": Google
+// rechazó la clave secreta cargada en Supabase). Se corta lo que venga después de ":" porque
+// puede traer el código de un solo uso.
+function authErrDetail(desc){
+  let d=String(desc||"").replace(/\+/g," ");
+  try{ d=decodeURIComponent(d); }catch(e){} // en el # viene codificado dos veces
+  d=d.split(":")[0].trim().slice(0,120);
+  return d ? " (Detalle: "+d+")" : "";
+}
 function clearGoogleIntent(){ try{ localStorage.removeItem(GOOGLE_INTENT); }catch(e){} }
 function takeGoogleIntent(){
   try{ const v=JSON.parse(localStorage.getItem(GOOGLE_INTENT)||"null"); localStorage.removeItem(GOOGLE_INTENT); return v; }catch(e){ return null; }
@@ -803,7 +812,7 @@ export async function cloudBoot(){
     else if(CONFIRM_ERROR){
       try{ history.replaceState(null,"",location.pathname); }catch(e){}
       // Volvió de Google con error (canceló, o el proveedor falló): no es el link del mail.
-      showLogin(takeGoogleIntent() ? GOOGLE_ERROR_MSG : CONFIRM_ERROR_MSG,"in");
+      showLogin((takeGoogleIntent() ? GOOGLE_ERROR_MSG : CONFIRM_ERROR_MSG)+authErrDetail(BOOT_AUTH.get("error_description")),"in");
     }
     // La app estaba cerrada y la abrió el link del mail.
     else if(app && await openAuthLink(((await app.getLaunchUrl().catch(()=>null))||{}).url)){}
