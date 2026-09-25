@@ -58,6 +58,8 @@ async function openAuthLink(url){
   if(p.get("error")||p.get("error_code")||p.get("error_description")){ clearGoogleIntent(); showLogin(failMsg+authErrDetail(p.get("error_description")||p.get("error")),"in"); return true; }
   // Solo el código PKCE: un link con tokens sueltos (#access_token=...) se ignora.
   const code=p.get("code"); if(!code) return false;
+  if(!State.sb) await ensureSb();
+  if(!State.sb){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
   const r=await State.sb.auth.exchangeCodeForSession(code);
   if(r.error||!r.data.session){ clearGoogleIntent(); showLogin(failMsg+authErrDetail(r.error && r.error.message),"in"); return true; }
   if(isGoogle){
@@ -868,17 +870,21 @@ export async function cloudBoot(){
   // cuenta", y lo que se cargaba ahí se daba por guardado sin entrar nunca a la cola de
   // envío. Ahora se pide el login, que al tocar "Ingresar" reintenta la conexión.
   const offlineMsg="No hay conexión con el servidor. Revisá tu internet y tocá Ingresar para reintentar.";
-  if(!State.sb){ showLogin(offlineMsg,"in"); if(window.coreEnter) window.coreEnter(); return; }
   const app=NativeApp();
-  // Con la app ya abierta (en segundo plano) el link del mail llega por acá. Si ya hay una
-  // cuenta adentro se ignora: cambiar de cuenta sin logout mezclaría los datos locales.
+  // Con la app ya abierta (en segundo plano) el link del mail y la vuelta de Google llegan por
+  // acá. Si ya hay una cuenta adentro se ignora: cambiar de cuenta sin logout mezclaría los
+  // datos locales. Se registra ANTES de mirar si cargó Supabase: si la librería tardó al abrir
+  // la app y después el usuario toca Google, la vuelta tiene que llegar igual.
   if(app){ try{ app.addListener("appUrlOpen", e=>{
     const B=window.Capacitor.Plugins.Browser; if(B && e && e.url && e.url.indexOf("gize://login")===0) B.close().catch(()=>{});
-    if(!State.cloudUser) openAuthLink(e && e.url).catch(err=>console.error("authLink",err));
+    if(State.cloudUser) return;
+    ensureSb().then(sb=>{ if(!sb){ showLogin(offlineMsg,"in"); return; } return openAuthLink(e && e.url); })
+      .catch(err=>console.error("authLink",err));
   }); }catch(e){} }
   // Si se cierra el navegador de Google sin terminar, el botón quedaba en "Abriendo Google...".
   const Br=app && window.Capacitor.Plugins.Browser;
   if(Br){ try{ Br.addListener("browserFinished", ()=>{ setTimeout(()=>{ const g=document.querySelector('[data-auth="google"]'); if(!State.cloudUser && g && g.disabled) showLogin("","in"); }, 800); }); }catch(e){} }
+  if(!State.sb){ showLogin(offlineMsg,"in"); if(window.coreEnter) window.coreEnter(); return; }
   try{
     const sess=await State.sb.auth.getSession();
     // La sesión anterior era sin "mantener iniciada" y ya se borró al cerrar: se limpian los
