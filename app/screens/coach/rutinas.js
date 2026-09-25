@@ -6,7 +6,7 @@ import { State } from '../../core/state.js';
 
 import { migrateNames } from '../../core/storage.js';
 
-import { esc, mkEx, muscleOf, today } from '../../core/utils.js';
+import { esc, isTimedEx, mkEx, muscleOf, today } from '../../core/utils.js';
 
 import { coachDatalist, exChart, exSummary, exTable } from './clientes.js';
 
@@ -267,7 +267,8 @@ function exerciseCard(d, day, ex, i, rt){
   const open=CoachState.coachExpandedEx.has(ex.id);
   const nSets=(ex.sets||[]).length;
   const swatch='<span class="co-exc-swatch" style="background:'+exSwatchColor(ex)+'"></span>';
-  const badge='<span class="co-exc-badge">'+nSets+' serie'+(nSets===1?'':'s')+'</span>';
+  const timed=isTimedEx(ex);
+  const badge='<span class="co-exc-badge">'+nSets+' serie'+(nSets===1?'':'s')+(timed?' · por tiempo':'')+'</span>';
   const rirTxt=rirRestSummary(ex);
   const chevron='<span class="co-exc-chevron'+(open?' open':'')+'">'+chevronDownSvg+'</span>';
   const ord=ex.o?'<span class="co-exc-ord">'+esc(ex.o)+'</span>':'';
@@ -296,11 +297,11 @@ function exerciseCard(d, day, ex, i, rt){
   const sets=(ex.sets||[]).map((st,j)=>
     '<div class="co-set-row">'+
       '<span class="co-set-n">'+(j+1)+'</span>'+
-      '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="8-10" aria-label="Reps objetivo, serie '+(j+1)+'">'+
+      '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="'+(timed?'45 s':'8-10')+'" aria-label="'+(timed?'Tiempo':'Reps')+' objetivo, serie '+(j+1)+'">'+
       '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="kg" aria-label="Peso objetivo, serie '+(j+1)+'">'+
       '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie" aria-label="Quitar serie '+(j+1)+'">\u2715</button>'+
     '</div>').join("");
-  const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>Reps objetivo</span><span>Peso objetivo</span><span></span></div>'+sets : '';
+  const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>'+(timed?'Tiempo objetivo':'Reps objetivo')+'</span><span>'+(timed?'Peso (opcional)':'Peso objetivo')+'</span><span></span></div>'+sets : '';
   const prog=exSummary(d, day.name, ex.name);
   const field=(lbl, a, v, ph, cls)=>'<label class="co-pfield"><span class="co-note-lbl">'+lbl+'</span><input class="co-pin'+(cls||"")+'" data-coach="'+a+'" data-i="'+i+'" value="'+esc(v||"")+'" placeholder="'+ph+'"></label>';
   return '<div class="co-exc co-exc-open" data-id="'+esc(ex.id)+'">'+
@@ -311,6 +312,10 @@ function exerciseCard(d, day, ex, i, rt){
       '</div>'+
       actions+
       '<div class="co-exc-body">'+
+        '<div class="co-mode"><span class="co-note-lbl">Se mide por</span><div class="co-seg" role="radiogroup" aria-label="Se mide por">'+
+          '<button type="button" class="co-seg-opt'+(timed?'':' on')+'" role="radio" aria-checked="'+(!timed)+'" data-coach="rt-timed" data-i="'+i+'" data-v="0">Reps</button>'+
+          '<button type="button" class="co-seg-opt'+(timed?' on':'')+'" role="radio" aria-checked="'+timed+'" data-coach="rt-timed" data-i="'+i+'" data-v="1">Tiempo</button>'+
+        '</div></div>'+
         '<div class="co-prow">'+
           field("Orden","rt-o",ex.o,"A1"," sm")+
           field("RIR","rt-rir",ex.rir,"2-0")+

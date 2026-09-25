@@ -2,7 +2,7 @@ import { xSvg } from '../core/icons.js';
 
 import { State, state } from '../core/state.js';
 
-import { esc, exMuscle, fmtDate, today } from '../core/utils.js';
+import { esc, exMuscle, fmtDate, fmtSecs, setText, today } from '../core/utils.js';
 
 import { renderCheckin, renderDaily, renderInfo } from './checkin.js';
 
@@ -90,10 +90,14 @@ export function renderCargas(){
     .sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,16);
   const histRows=allSess.map(se=>{
     const ex=se.exercises.find(e=>e.name===EntrenoState.loadEx);
-    const sets=(ex.sets||[]).filter(s=>+s.kg||+s.reps);
-    const setsHtml=sets.map((s,i)=>'<div class="hx-set"><span class="hx-n">S'+(i+1)+'</span><span class="hx-kg">'+(s.kg||0)+' kg</span><span class="hx-x">×</span><span class="hx-reps">'+(s.reps||0)+'</span></div>').join("");
+    const sets=(ex.sets||[]).filter(s=>+s.kg||+s.reps||+s.secs);
+    const setsHtml=sets.map((s,i)=>(+s.secs>0)
+      ? '<div class="hx-set"><span class="hx-n">S'+(i+1)+'</span><span class="hx-reps">'+esc(setText(s))+'</span></div>'
+      : '<div class="hx-set"><span class="hx-n">S'+(i+1)+'</span><span class="hx-kg">'+(s.kg||0)+' kg</span><span class="hx-x">×</span><span class="hx-reps">'+(s.reps||0)+'</span></div>').join("");
     const best=sets.reduce((m,s)=>Math.max(m,+s.kg||0),0);
-    return '<div class="hx-row"><div class="hx-meta"><span class="hx-date">'+fmtDate(se.date)+'</span><span class="hx-best">máx '+best+' kg</span></div><div class="hx-sets">'+setsHtml+'</div></div>';
+    const bestSecs=sets.reduce((m,s)=>Math.max(m,+s.secs||0),0);
+    const bestStr=best>0 ? 'máx '+best+' kg' : (bestSecs>0 ? 'máx '+fmtSecs(bestSecs) : 'máx 0 kg');
+    return '<div class="hx-row"><div class="hx-meta"><span class="hx-date">'+fmtDate(se.date)+'</span><span class="hx-best">'+bestStr+'</span></div><div class="hx-sets">'+setsHtml+'</div></div>';
   }).join("");
   const histBlock=allSess.length ? '<div class="hx-wrap">'+histRows+'</div>' : '<div class="cal-hint">Sin historial para este ejercicio.</div>';
   return '<div class="hb-head" style="margin-top:28px"><div class="hb-title">Evolución de cargas</div><div class="title-accent"></div></div>'+
@@ -124,7 +128,7 @@ export function lastSessionFor(exName){
 export function renderLastSession(exName){
   const prev=lastSessionFor(exName);
   if(!prev) return "";
-  const sets=prev.sets.map((s,i)=>'<span class="ls-set"><b>'+(s.kg||0)+'</b>kg × <b>'+(s.reps||0)+'</b></span>').join('<span class="ls-sep">·</span>');
+  const sets=prev.sets.map((s,i)=>(+s.secs>0) ? '<span class="ls-set"><b>'+esc(setText(s))+'</b></span>' : '<span class="ls-set"><b>'+(s.kg||0)+'</b>kg × <b>'+(s.reps||0)+'</b></span>').join('<span class="ls-sep">·</span>');
   return '<div class="last-sess"><span class="ls-lbl">La vez pasada ('+fmtDate(prev.date)+')</span><div class="ls-sets">'+sets+'</div></div>';
 }
 

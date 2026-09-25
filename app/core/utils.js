@@ -59,3 +59,25 @@ export function tabRipple(btn, clientX, clientY){
   btn.appendChild(span);
   setTimeout(()=>{ span.remove(); }, 520);
 }
+
+// ---- Ejercicios por tiempo (plancha, isométricos, colgado de barra…) ----
+// En vez de reps se anotan segundos, y cada serie tiene un cronómetro. El coach lo elige por
+// ejercicio (ex.timed); si no eligió nada se deduce del nombre.
+const TIMED_RE = /plancha|plank|isom[eé]tric|hollow|wall ?sit|sentadilla (isom|en (la )?pared|contra (la )?pared)|dead ?hang|colgad|l-?sit|puente (isom|sostenid)|sostenid|\bhold\b|farmer|paseo del granjero|caminata del granjero/i;
+export function isTimedEx(ex){ if(!ex) return false; if(typeof ex.timed === "boolean") return ex.timed; return TIMED_RE.test(ex.name || ""); }
+// "45", "45 s", "45''", "0:45", "1:30", "1'30", "1 min" → segundos. Un rango ("30-45") toma el primero.
+export function parseSecs(v){
+  const t = String(v == null ? "" : v).trim().toLowerCase(); if(!t) return 0;
+  let m = t.match(/^(\d+)\s*[:'´]\s*(\d{1,2})\b/); if(m) return (+m[1]) * 60 + (+m[2]);
+  m = t.match(/^(\d+(?:[.,]\d+)?)\s*(min|m\b|'(?!'))/); if(m) return Math.round(parseFloat(m[1].replace(",", ".")) * 60);
+  m = t.match(/(\d+)/); return m ? Math.min(+m[1], 36000) : 0;
+}
+export function fmtSecs(s){ s = Math.max(0, Math.round(+s || 0)); const m = Math.floor(s / 60), r = s % 60; return m ? m + ":" + String(r).padStart(2, "0") : r + " s"; }
+// Texto de una serie ya hecha: "40 kg × 8", "12 reps", "45 s", "10 kg · 1:00".
+export function setText(st){
+  const kg = parseFloat(String(st && st.kg || 0).replace(",", ".")) || 0, reps = +(st && st.reps) || 0, secs = +(st && st.secs) || 0;
+  const k = (Math.round(kg * 100) / 100).toString().replace(".", ",");
+  if(secs > 0) return (kg > 0 ? k + " kg · " : "") + fmtSecs(secs);
+  if(kg > 0) return k + " kg" + (reps > 0 ? " × " + reps : "");
+  return reps > 0 ? reps + " reps" : "—";
+}

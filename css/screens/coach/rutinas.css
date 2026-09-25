@@ -293,3 +293,10 @@
 /* Agregar ejercicio al final de la lista. */
 .co-rt-add-end { display:block; width:100%; margin:4px 0 16px; padding:14px; background:none; border:1px dashed var(--blue-2); border-radius:8px; color:var(--blue-2); font-size:var(--text-body); font-weight:700; cursor:pointer; }
 .co-rt-add-end:hover { background:color-mix(in srgb, var(--gize-blue) 10%, transparent); }
+
+/* Se mide por: Reps / Tiempo (plancha, isométricos). */
+.co-mode { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+.co-mode .co-note-lbl { margin-bottom:0; }
+.co-seg { display:inline-flex; background:var(--card-2); border:1px solid var(--border); border-radius:999px; padding:3px; }
+.co-seg-opt { min-width:78px; min-height:36px; padding:0 14px; border:none; border-radius:999px; background:none; color:var(--txt-2); font-size:var(--text-meta); font-weight:700; cursor:pointer; }
+.co-seg-opt.on { background:var(--gize-blue); color:#04121F; }

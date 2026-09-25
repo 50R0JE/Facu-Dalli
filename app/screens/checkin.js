@@ -8,7 +8,7 @@ import { save } from '../core/storage.js';
 
 import { cloudInsertSession, isOnline, newId } from '../core/supabase.js';
 
-import { esc, fmtDate, mondayOf, today } from '../core/utils.js';
+import { esc, fmtDate, mondayOf, parseSecs, today } from '../core/utils.js';
 
 import { renderApp } from '../main.js';
 
@@ -37,10 +37,10 @@ export const CheckinState = {
 export function saveSession(){
   const d=day(); const exs=[];
   (d.exercises||[]).forEach(ex=>{
-    const sets=(ex.sets||[]).map(s=>({kg:parseFloat(String(s.kg).replace(",","."))||0, reps:parseInt(s.reps)||0})).filter(s=>s.kg>0||s.reps>0);
+    const sets=(ex.sets||[]).map(s=>{ const o={kg:parseFloat(String(s.kg).replace(",","."))||0, reps:parseInt(s.reps)||0}; const sc=parseSecs(s.secs); if(sc>0) o.secs=Math.min(36000,sc); return o; }).filter(s=>s.kg>0||s.reps>0||s.secs>0);
     if(sets.length) exs.push({name:ex.name, sets:sets});
   });
-  if(!exs.length){ alert("Cargá kg o reps en al menos una serie antes de guardar el entreno."); return; }
+  if(!exs.length){ alert("Cargá kg, reps o segundos en al menos una serie antes de guardar el entreno."); return; }
   CheckinState.newPRs=detectPRs(exs, state.sessions); // contra el historial ANTES de sumar esta sesión
   const _ns={id:newId(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
   state.sessions.push(_ns);

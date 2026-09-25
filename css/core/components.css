@@ -158,6 +158,23 @@
 
 .unit { font-size: var(--text-meta); color: var(--txt-3); }
 
+/* Series por tiempo (plancha, isométricos): segundos + cronómetro de la serie. */
+.secs { width: 60px; }
+
+.set.timed .kg { width: 58px; }
+
+.tmr { flex: 1; min-width: 0; height: 44px; border-radius: 4px; border: 1px solid color-mix(in srgb, var(--blue) 45%, var(--border)); background: color-mix(in srgb, var(--blue) 10%, transparent);
+    color: var(--blue-2); font-weight: 700; font-size: var(--text-set-value); font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center; gap: var(--space-6, 6px); cursor: pointer; transition: var(--transition-tap); }
+
+.tmr svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.tmr.run { background: var(--blue); border-color: var(--blue); color: var(--gize-text); box-shadow: var(--glow-sm); }
+
+.tmr.run svg { display: none; }
+
+.tmr:active { transform: scale(.97); }
+
 .done { width: 44px; height: 44px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--txt-3);
     display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: var(--transition-tap), transform .14s cubic-bezier(.23,1,.32,1); }
 

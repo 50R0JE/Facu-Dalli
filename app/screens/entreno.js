@@ -8,13 +8,15 @@ import { save } from '../core/storage.js';
 
 import { syncFootText } from '../core/supabase.js';
 
-import { esc, norm, today } from '../core/utils.js';
+import { esc, fmtSecs, isTimedEx, norm, parseSecs, setText, today } from '../core/utils.js';
 
 import { renderApp } from '../main.js';
 
 import { allSetsDone, bestKgBefore, bestSetOf, renderLastSession } from './progreso.js';
 
 import { parseRest } from '../ui/restbar.js';
+
+import { timerText } from '../ui/settimer.js';
 
 export const EntrenoState = {
 
@@ -176,14 +178,32 @@ export function renderEntreno(){
       // entero (best.kg sobre null) y dejaba la pestaña Entreno en blanco. Con reps
       // mostramos el mejor número de reps en su lugar; sin ninguno de los dos, "Completado".
       let bestReps=0; (ex.sets||[]).forEach(s=>{ const r=+s.reps||0; if(r>bestReps) bestReps=r; });
-      const bestStr = best ? (best.kg+' kg × '+best.reps) : (bestReps>0 ? bestReps+' reps' : 'Completado');
+      let bestSecs=0; (ex.sets||[]).forEach(s=>{ const r=parseSecs(s.secs); if(r>bestSecs) bestSecs=r; });
+      const bestStr = isTimedEx(ex) ? (bestSecs>0 ? 'máx '+fmtSecs(bestSecs) : 'Completado')
+        : best ? (best.kg+' kg × '+best.reps) : (bestReps>0 ? bestReps+' reps' : 'Completado');
       return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${esc(ex.id)}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
         <span class="ex-collapsed-name">${esc(ex.name)}</span>
-        <span class="ex-collapsed-best${best||bestReps>0?'':' is-done'}">${bestStr}</span>
+        <span class="ex-collapsed-best${bestStr!=='Completado'?'':' is-done'}">${bestStr}</span>
       </div>`;
     }
-    const sets = ex.sets.map((s,i) => `
+    // Por tiempo (plancha, isométricos): segundos en vez de reps, con un cronómetro por serie.
+    // El peso solo aparece si el coach lo pidió o el cliente ya lo cargó (casi siempre va sin peso).
+    const timed = isTimedEx(ex);
+    const setRow = (s,i) => {
+      const tg = parseSecs(s.target);
+      const kgField = (s.targetKg || String(s.kg||"") !== "") ? `<div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">kg</span></div>` : '';
+      return `
+      <div class="set timed">
+        <span class="idx">${i+1}</span>
+        ${kgField}
+        <div class="field"><input class="secs" type="text" inputmode="numeric" placeholder="${tg||0}" value="${esc(s.secs||"")}" data-action="secs" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" aria-label="Segundos, serie ${i+1}"><span class="unit">seg</span></div>
+        <button class="tmr" data-action="set-timer" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" aria-label="Cronómetro de la serie ${i+1}">${playSvg}<span class="tmr-t">${esc(timerText(s.id, tg))}</span></button>
+        <button class="done${s.done?' on':''}" data-action="toggle" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}">${s.done?checkSvg:''}</button>
+        ${routineLocked()?'':`<button class="rm" data-action="removeset" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" title="Quitar serie">${xSvg}</button>`}
+      </div>`;
+    };
+    const sets = timed ? ex.sets.map(setRow).join("") : ex.sets.map((s,i) => `
       <div class="set">
         <span class="idx">${i+1}</span>
         <div class="field"><input class="kg" type="text" inputmode="decimal" placeholder="0" value="${esc(s.kg)}" data-action="kg" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}"><span class="unit">kg</span></div>
