@@ -530,7 +530,18 @@ export async function loadCloud(){
       resolveAvatars([State.cloudProfile.avatar_path]).then(ok=>{ if(ok && State.view==="config") renderApp(); }).catch(()=>{});
     }
     const rt=sbOk(rt0);
-    if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
+    // La rutina de cliente no es del coach: antes, al entrar un coach se subía la rutina que
+    // hubiera en el navegador y, si la base la rechazaba, no cargaba nada más de su cuenta.
+    const isCoach=!!(State.cloudProfile && State.cloudProfile.role==="coach");
+    // Una rutina que la base rechaza (datos viejos o inválidos, ver seguridad-base.sql) no se va
+    // a poder subir nunca: se deja la local y sigue la carga, en vez de trabar toda la cuenta.
+    const upRoutine=async()=>{
+      const r=await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"});
+      if(r.error && r.error.code==="22023"){ console.error("rutina rechazada",r.error); return false; }
+      sbOk(r); return true;
+    };
+    if(isCoach){}
+    else if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
       if(routineLocked()){
         // Con coach, la rutina manda el coach: se toma la de la nube y solo se conserva lo
         // que el cliente cargó a mano (kg, reps, tildes) de cada serie.
@@ -538,7 +549,7 @@ export async function loadCloud(){
       } else if(localRoutineWins(rt.data)){
         // El cliente cambió su rutina en el celular sin poder subirla (sin señal) y ese
         // cambio es más nuevo que la nube: se sube en vez de perderlo.
-        sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
+        if(!await upRoutine()) state.days = rt.data.days;
       } else {
         state.days = rt.data.days;
       }
@@ -546,8 +557,7 @@ export async function loadCloud(){
       if(!state.days.find(d=>d.id===State.activeId)) State.activeId=state.days[0].id;
       markRoutineSynced(state.days);
     } else if(!routineLocked()) {
-      sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
-      markRoutineSynced(state.days);
+      if(await upRoutine()) markRoutineSynced(state.days);
     }
     State.cloudReady=true;
     if(!ws.error && Array.isArray(ws.data)){
