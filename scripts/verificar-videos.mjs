@@ -1,6 +1,5 @@
 // Revisa los videos de YouTube de la biblioteca de ejercicios (o una lista de candidatos):
-// que existan, que sean Shorts, que se puedan mostrar en otras páginas, de qué canal son y en
-// qué idioma hablan.
+// que existan, que sean Shorts, que se puedan mostrar en otras páginas y de qué canal son.
 // Se corre en GitHub Actions (workflow "Videos"): desde ahí YouTube responde normal.
 //   node scripts/verificar-videos.mjs <archivo>
 // Toma todos los ids que encuentre en el archivo (links /shorts/<id>, "id":"<id>" o "Ejercicio": ["<id>", …]).
@@ -24,16 +23,6 @@ async function check(id){
     r.short = s.status === 200; // un video común redirige (303) a /watch
     if(!r.short) r.shortStatus = s.status + " " + (s.headers.get("location") || "");
   }catch(e){ r.short = "error " + e.message; }
-  // Idioma hablado: YouTube genera subtítulos automáticos en el idioma que detecta en el
-  // audio (pista "asr", vssId "a.<idioma>"). Si no hay, se toma el idioma del video.
-  try{
-    const w = await fetch("https://www.youtube.com/watch?v=" + id + "&hl=es", { headers: { ...UA, Cookie: "CONSENT=YES+1; SOCS=CAI" } });
-    const h = await w.text();
-    const asr = h.match(/"vssId":"a\.([A-Za-z-]+)"/);
-    const def = h.match(/"defaultAudioLanguage":"([A-Za-z-]+)"/);
-    r.lang = asr ? asr[1] : (def ? def[1] : "");
-    if(!r.lang && process.env.DEBUG_LANG) r.debug = w.status + " len " + h.length + (h.includes("captionTracks") ? " captions" : "") + (/not a bot|LOGIN_REQUIRED|UNPLAYABLE/.test(h) ? " botwall" : "") + " " + (h.match(/"playabilityStatus":\{"status":"([A-Z_]+)"/)||[])[1];
-  }catch(e){ r.lang = ""; }
   r.ok = r.oembed === 200 && r.short === true;
   return r;
 }
@@ -43,7 +32,7 @@ for(let i = 0; i < ids.length; i += 6){
   out.push(...await Promise.all(ids.slice(i, i + 6).map(check)));
 }
 fs.writeFileSync("videos-resultado.json", JSON.stringify(out, null, 1));
-for(const r of out) console.log((r.ok ? "OK   " : "MAL  ") + r.id + " | " + (r.lang || "??") + " | " + (r.channel || "-") + " | " + (r.title || "") + (r.debug ? " | " + r.debug : "") + (r.ok ? "" : " | oembed " + r.oembed + " short " + (r.shortStatus || r.short)));
+for(const r of out) console.log((r.ok ? "OK   " : "MAL  ") + r.id + " | " + (r.channel || "-") + " | " + (r.title || "") + (r.ok ? "" : " | oembed " + r.oembed + " short " + (r.shortStatus || r.short)));
 console.log(`\n${out.filter(r => r.ok).length} de ${out.length} bien`);
 // Sobre la biblioteca de la app, un video roto hace fallar el workflow (GitHub avisa por mail).
 if(file.endsWith("videos.js") && out.some(r => !r.ok)) process.exitCode = 1;
