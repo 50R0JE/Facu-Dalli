@@ -7,9 +7,9 @@ import { auIcoEye, auIcoEyeOff, checkSvg } from './core/icons.js';
 
 import { State, state } from './core/state.js';
 
-import { KEY, migrateNames, save } from './core/storage.js';
+import { KEY, migrateNames, routineHash, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, RECOVERY_REQ, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, parseSecs, tabRipple, today, uid } from './core/utils.js';
 
@@ -493,9 +493,12 @@ document.body.addEventListener("click", async e=>{
     // kg y reps de la persona anterior.
     // Los cambios del día (agua, comidas, hábitos) salen con 1,5 s de demora: se manda la
     // cola antes de contar, así solo avisa si de verdad quedó algo sin subir.
-    if(State.cloudUser){ b.disabled=true; try{ await flushOutbox(); }catch(e){} b.disabled=false; }
-    const n=State.cloudUser?pendingCount():0;
-    if(n>0 && !confirm("Tenés "+n+" registro"+(n>1?"s":"")+" sin sincronizar todavía en este dispositivo. Si cerrás sesión ahora podrías perderlo"+(n>1?"s":"")+". ¿Cerrar sesión igual?")) return;
+    if(State.cloudUser){ b.disabled=true; try{ await flushOutbox(); await syncRoutineNow(); }catch(e){} b.disabled=false; }
+    if(State.cloudUser && localUnsynced()){
+      const n=pendingCount();
+      const que = n>0 ? n+" registro"+(n>1?"s":"")+(state.routineHash!==routineHash(state.days)?" y cambios de tu rutina":"") : "cambios de tu rutina";
+      if(!confirm("Tenés "+que+" que todavía no se guardaron en tu cuenta (sin conexión). Si cerrás sesión ahora se pierden.\n\nConectate a internet, abrí la app y esperá unos segundos antes de salir.\n\n¿Cerrar sesión igual?")) return;
+    }
     try{ await pushLogout(); }catch(e){} // antes del signOut: borrar el dispositivo necesita la sesión
     try{ await State.sb.auth.signOut(); }catch(e){}
     try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); localStorage.removeItem("gize_session_ephemeral"); }catch(e){}
