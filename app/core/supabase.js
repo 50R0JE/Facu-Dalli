@@ -588,7 +588,7 @@ export async function loadCloud(){
       state.diaryDate=state.waterDate=state.stepsDate=state.habitsDate=today();
       state.water=todayRow.water_ml||0;
       state.steps=todayRow.steps||0;
-      state.diary=(fe.data||[]).map(r=>({id:r.id, name:r.name, grams:Number(r.grams)||0, kcal:r.kcal||0, p:Number(r.protein)||0, c:Number(r.carbs)||0, f:Number(r.fat)||0, unit:r.unit||"g", base:r.base||undefined}));
+      state.diary=(fe.data||[]).map(r=>({id:r.id, meal:r.meal||undefined, name:r.name, grams:Number(r.grams)||0, kcal:r.kcal||0, p:Number(r.protein)||0, c:Number(r.carbs)||0, f:Number(r.fat)||0, unit:r.unit||"g", base:r.base||undefined}));
       applyHabitsDone(todayRow.habits_done);
       _lastDay=JSON.stringify(daySnapshot());
     }
@@ -647,7 +647,7 @@ function daySnapshot(){
   return {
     dt:t, water:state.water||0, steps:state.steps||0,
     habits:{ coach:coachHabits.filter(n=>state.habitsDone && state.habitsDone[t+"|"+n]), own:(state.habits||[]).filter(h=>h.done).map(h=>h.name) },
-    foods:(state.diary||[]).map(e=>{ if(!UUID_RE.test(String(e.id))) e.id=newId(); return {id:e.id, name:e.name, grams:e.grams, unit:e.unit||"g", kcal:e.kcal||0, p:e.p||0, c:e.c||0, f:e.f||0, base:e.base||null}; })
+    foods:(state.diary||[]).map(e=>{ if(!UUID_RE.test(String(e.id))) e.id=newId(); return {id:e.id, meal:e.meal||null, name:e.name, grams:e.grams, unit:e.unit||"g", kcal:e.kcal||0, p:e.p||0, c:e.c||0, f:e.f||0, base:e.base||null}; })
   };
 }
 
@@ -936,7 +936,7 @@ async function sendItem(it){
     // Solo las columnas del día: el upsert no toca comentario, sueño, etc. del registro.
     sbOk(await sb.from("daily_logs").upsert({client_id:uid, log_date:p.dt, water_ml:p.water, steps:p.steps, habits_done:p.habits},{onConflict:"client_id,log_date"}));
     if(p.foods.length){
-      sbOk(await sb.from("food_entries").upsert(p.foods.map((f,i)=>({id:f.id, client_id:uid, log_date:p.dt, pos:i, name:f.name, grams:f.grams, unit:f.unit, kcal:f.kcal, protein:f.p, carbs:f.c, fat:f.f, base:f.base})),{onConflict:"id"}));
+      sbOk(await sb.from("food_entries").upsert(p.foods.map((f,i)=>({id:f.id, client_id:uid, log_date:p.dt, pos:i, meal:f.meal||null, name:f.name, grams:f.grams, unit:f.unit, kcal:f.kcal, protein:f.p, carbs:f.c, fat:f.f, base:f.base})),{onConflict:"id"}));
     }
     // Lo que el cliente sacó del diario de ese día.
     let del=sb.from("food_entries").delete().eq("client_id",uid).eq("log_date",p.dt);
@@ -1016,7 +1016,7 @@ function applyPending(){
       state.checkins[p.wk]=Object.assign({}, state.checkins[p.wk]||{}, p.f);
     } else if(it.k==="day" && p.dt===today()){
       state.water=p.water; state.steps=p.steps;
-      state.diary=p.foods.map(f=>({id:f.id, name:f.name, grams:f.grams, kcal:f.kcal, p:f.p, c:f.c, f:f.f, unit:f.unit, base:f.base||undefined}));
+      state.diary=p.foods.map(f=>({id:f.id, meal:f.meal||undefined, name:f.name, grams:f.grams, kcal:f.kcal, p:f.p, c:f.c, f:f.f, unit:f.unit, base:f.base||undefined}));
       applyHabitsDone(p.habits);
       _lastDay=JSON.stringify(p);
     } else if(it.k==="prefs"){

@@ -35,7 +35,7 @@ import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, render
 
 import { CoachState } from './screens/coach/state.js';
 
-import { ComidaState, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
+import { ComidaState, mealNow, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
 
 import { EntrenoState, REST_DEFAULT, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, effectiveRest, restKey, restLabel, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
@@ -289,21 +289,38 @@ document.body.addEventListener("click", async e => {
   if (a === "food-hist-day") { goFoodHist(el.dataset.date, paintFoodHist); return; }
   if (a === "food-hist-prev") { stepFoodHist(-1, paintFoodHist); return; }
   if (a === "food-hist-next") { stepFoodHist(1, paintFoodHist); return; }
-  if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; renderApp(); }); return; }
+  if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return; }
+  // Comida elegida: se marca el botón en el lugar, sin redibujar (no se pierde lo escrito en
+  // el buscador ni se vuelve a animar la hoja del alimento).
+  if (a === "meal-pick" || a === "sheet-meal") {
+    if (a === "meal-pick") ComidaState.meal = el.dataset.meal; else ComidaState.sheetMeal = el.dataset.meal;
+    el.parentElement.querySelectorAll(".meal-chip").forEach(b=>{ const on=b===el; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+    return;
+  }
+  // "+" de una comida: queda elegida y se va al buscador.
+  if (a === "meal-add") {
+    ComidaState.meal = el.dataset.meal;
+    document.querySelectorAll('[data-action="meal-pick"]').forEach(b=>{ const on=b.dataset.meal===el.dataset.meal; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
+    const inp=document.getElementById("foodSearch");
+    if(inp){ inp.scrollIntoView({block:"center", behavior:"smooth"}); inp.focus({preventScroll:true}); }
+    return;
+  }
+  if (a === "water-toggle") { ComidaState.waterOpen=!ComidaState.waterOpen; renderApp(); return; }
   if (a === "portion-add") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const f0 = ComidaState.selectedFood; if(!f0){ return; } const fc = g/100;
     // Con crudo/cocido se guardan los valores del estado elegido y queda en el nombre.
     const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
     rememberOffProduct(f0);
-    state.diary.push({ id:newId(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
-    save(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; renderApp(); }); return;
+    state.diary.push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
+    save(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const e = ComidaState.editEntry; if(!e){ return; } const base=entryBase(e); const fc=g/100;
+    if(ComidaState.sheetMeal) e.meal=ComidaState.sheetMeal;
     e.grams=Math.round(g); e.kcal=Math.round(base.kcal*fc); e.p=+(base.p*fc).toFixed(1); e.c=+(base.c*fc).toFixed(1); e.f=+(base.f*fc).toFixed(1); e.unit=base.unit||"g"; e.base=base;
-    save(); closeSheet(()=>{ ComidaState.editEntry=null; renderApp(); }); return;
+    save(); closeSheet(()=>{ ComidaState.editEntry=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
   if (a === "diary-edit") { SheetState.sheetGen++; ComidaState.editEntry = state.diary.find(x=>x.id===el.dataset.id)||null; ComidaState.selectedFood=null; renderApp(); return; }
   if (a === "diary-remove") { state.diary = state.diary.filter(x=>x.id!==el.dataset.id); save(); renderApp(); return; }

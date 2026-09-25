@@ -10,9 +10,29 @@ import { state } from '../core/state.js';
 
 import { esc, norm, ymd } from '../core/utils.js';
 
+import { foodEmoji } from '../core/foodemoji.js';
+
 import { renderClientPlan } from './checkin.js';
 
+// Las 4 comidas del día (como Fitia). Lo anotado antes de que existieran queda en "otras".
+export const MEALS = [["desayuno", "Desayuno", "☀️"], ["almuerzo", "Almuerzo", "🍽️"], ["merienda", "Merienda", "🧉"], ["cena", "Cena", "🌙"]];
+export const mealName = id => (MEALS.find(m => m[0] === id) || [0, "Otras comidas"])[1];
+// La comida que corresponde a esta hora: la que se elige sola al agregar un alimento.
+export function mealNow(){ const h = new Date().getHours(); return h < 11 ? "desayuno" : h < 16 ? "almuerzo" : h < 20 ? "merienda" : "cena"; }
+
+// Botones para elegir la comida (arriba del buscador y en la hoja del alimento).
+export function mealChips(sel, action){
+  return '<div class="meal-chips" role="radiogroup" aria-label="Comida">' + MEALS.map(m =>
+    `<button class="meal-chip${m[0]===sel?' on':''}" role="radio" aria-checked="${m[0]===sel}" data-action="${action}" data-meal="${m[0]}">${m[1]}</button>`).join("") + '</div>';
+}
+
 export const ComidaState = {
+
+  // Comida a la que se agregan los alimentos (null = la de la hora, ver mealNow).
+  meal: null,
+
+  // Hidratación con todas sus opciones a la vista.
+  waterOpen: false,
 
   calEditing: false,
 
@@ -122,6 +142,7 @@ export function renderResults(q){
 
 function foodRow(f, action, i){
   return `<div class="food-row" data-action="${action}" data-idx="${i}">
+    <span class="food-emo" aria-hidden="true">${foodEmoji(f.name, f.cat)}</span>
     <div class="food-name">${esc(f.name)}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}${f.src==="OFF"?'<span class="food-cook">marca</span>':''}</div>
     <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}${f.cook?" "+f.cook.base:""}</span></div>
   </div>`;
@@ -218,12 +239,24 @@ export function renderComida(){
     const w = tgt ? Math.min(Math.round(cons/tgt*100),100) : 0;
     return `<div><div class="macro-top"><b>${lbl}</b><span>${Math.round(cons)} / ${tgt} g</span></div><div class="bar"><div style="width:${w}%"></div></div></div>`;
   };
-  const diary = state.diary.length ? state.diary.map(e=>`
+  const item = e=>`
     <div class="diary-item" data-action="diary-edit" data-id="${esc(e.id)}">
+      <span class="food-emo" aria-hidden="true">${foodEmoji(e.name)}</span>
       <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${e.p} · C ${e.c} · G ${e.f}</span></div>
       <div class="diary-kcal">${e.kcal} kcal</div>
       <button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>
-    </div>`).join("") : '<div class="cal-hint">Todavía no registraste nada hoy.</div>';
+    </div>`;
+  const known = new Set(MEALS.map(m=>m[0]));
+  const sections = MEALS.concat(state.diary.some(e=>!known.has(e.meal)) ? [["otras","Otras comidas","🍴"]] : []).map(m=>{
+    const list = state.diary.filter(e=> m[0]==="otras" ? !known.has(e.meal) : e.meal===m[0]);
+    const kc = list.reduce((a,e)=>a+(Number(e.kcal)||0),0);
+    return `<section class="meal">
+      <div class="meal-head"><span class="meal-ic" aria-hidden="true">${m[2]}</span><span class="meal-t">${m[1]}</span><span class="meal-k">${kc ? kc.toLocaleString("es-AR")+" kcal" : ""}</span>
+        ${m[0]!=="otras" ? `<button class="meal-add" data-action="meal-add" data-meal="${m[0]}" aria-label="Agregar a ${m[1]}">+</button>` : ""}</div>
+      ${list.length ? list.map(item).join("") : `<div class="meal-empty">Todavía nada</div>`}
+    </section>`;
+  }).join("");
+  const curMeal = ComidaState.meal || mealNow();
   return `
     <div class="cal-top">
     <div class="ring-wrap">
@@ -244,26 +277,30 @@ export function renderComida(){
       ${mbar("Carbos", tot.c, mt.c)}
       ${mbar("Grasas", tot.f, mt.f)}
     </div>
-    <div class="water-card">
-      <div class="water-top"><span class="water-ttl">\ud83d\udca7 Hidratación</span><span class="water-val">${Lstr(wml)} / ${Lstr(wgoal)} L</span></div>
-      <div class="bar"><div style="width:${wpct}%"></div></div>
-      <div class="water-btns">
-        <button class="qbtn" data-action="water-add" data-n="250">+250</button>
-        <button class="qbtn" data-action="water-add" data-n="500">+500</button>
-        <button class="qbtn" data-action="water-add" data-n="1000">+1L</button>
-        <button class="qbtn water-undo" data-action="water-add" data-n="-250">−250</button>
-      </div>
-      <button class="water-goal" data-action="water-goal">Cambiar meta (${Lstr(wgoal)} L)</button>
-    </div>
     <button class="cal-edit" data-action="cal-open">Editar meta</button>
+    <div class="add-to"><span class="add-to-t">Agregar a</span>${mealChips(curMeal, "meal-pick")}</div>
     <div class="food-search-row">
       <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Buscar alimento o marca…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
       <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
     </div>
     <div id="foodResults">${renderResults(ComidaState.foodQuery)}</div>
     <button class="cal-create" data-action="food-create-open">+ Crear alimento propio</button>
-    <div class="diary-head"><span class="t">Hoy</span><span class="s">${state.diary.length} ítems · ${tot.kcal} kcal</span></div>
-    ${diary}
+    <div class="meals">${sections}</div>
+    <div class="water-mini${ComidaState.waterOpen?' open':''}">
+      <div class="wm-row">
+        <span class="wm-ic" aria-hidden="true">💧</span>
+        <div class="wm-main"><div class="wm-top"><span class="wm-t">Agua</span><span class="wm-v">${Lstr(wml)} / ${Lstr(wgoal)} L</span></div>
+          <div class="wm-bar"><i style="width:${wpct}%"></i></div></div>
+        <button class="wm-add" data-action="water-add" data-n="250">+250 ml</button>
+        <button class="wm-more" data-action="water-toggle" aria-expanded="${ComidaState.waterOpen}" aria-label="Más opciones de agua"><span></span></button>
+      </div>
+      ${ComidaState.waterOpen ? `<div class="wm-extra">
+        <button class="qbtn" data-action="water-add" data-n="500">+500 ml</button>
+        <button class="qbtn" data-action="water-add" data-n="1000">+1 L</button>
+        <button class="qbtn water-undo" data-action="water-add" data-n="-250">−250 ml</button>
+        <button class="water-goal" data-action="water-goal">Meta: ${Lstr(wgoal)} L</button>
+      </div>` : ""}
+    </div>
     ${planBanner}
     ${planFull}`;
 }

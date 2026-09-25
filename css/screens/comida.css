@@ -169,3 +169,50 @@ button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer
 .fh-tot span { font-size: 12.5px; color: var(--gize-text-2); }
 .fh-item { cursor: default; }
 .fh-close { margin-top: 14px; width: 100%; max-width: none; }
+
+/* ---- Comidas por sección (Desayuno, Almuerzo, Merienda, Cena), con emoji por alimento ---- */
+.food-emo { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--gize-surface-2); border: 1px solid var(--gize-border); font-size: 18px; line-height: 1; }
+.food-row .food-name { flex: 1; min-width: 0; }
+.diary-item .diary-name { flex: 1; min-width: 0; }
+
+.add-to { margin: 4px 0 10px; }
+.add-to-t { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--gize-text-2); text-transform: uppercase; letter-spacing: .06em; }
+.meal-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.meal-chip { border: 1px solid var(--gize-border); background: transparent; color: var(--gize-text-2); border-radius: 999px;
+  padding: 7px 4px; font: 600 13px var(--gize-font); cursor: pointer; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meal-chip.on { border-color: var(--gize-blue); color: var(--gize-text); background: color-mix(in srgb, var(--gize-blue) 14%, transparent); }
+.sheet .meal-chips { margin: -8px 0 14px; }
+
+.meals { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 16px; }
+.meal { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px 6px; }
+.meal-head { display: flex; align-items: center; gap: 8px; padding: 2px 0 8px; }
+.meal-ic { font-size: 16px; }
+.meal-t { font-size: 16px; font-weight: 700; }
+.meal-k { margin-left: auto; font: 600 13px var(--gize-font-data); color: var(--gize-text-2); font-variant-numeric: tabular-nums; }
+.meal-add { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--gize-border); background: var(--gize-surface-2);
+  color: var(--gize-blue); font-size: 20px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.meal-add:active { background: color-mix(in srgb, var(--gize-blue) 18%, transparent); }
+.meal-empty { font-size: 13px; color: var(--gize-text-2); padding: 2px 0 8px; }
+.meal .diary-item { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; margin: 0; padding: 10px 0; }
+
+/* ---- Agua: una fila chica, las demás opciones se abren con la flecha ---- */
+.water-mini { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; margin-bottom: 16px; }
+.wm-row { display: flex; align-items: center; gap: 10px; }
+.wm-ic { font-size: 18px; }
+.wm-main { flex: 1; min-width: 0; }
+.wm-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.wm-t { font-size: 14px; font-weight: 600; }
+.wm-v { font: 600 12.5px var(--gize-font-data); color: var(--gize-text-2); }
+.wm-bar { height: 4px; border-radius: 4px; background: var(--gize-surface-2); margin-top: 6px; overflow: hidden; }
+.wm-bar i { display: block; height: 100%; background: var(--gize-blue); border-radius: 4px; }
+.wm-add { flex: none; border: 1px solid var(--gize-border); background: var(--gize-surface-2); color: var(--gize-text); border-radius: 999px;
+  padding: 7px 12px; font: 600 13px var(--gize-font); cursor: pointer; }
+.wm-more { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--gize-border); background: transparent; cursor: pointer; display: grid; place-items: center; }
+.wm-more span { width: 7px; height: 7px; border-right: 2px solid var(--gize-text-2); border-bottom: 2px solid var(--gize-text-2); transform: rotate(45deg) translate(-1px,-1px); transition: transform .2s ease; }
+.water-mini.open .wm-more span { transform: rotate(225deg) translate(-1px,-1px); }
+.wm-extra { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.wm-extra .water-goal { margin: 0 0 0 auto; }
+
+/* Historial: título de cada comida */
+.fh-meal { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--gize-text-2); margin: 12px 0 6px; }
