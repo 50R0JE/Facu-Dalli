@@ -35,14 +35,6 @@ permissions:
 jobs:
   backup:
     runs-on: ubuntu-latest
-    services:
-      prueba:
-        image: postgres:18
-        env:
-          POSTGRES_PASSWORD: prueba
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       PASS: ${{ secrets.BACKUP_PASSWORD }}
@@ -59,6 +51,16 @@ jobs:
           [ ${#PASS} -ge 16 ] || { echo "::error::Falta el secret BACKUP_PASSWORD (al menos 16 caracteres)"; exit 1; }
           echo "::add-mask::$DB_URL"
           mkdir -p out
+
+      # Base vacía para la prueba. No es un "service" de GitHub: esos imprimen al final todo
+      # lo que dijo Postgres, y un error de restauración puede citar valores de una fila.
+      # Acá no se registra nada y su salida no llega al log.
+      - name: Levantar la base de prueba
+        run: |
+          docker run -d --name prueba -e POSTGRES_PASSWORD=prueba -p 5432:5432 postgres:18 \
+            -c log_min_messages=panic -c log_min_error_statement=panic > /dev/null
+          for i in $(seq 1 30); do docker exec prueba pg_isready -U postgres > /dev/null 2>&1 && break; sleep 2; done
+          docker exec prueba pg_isready -U postgres > /dev/null
 
       - name: Copiar la base
         run: |
@@ -105,3 +107,7 @@ jobs:
           name: backup-base
           path: out/*.gpg
           retention-days: 90
+
+      - name: Apagar la base de prueba
+        if: always()
+        run: docker rm -f prueba > /dev/null 2>&1 || true
