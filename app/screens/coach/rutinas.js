@@ -266,7 +266,7 @@ function rirRestSummary(ex){
 function libVideoHint(ex){
   if(ex.video) return '';
   const v=libVideo(ex.name); if(!v) return '';
-  return '<div class="co-vid-lib">El cliente ve un video sugerido por GIZE (canal '+esc(v.channel)+'). <a href="'+esc(v.url)+'" target="_blank" rel="noopener">Verlo</a> \u00b7 Peg\u00e1 tu link para reemplazarlo.</div>';
+  return '<div class="co-vid-lib">El cliente ve el video que eligió GIZE'+(v.channel?' (canal '+esc(v.channel)+')':'')+'. <a href="'+esc(v.url)+'" target="_blank" rel="noopener">Verlo</a> \u00b7 Peg\u00e1 tu link para reemplazarlo.</div>';
 }
 
 // Tarjeta de un ejercicio en el editor de rutina del coach. Pensada para el celular:

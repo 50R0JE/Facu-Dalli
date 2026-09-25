@@ -8,7 +8,7 @@ import fs from "fs";
 const file = process.argv[2] || "app/core/videos.js";
 if(!fs.existsSync(file)){ console.log("No existe " + file + ": nada para revisar."); fs.writeFileSync("videos-resultado.json", "[]"); process.exit(0); }
 const txt = fs.readFileSync(file, "utf8");
-const ids = [...new Set([...txt.matchAll(/(?:shorts\/|"id"\s*:\s*"|:\s*\[")([\w-]{11})/g)].map(m => m[1]))];
+const ids = [...new Set([...txt.matchAll(/(?:shorts\/|watch\?v=|youtu\.be\/|"id"\s*:\s*"|:\s*\[")([\w-]{11})/g)].map(m => m[1]))];
 const UA = { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36", "Accept-Language": "es-AR,es;q=0.9" };
 
 async function check(id){
@@ -23,7 +23,9 @@ async function check(id){
     r.short = s.status === 200; // un video común redirige (303) a /watch
     if(!r.short) r.shortStatus = s.status + " " + (s.headers.get("location") || "");
   }catch(e){ r.short = "error " + e.message; }
-  r.ok = r.oembed === 200 && r.short === true;
+  // Vale cualquier video que se pueda mostrar: los links los elige el coach/GIZE y no todos
+  // son Shorts (se informa igual).
+  r.ok = r.oembed === 200;
   return r;
 }
 
@@ -32,7 +34,7 @@ for(let i = 0; i < ids.length; i += 6){
   out.push(...await Promise.all(ids.slice(i, i + 6).map(check)));
 }
 fs.writeFileSync("videos-resultado.json", JSON.stringify(out, null, 1));
-for(const r of out) console.log((r.ok ? "OK   " : "MAL  ") + r.id + " | " + (r.channel || "-") + " | " + (r.title || "") + (r.ok ? "" : " | oembed " + r.oembed + " short " + (r.shortStatus || r.short)));
+for(const r of out) console.log((r.ok ? "OK   " : "MAL  ") + r.id + " | " + (r.channel || "-") + " | " + (r.title || "") + (r.short === true ? "" : " | no es Short") + (r.ok ? "" : " | oembed " + r.oembed));
 console.log(`\n${out.filter(r => r.ok).length} de ${out.length} bien`);
 // Sobre la biblioteca de la app, un video roto hace fallar el workflow (GitHub avisa por mail).
 if(file.endsWith("videos.js") && out.some(r => !r.ok)) process.exitCode = 1;
