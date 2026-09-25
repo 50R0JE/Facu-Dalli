@@ -253,8 +253,11 @@ document.body.addEventListener("click", async e => {
     const inp = document.getElementById("portionGrams");
     const cur = parseFloat(String(inp ? inp.value : "").replace(",",".")) || 0;
     const n = Math.max(1, Math.round(cur/unit) + parseInt(el.dataset.d));
-    ComidaState.sheetGrams = String(Math.round(n*unit));
-    renderApp(); return;
+    // Sin renderApp(): redibujar todo volvía a animar la hoja como si se abriera de nuevo en
+    // cada toque. Se cambia el número y el mismo aviso de "input" actualiza kcal y unidades.
+    if (inp) { inp.value = String(Math.round(n*unit)); inp.dispatchEvent(new Event("input", { bubbles: true })); }
+    else { ComidaState.sheetGrams = String(Math.round(n*unit)); renderApp(); }
+    return;
   }
   if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; renderApp(); }); return; }
   if (a === "portion-add") {
