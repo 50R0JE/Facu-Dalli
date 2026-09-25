@@ -20,6 +20,13 @@
     box-shadow: 0 0 6px color-mix(in srgb, var(--gize-blue) 70%, transparent); animation: cmbPulse 2.4s ease-in-out infinite;
   }
 
+/* En el celular el cartel flotante tapaba los campos del editor de rutina: se achica y va
+   arriba a la izquierda, pegado al borde, fuera de donde se escribe. */
+@media (max-width: 640px) {
+    #coachModeBadge { left: 10px; bottom: auto; top: calc(6px + env(safe-area-inset-top)); transform: none; padding: 3px 8px 3px 7px; font-size: 10px; gap: 5px; opacity: .8; }
+    #coachModeBadge .cmb-dot { width: 5px; height: 5px; }
+  }
+
 @media (prefers-reduced-motion: reduce) {
     #coachModeBadge .cmb-dot { animation: none; opacity: 1; }
   }

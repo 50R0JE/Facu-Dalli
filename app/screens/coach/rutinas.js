@@ -1,6 +1,6 @@
 import { EX_CATS, EX_DB } from '../../core/data.js';
 
-import { checkSvg, chevronDownSvg, chevronLeftSvg, chevronRightSvg, copySvg, downloadSvg, gripSvg, saveSvg, searchSvg, xSvg } from '../../core/icons.js';
+import { checkSvg, chevronDownSvg, chevronLeftSvg, chevronRightSvg, copySvg, downloadSvg, gripSvg, saveSvg, searchSvg, swapSvg, trashSvg, xSvg } from '../../core/icons.js';
 
 import { State } from '../../core/state.js';
 
@@ -259,60 +259,68 @@ function rirRestSummary(ex){
   return bits.join(" \u00b7 ");
 }
 
+// Tarjeta de un ejercicio en el editor de rutina del coach. Pensada para el celular:
+// cerrada muestra el nombre completo (hasta 2 renglones) y las series; abierta, una barra
+// de acciones con botones grandes y con texto (subir, bajar, cambiar, duplicar, quitar) en
+// vez de íconos chicos y un menú escondido detrás de los seis puntitos.
 function exerciseCard(d, day, ex, i, rt){
   const open=CoachState.coachExpandedEx.has(ex.id);
   const nSets=(ex.sets||[]).length;
   const swatch='<span class="co-exc-swatch" style="background:'+exSwatchColor(ex)+'"></span>';
-  const grip='<button class="co-exc-icon-btn co-exc-grip" data-coach="rt-menu" data-i="'+i+'" title="Reordenar / cambiar">'+gripSvg+'</button>';
   const badge='<span class="co-exc-badge">'+nSets+' serie'+(nSets===1?'':'s')+'</span>';
   const rirTxt=rirRestSummary(ex);
-  const dup='<button class="co-exc-icon-btn" data-coach="rt-dup" data-i="'+i+'" title="Duplicar ejercicio">'+copySvg+'</button>';
-  const del='<button class="co-exc-icon-btn danger" data-coach="rt-del" data-i="'+i+'" title="Eliminar ejercicio">'+xSvg+'</button>';
   const chevron='<span class="co-exc-chevron'+(open?' open':'')+'">'+chevronDownSvg+'</span>';
-  const menu=(CoachState.coachExMenu===ex.id) ? (
-    '<div class="co-exc-menu">'+
-      '<button data-coach="rt-up" data-i="'+i+'"'+(i===0?' disabled':'')+'>\u2191 Subir</button>'+
-      '<button data-coach="rt-down" data-i="'+i+'"'+(i===rt.length-1?' disabled':'')+'>\u2193 Bajar</button>'+
-      '<button data-coach="rt-swap" data-i="'+i+'">\u21c4 Cambiar ejercicio</button>'+
-    '</div>'
-  ) : '';
+  const ord=ex.o?'<span class="co-exc-ord">'+esc(ex.o)+'</span>':'';
 
   if(!open){
     return '<div class="co-exc co-exc-collapsed" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
-        grip+swatch+
-        '<span class="co-exc-cname">'+esc(ex.name||"Sin nombre")+'</span>'+
-        badge+
-        (rirTxt?'<span class="co-exc-rirtxt">'+esc(rirTxt)+'</span>':'')+
-        dup+del+chevron+
-      '</div>'+menu;
+        swatch+
+        '<div class="co-exc-cmain">'+
+          '<span class="co-exc-cname">'+ord+esc(ex.name||"Sin nombre")+'</span>'+
+          '<span class="co-exc-cmeta">'+badge+(rirTxt?'<span class="co-exc-rirtxt">'+esc(rirTxt)+'</span>':'')+'</span>'+
+        '</div>'+
+        '<button class="co-exc-icon-btn" data-coach="rt-swap" data-i="'+i+'" title="Cambiar ejercicio" aria-label="Cambiar ejercicio">'+swapSvg+'</button>'+
+        chevron+
+      '</div>';
   }
+
+  const act=(a, icon, label, extra)=>'<button class="co-exc-act'+(extra||"")+'" data-coach="'+a+'" data-i="'+i+'"'+
+    ((a==="rt-up"&&i===0)||(a==="rt-down"&&i===(day.exercises||[]).length-1)?' disabled':'')+'>'+icon+'<span>'+label+'</span></button>';
+  const up='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  const down='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
+  const actions='<div class="co-exc-actions">'+
+      act("rt-up", up, "Subir")+act("rt-down", down, "Bajar")+act("rt-swap", swapSvg, "Cambiar")+
+      act("rt-dup", copySvg, "Duplicar")+act("rt-del", trashSvg, "Quitar", " danger")+
+    '</div>';
 
   const sets=(ex.sets||[]).map((st,j)=>
     '<div class="co-set-row">'+
       '<span class="co-set-n">'+(j+1)+'</span>'+
-      '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="8-10">'+
-      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="peso corporal / +10 kg">'+
-      '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie">\u2715</button>'+
+      '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="8-10" aria-label="Reps objetivo, serie '+(j+1)+'">'+
+      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="kg" aria-label="Peso objetivo, serie '+(j+1)+'">'+
+      '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie" aria-label="Quitar serie '+(j+1)+'">\u2715</button>'+
     '</div>').join("");
-  const setsTbl=nSets ? '<div class="co-set-head"><span>Serie</span><span>Reps objetivo</span><span>Peso objetivo</span><span></span></div>'+sets : '';
+  const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>Reps objetivo</span><span>Peso objetivo</span><span></span></div>'+sets : '';
   const prog=exSummary(d, day.name, ex.name);
+  const field=(lbl, a, v, ph, cls)=>'<label class="co-pfield"><span class="co-note-lbl">'+lbl+'</span><input class="co-pin'+(cls||"")+'" data-coach="'+a+'" data-i="'+i+'" value="'+esc(v||"")+'" placeholder="'+ph+'"></label>';
   return '<div class="co-exc co-exc-open" data-id="'+esc(ex.id)+'">'+
       '<div class="co-exc-head" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
-        grip+swatch+
+        swatch+
         '<input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
-        badge+dup+del+chevron+
-      '</div>'+menu+
+        chevron+
+      '</div>'+
+      actions+
       '<div class="co-exc-body">'+
         '<div class="co-prow">'+
-          '<span class="co-note-lbl">Orden</span><input class="co-pin sm" data-coach="rt-o" data-i="'+i+'" value="'+esc(ex.o||"")+'" placeholder="A1" title="Etiqueta de orden/superserie que ve el cliente (ej. A1, B2)">'+
-          '<span class="co-note-lbl">RIR</span><input class="co-pin" data-coach="rt-rir" data-i="'+i+'" value="'+esc(ex.rir||"")+'" placeholder="">'+
-          '<span class="co-note-lbl">Descanso (seg)</span><input class="co-pin" data-coach="rt-rest" data-i="'+i+'" value="'+esc(ex.rest||"")+'" placeholder="">'+
+          field("Orden","rt-o",ex.o,"A1"," sm")+
+          field("RIR","rt-rir",ex.rir,"2-0")+
+          field("Descanso","rt-rest",ex.rest,"90 seg")+
         '</div>'+
-        '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder=""></div>'+
+        '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder="Ej: sumar 1 rep por semana"></div>'+
         setsTbl+
         '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
-        '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><input class="co-note" data-coach="rt-note" data-i="'+i+'" value="'+esc(ex.note||"")+'" placeholder=""></div>'+
-        '<details class="co-exc-fold"><summary>Link de video</summary><div class="co-note-wrap"><input class="co-note" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="https://youtu.be/..."></div></details>'+
+        '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><textarea class="co-note co-note-area" rows="2" data-coach="rt-note" data-i="'+i+'" placeholder="Técnica, tempo, qué cuidar…">'+esc(ex.note||"")+'</textarea></div>'+
+        '<div class="co-note-wrap"><span class="co-note-lbl">Link de video</span><input class="co-note" type="url" inputmode="url" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="Pegá el link de YouTube o Instagram"></div>'+
         '<details class="co-exc-fold"><summary>Ver progreso'+(prog?' <span class="co-exc-fold-hint">('+esc(prog)+')</span>':'')+'</summary><div class="co-exc-prog">'+exChart(d, day.name, ex.name)+'</div><div class="co-exc-tbl">'+exTable(d, day.name, ex.name)+'</div></details>'+
       '</div>'+
     '</div>';
@@ -344,6 +352,7 @@ export function renderCoachRoutine(d){
     '</div>'+
     '<div class="co-exc-section-head"><span class="co-sec" style="margin:0">Ejercicios</span><button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
+    (cards ? '<button class="co-rt-add-end" data-coach="rt-add">+ Agregar ejercicio al final</button>' : '')+
     (CoachState.coachTplEdit ? '' : '<button class="co-save-rt" data-coach="save-routine">Guardar rutina</button>')+
     (CoachState.coachTplEdit ? "" : "<div class='rt-actions'><button class='co-copy-btn' data-coach='rt-apply'>"+downloadSvg+" Aplicar una de mis rutinas</button><button class='co-copy-btn' data-coach='rt-copy'>"+copySvg+" Copiar a otro cliente</button><button class='co-copy-btn' data-coach='rt-tosave'>"+saveSvg+" Guardar como rutina</button></div>");
 }
