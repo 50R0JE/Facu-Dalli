@@ -181,10 +181,14 @@ export async function checkPaymentReturn(){
   for(let i = 0; i < 12; i++){
     await new Promise(r => setTimeout(r, 4000));
     await loadBilling();
-    if(billing().paid) break;
+    // El plan se activa cuando Mercado Pago confirma el cobro (el servidor borra pending):
+    // antes alcanzaba con "paid", que ya era true con el plan anterior al cambiar de plan.
+    if(billing().paid && !billing().pending) break;
   }
   B.confirming = false; renderCoach();
-  if(billing().paid) alert("¡Listo! Tu plan de " + billing().max + " clientes está activo.");
+  const bl = billing();
+  if(bl.paid && !bl.pending) alert("¡Listo! Tu plan de " + bl.max + " clientes está activo.");
+  else alert("Mercado Pago todavía no confirmó el cobro. Tu plan se activa solo apenas se acredite: podés seguir usando la app.");
 }
 
 export function openPlan(){ B.open = true; renderPlanSheet(); }
