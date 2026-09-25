@@ -319,17 +319,18 @@ export function weekKcal(){
 // la puso el coach o se cargó a mano, no se sabe el mantenimiento y se compara con la meta.
 function renderWeekAvg(target){
   const w = weekKcal();
-  if(!w) return `<div class="wk-avg empty"><span class="wk-t">Promedio 7 días</span><span class="wk-hint">Registrá lo que comés unos días para verlo</span></div>`;
+  if(!w) return `<button class="wk-avg empty" data-action="food-hist-open"><span class="wk-t">Promedio 7 días</span><span class="wk-hint">Registrá lo que comés unos días para verlo</span><span class="wk-go">Ver días anteriores ›</span></button>`;
   const prof = state.calProfile, useMaint = !state.coachPlan && prof && +prof.age>0 && +prof.height>0 && +prof.weight>0;
   const ref = useMaint ? calcTarget(Object.assign({}, prof, {goal:"mantener"})) : target;
   const diff = w.avg - ref, band = ref * 0.05;
   const st = !ref ? "" : Math.abs(diff) <= band ? "eq" : (diff < 0 ? "down" : "up");
   const lbl = { eq: useMaint ? "Mantenimiento" : "En tu meta", down: useMaint ? "Déficit" : "Debajo de la meta", up: useMaint ? "Superávit" : "Arriba de la meta" }[st] || "";
   const sign = diff > 0 ? "+" : diff < 0 ? "−" : "";
-  return `<div class="wk-avg ${st}" title="Promedio de los días registrados de la última semana, comparado con ${useMaint?"tu mantenimiento ("+ref+" kcal)":"tu meta ("+ref+" kcal)"}">
+  return `<button class="wk-avg ${st}" data-action="food-hist-open" title="Promedio de los días registrados de la última semana, comparado con ${useMaint?"tu mantenimiento ("+ref+" kcal)":"tu meta ("+ref+" kcal)"}">
     <span class="wk-t">Promedio 7 días</span>
     <span class="wk-n">${w.avg.toLocaleString("es-AR")}<small> kcal/día</small></span>
     ${st ? `<span class="wk-st">${lbl}</span><span class="wk-d">${sign}${Math.abs(Math.round(diff)).toLocaleString("es-AR")} kcal vs ${useMaint?"mantenim.":"meta"}</span>` : ""}
     <span class="wk-days">${w.days} de 7 días registrados</span>
-  </div>`;
+    <span class="wk-go">Ver lo que comiste ›</span>
+  </button>`;
 }
