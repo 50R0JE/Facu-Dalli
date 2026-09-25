@@ -157,3 +157,31 @@
 .re-reset { align-self:center; background:none; border:0; color:var(--gize-blue); font-weight:600; font-size:var(--text-meta); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
 @media (prefers-reduced-motion: reduce) { .rest-edit svg { transition:none; } }
 .ex-video-by { font-weight:500; color:var(--txt-3); }
+
+/* Festejo de récord (app/ui/festejo.js): destello en la fila, chispas desde el ✓ y un chip
+   "PR +2,5 kg" arriba de la fila que se va solo. Nada ocupa la pantalla. */
+.set { position: relative; }
+.set .idx.has-pr { position: relative; color: #FFC940; border-color: rgba(255,201,64,.5); }
+.pr-mark { position: absolute; top: -7px; right: -7px; width: 15px; height: 15px; border-radius: 50%; background: #1a1508; border: 1px solid rgba(255,201,64,.55); color: #FFC940; display: grid; place-items: center; }
+.pr-mark svg { width: 9px; height: 9px; }
+.pr-chip { position: absolute; right: 48px; top: -15px; z-index: 3; display: flex; align-items: center; gap: 5px;
+  background: linear-gradient(135deg, #2a2210, #1a1508); border: 1px solid rgba(255,201,64,.55); color: #FFC940;
+  border-radius: 999px; padding: 4px 10px 4px 8px; font-size: 12.5px; font-weight: 600; white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0,0,0,.55); pointer-events: none; transform-origin: right bottom;
+  animation: pr-chip 1.9s cubic-bezier(.2,.9,.3,1.25) forwards; }
+.pr-chip svg { width: 14px; height: 14px; flex: none; }
+.pr-chip-kg { font-family: var(--gize-font-data); font-weight: 600; }
+@keyframes pr-chip {
+  0% { opacity: 0; transform: scale(.6) translateX(8px); }
+  14%, 84% { opacity: 1; transform: scale(1) translateX(0); }
+  100% { opacity: 0; transform: scale(.9); }
+}
+.pr-edge { position: absolute; inset: -3px -4px; border-radius: 13px; pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,201,64,.22) 50%, transparent 100%) no-repeat;
+  background-size: 40% 100%; animation: pr-sweep .6s ease-out forwards; }
+@keyframes pr-sweep { 0% { opacity: 1; background-position: -60% 0; } 100% { opacity: 0; background-position: 160% 0; } }
+.done { position: relative; }
+.pr-spark { position: absolute; width: 5px; height: 5px; border-radius: 50%; left: 50%; top: 50%; margin: -2.5px 0 0 -2.5px;
+  pointer-events: none; animation: pr-spark .55s cubic-bezier(.15,.7,.3,1) forwards; }
+@keyframes pr-spark { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.4); } }
+@media (prefers-reduced-motion: reduce) { .pr-chip { animation: none; } }

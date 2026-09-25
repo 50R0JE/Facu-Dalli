@@ -3,6 +3,7 @@ import './ui/keyboard.js';
 import { DEFAULT, PPL_DAYS } from './core/data.js';
 
 import { disablePush, enablePush, pushLogout } from './core/push.js';
+import { checkSetPR, playPR, prSets, PR_HOLD_MS } from './ui/festejo.js';
 import { auIcoEye, auIcoEyeOff, checkSvg } from './core/icons.js';
 
 import { State, state } from './core/state.js';
@@ -369,6 +370,8 @@ document.body.addEventListener("click", async e => {
     const s=ex.sets.find(x=>x.id===el.dataset.set);
     const wasDone=allSetsDone(ex);
     s.done=!s.done;
+    if(!s.done) prSets.delete(s.id);
+    const prDiff=checkSetPR(ex, s);
     save();
     const nowDone=allSetsDone(ex);
     // Al marcar una serie arranca solo el descanso de ese ejercicio (se puede saltear con
@@ -377,8 +380,20 @@ document.body.addEventListener("click", async e => {
     // Se acaba de completar recién ahora (no estaba reabierto a mano) -> animar el
     // colapso. Si ya estaba todo tildado y esto es una corrección (reabierto), o si
     // se destildó, el render es inmediato como siempre.
-    if(!wasDone && nowDone && !expandedOverride.has(ex.id)){ collapseExerciseAnimated(ex.id, renderApp, true); }
-    else { renderApp(); }
+    if(!wasDone && nowDone && !expandedOverride.has(ex.id)){
+      // Con récord, primero se festeja en la fila y después se colapsa el ejercicio.
+      // Mientras dura el festejo queda abierto (si no, renderApp ya lo dibuja colapsado).
+      if(prDiff!==null){
+        expandedOverride.add(ex.id); renderApp(); playPR(s.id, prDiff);
+        setTimeout(()=>{
+          // Si mientras tanto lo reabrió o destildó algo, no se toca.
+          if(!allSetsDone(ex)){ expandedOverride.delete(ex.id); return; }
+          collapseExerciseAnimated(ex.id, ()=>{ expandedOverride.delete(ex.id); renderApp(); }, true);
+        }, PR_HOLD_MS);
+      }
+      else collapseExerciseAnimated(ex.id, renderApp, true);
+    }
+    else { renderApp(); if(prDiff!==null) playPR(s.id, prDiff); }
     return;
   }
   // Cronómetro de la serie (ejercicios por tiempo, como la plancha). Si ya corre, lo frena y
