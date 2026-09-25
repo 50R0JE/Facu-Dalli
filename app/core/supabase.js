@@ -942,6 +942,15 @@ async function sendItem(it){
     let del=sb.from("food_entries").delete().eq("client_id",uid).eq("log_date",p.dt);
     if(p.foods.length) del=del.not("id","in","("+p.foods.map(f=>f.id).join(",")+")");
     sbOk(await del);
+  } else if(it.k==="foods"){
+    // Comidas de un día anterior, cargadas o borradas desde Comida (el agua, los pasos y los
+    // hábitos de ese día no se tocan). Mismo reemplazo que el día de hoy.
+    if(p.foods.length){
+      sbOk(await sb.from("food_entries").upsert(p.foods.map((f,i)=>({id:f.id, client_id:uid, log_date:p.dt, pos:i, meal:f.meal||null, name:f.name, grams:f.grams, unit:f.unit, kcal:f.kcal, protein:f.p, carbs:f.c, fat:f.f, base:f.base})),{onConflict:"id"}));
+    }
+    let del=sb.from("food_entries").delete().eq("client_id",uid).eq("log_date",p.dt);
+    if(p.foods.length) del=del.not("id","in","("+p.foods.map(f=>f.id).join(",")+")");
+    sbOk(await del);
   } else if(it.k==="prefs"){
     sbOk(await sb.from("client_prefs").upsert(Object.assign({client_id:uid, updated_at:new Date().toISOString()}, p),{onConflict:"client_id"}));
   } else if(it.k==="checkin"){
@@ -959,6 +968,10 @@ let _flushing=null;
 export function flushOutbox(){
   if(_flushing) return _flushing;
   _flushing=(async()=>{
+    // Sin esta espera, con la cola vacía la función terminaba (y su finally ponía
+    // _flushing=null) ANTES de que se asignara la promesa: _flushing quedaba para siempre en
+    // una promesa ya cumplida y ningún envío de esa sesión salía hasta reabrir la app.
+    await null;
     try{
       if(!State.sb||!State.cloudUser) return false;
       for(;;){
@@ -1058,6 +1071,20 @@ export function cloudEditSession(se){
 export function cloudSessionFeedback(se){
   if(!se.cloudId) return Promise.resolve(true); // entrenos viejos, guardados antes de tener id de nube
   return enqueueAndSend("feedback", {id:se.cloudId, rpe:se.rpe||null, pump:se.pump||null, joint:(typeof se.joint==="boolean")?se.joint:null});
+}
+
+// Comidas de un día anterior (Comida → deslizar a otro día). La última versión del día
+// reemplaza a una anterior que todavía no se mandó.
+export function cloudSaveFoods(dt, list){
+  const foods=(list||[]).map(e=>{ if(!UUID_RE.test(String(e.id))) e.id=newId(); return {id:e.id, meal:e.meal||null, name:e.name, grams:e.grams, unit:e.unit||"g", kcal:e.kcal||0, p:e.p||0, c:e.c||0, f:e.f||0, base:e.base||null}; });
+  return enqueueAndSend("foods", {dt:dt, foods:foods}, "foods:"+dt);
+}
+
+// Lo que todavía no subió de un día anterior (para mostrarlo encima de lo que trae la nube).
+export function pendingFoods(dt){
+  if(!State.cloudUser) return null;
+  const it=myPending().filter(i=>i.k==="foods" && i.p && i.p.dt===dt).pop();
+  return it ? it.p.foods.map(f=>Object.assign({}, f)) : null;
 }
 
 export function cloudSaveDaily(dt, rec){ return enqueueAndSend("daily", {dt:dt, rec:rec}, dt); }
