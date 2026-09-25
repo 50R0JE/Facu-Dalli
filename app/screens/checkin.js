@@ -6,7 +6,7 @@ import { state } from '../core/state.js';
 
 import { save } from '../core/storage.js';
 
-import { cloudInsertSession, newId } from '../core/supabase.js';
+import { cloudInsertSession, isOnline, newId } from '../core/supabase.js';
 
 import { esc, fmtDate, mondayOf, today } from '../core/utils.js';
 
@@ -46,7 +46,8 @@ export function saveSession(){
   state.sessions.push(_ns);
   save();
   cloudInsertSession(_ns).then(ok=>{
-    if(!ok) alert("Tu entreno se guardó en este dispositivo pero todavía no llegó a tu cuenta (sin conexión). Queda pendiente y se envía solo cuando vuelva internet; tu coach lo ve recién entonces.");
+    // Con internet queda en la cola y se reintenta solo; el aviso es solo para sin conexión.
+    if(!ok && !isOnline()) alert("Tu entreno se guardó en este dispositivo pero todavía no llegó a tu cuenta (sin conexión). Queda pendiente y se envía solo cuando vuelva internet; tu coach lo ve recién entonces.");
   });
   CheckinState.fbSession=_ns.id; CheckinState.fbForm={};
   renderApp();

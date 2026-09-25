@@ -9,7 +9,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, tabRipple, today, uid } from './core/utils.js';
 
@@ -325,7 +325,7 @@ document.body.addEventListener("click", async e => {
     state.checkins[wk]._q = questionSnapshot(clientQuestions("checkin"), state.checkins[wk]);
     CheckinState.checkinOpen=false; CheckinState.checkinForm=null; save();
     const synced = await cloudSaveCheckin(wk, state.checkins[wk]);
-    if(!synced){ alert("Tu check-in se guardó en este dispositivo pero todavía no llegó a tu coach (sin conexión). Queda pendiente y se envía solo cuando vuelva internet."); renderApp(); return; }
+    if(!synced && !isOnline()){ alert("Tu check-in se guardó en este dispositivo pero todavía no llegó a tu coach (sin conexión). Queda pendiente y se envía solo cuando vuelva internet."); renderApp(); return; }
     alert("\u00a1Check-in enviado a tu coach! 💪"); renderApp(); return;
   }
   if (a === "daily-set") { CheckinState.dailyForm = CheckinState.dailyForm || Object.assign({}, state.daily[today()]||{}); CheckinState.dailyForm[el.dataset.k] = el.dataset.v; renderApp(); return; }
@@ -422,6 +422,9 @@ document.body.addEventListener("click", async e=>{
     // pesos y demás de quien usó la app antes. Y si esa cuenta nueva no tenía rutina en la
     // nube, loadCloud() le subía como "su" rutina la que había quedado puesta acá, con los
     // kg y reps de la persona anterior.
+    // Los cambios del día (agua, comidas, hábitos) salen con 1,5 s de demora: se manda la
+    // cola antes de contar, así solo avisa si de verdad quedó algo sin subir.
+    if(State.cloudUser){ b.disabled=true; try{ await flushOutbox(); }catch(e){} b.disabled=false; }
     const n=State.cloudUser?pendingCount():0;
     if(n>0 && !confirm("Tenés "+n+" registro"+(n>1?"s":"")+" sin sincronizar todavía en este dispositivo. Si cerrás sesión ahora podrías perderlo"+(n>1?"s":"")+". ¿Cerrar sesión igual?")) return;
     try{ await pushLogout(); }catch(e){} // antes del signOut: borrar el dispositivo necesita la sesión
@@ -470,6 +473,12 @@ document.body.addEventListener("click", async e=>{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
         const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}, emailRedirectTo:(IS_NATIVE ? "gize://confirmado" : location.origin + location.pathname)}}); // gize:// abre la app instalada (core/supabase.js → openAuthLink)
+        // Mail ya registrado: con la confirmación por mail activada Supabase no da error
+        // (para no revelar qué mails existen) y devuelve un usuario sin identidades; sin
+        // confirmación, da el error user_already_exists.
+        const taken = r.error ? (r.error.code==="user_already_exists" || /already registered/i.test(r.error.message||""))
+                              : !!(r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length===0);
+        if(taken){ if(window.coreCancel) window.coreCancel(); showLogin("Este mail ya tiene una cuenta asociada. Ingresá con tu contraseña o con Google.","in",{email:email}); return; }
         if(r.error) throw r.error;
         if(code) { try{ localStorage.setItem("jfit_pending_code", code.toUpperCase()); }catch(e){} }
       } else {
