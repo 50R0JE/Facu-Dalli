@@ -277,13 +277,13 @@ export async function fetchAll(make){
 }
 
 // Pasa a la rutina que mandó el coach (cloudDays) lo que el cliente ya cargó en su copia
-// local (kg, reps y tildes), emparejando por id de serie. Si el coach cambió una serie
+// local (kg, reps, segundos y tildes), emparejando por id de serie. Si el coach cambió una serie
 // existente se conserva lo cargado; si aplicó una rutina nueva (ids nuevos) arranca limpia.
 export function mergeLocalProgress(cloudDays, localDays){
   const prog={};
   (localDays||[]).forEach(d=>(d.exercises||[]).forEach(ex=>(ex.sets||[]).forEach(s=>{ prog[s.id]=s; })));
   (cloudDays||[]).forEach(d=>(d.exercises||[]).forEach(ex=>(ex.sets||[]).forEach(s=>{
-    const l=prog[s.id]; if(l){ s.kg=l.kg; s.reps=l.reps; s.done=l.done; }
+    const l=prog[s.id]; if(l){ s.kg=l.kg; s.reps=l.reps; s.done=l.done; if(l.secs!=null) s.secs=l.secs; }
   })));
   return cloudDays;
 }
@@ -437,7 +437,7 @@ export async function loadCloud(){
       // cortaban). Orden único: fecha (única por cliente) o created_at + id.
       fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on")),
       // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
-      fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",uid).order("created_at").order("id")),
+      fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps,secs)").eq("client_id",uid).order("created_at").order("id")),
       fetchAll(()=>sb.from("daily_logs").select("*").eq("client_id",uid).order("log_date")),
       fetchAll(()=>sb.from("checkins").select("*").eq("client_id",uid).order("week_start")),
       sb.from("client_info").select("*").eq("client_id",uid).maybeSingle(),
@@ -575,7 +575,7 @@ export function syncExtras(){
 export function sessionFromRow(se){
   const byEx={};
   (se.session_entries||[]).slice().sort((a,b)=>(a.set_order||0)-(b.set_order||0)).forEach(en=>{
-    (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push({kg:Number(en.kg)||0, reps:Number(en.reps)||0});
+    (byEx[en.exercise_name]=byEx[en.exercise_name]||[]).push(en.secs>0 ? {kg:Number(en.kg)||0, reps:Number(en.reps)||0, secs:Number(en.secs)} : {kg:Number(en.kg)||0, reps:Number(en.reps)||0});
   });
   const out={date:se.performed_on, day:se.day_name, ts:new Date(se.created_at).getTime(), exercises:Object.keys(byEx).map(n=>({name:n, sets:byEx[n]}))};
   if(se.rpe) out.rpe=se.rpe;
@@ -751,7 +751,7 @@ async function sendItem(it){
     // llegado a medias.
     sbOk(await sb.from("sessions").upsert({id:p.id, client_id:uid, performed_on:p.date, day_name:p.day, created_at:new Date(p.ts).toISOString()},{onConflict:"id", ignoreDuplicates:true}));
     if(p.entries && p.entries.length){
-      sbOk(await sb.from("session_entries").upsert(p.entries.map(e=>({id:e.id, session_id:p.id, client_id:uid, exercise_name:e.name, set_order:e.order, kg:e.kg, reps:e.reps})),{onConflict:"id", ignoreDuplicates:true}));
+      sbOk(await sb.from("session_entries").upsert(p.entries.map(e=>({id:e.id, session_id:p.id, client_id:uid, exercise_name:e.name, set_order:e.order, kg:e.kg, reps:e.reps, ...(e.secs>0?{secs:e.secs}:{})})),{onConflict:"id", ignoreDuplicates:true}));
     }
   } else if(it.k==="feedback"){
     // Con RLS, un UPDATE que ninguna política permite NO da error: simplemente cambia 0
@@ -878,7 +878,7 @@ document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState=
 // Las funciones cloud* devuelven true si quedó en la nube y false si quedó pendiente.
 export function cloudInsertSession(se){
   const entries=[];
-  (se.exercises||[]).forEach(ex=>{ (ex.sets||[]).forEach((sset,i)=>{ entries.push({id:newId(), name:ex.name, order:i, kg:sset.kg, reps:sset.reps}); }); });
+  (se.exercises||[]).forEach(ex=>{ (ex.sets||[]).forEach((sset,i)=>{ entries.push({id:newId(), name:ex.name, order:i, kg:sset.kg, reps:sset.reps, secs:sset.secs||0}); }); });
   se.cloudId=se.id; // el id del entreno ES el id de la fila en la nube
   return enqueueAndSend("session", {id:se.id, date:se.date, day:se.day, ts:se.ts, exercises:se.exercises, entries:entries});
 }

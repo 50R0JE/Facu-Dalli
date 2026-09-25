@@ -8,7 +8,7 @@
 // como expandible. El botón de borrar queda FUERA del <summary>: adentro, tocarlo
 // también abriría/cerraría el entreno.
 
-import { esc, fmtDate } from '../core/utils.js';
+import { esc, fmtDate, fmtSecs } from '../core/utils.js';
 
 const fmtKg = n => { const v = Number(n) || 0; return (Math.round(v * 100) / 100).toString().replace(".", ","); };
 
@@ -16,7 +16,12 @@ function exerciseBlock(ex){
   const sets = ex.sets || [];
   const vol = sets.reduce((t, s) => t + (Number(s.kg) || 0) * (Number(s.reps) || 0), 0);
   const best = sets.reduce((b, s) => (Number(s.kg) || 0) > (Number(b && b.kg) || 0) ? s : b, null);
-  const rows = sets.map((s, i) =>
+  // Series por tiempo (plancha, isométricos): el tiempo va donde van las reps y el kg solo si hubo.
+  const rows = sets.map((s, i) => (Number(s.secs) || 0) > 0 ?
+    '<div class="sd-set"><span class="sd-n">' + (i + 1) + '</span>' +
+    '<span class="sd-kg">' + ((Number(s.kg) || 0) > 0 ? fmtKg(s.kg) + '<small>kg</small>' : '') + '</span>' +
+    '<span class="sd-x">' + ((Number(s.kg) || 0) > 0 ? '·' : '') + '</span>' +
+    '<span class="sd-reps">' + fmtSecs(s.secs) + '</span></div>' :
     '<div class="sd-set"><span class="sd-n">' + (i + 1) + '</span>' +
     '<span class="sd-kg">' + fmtKg(s.kg) + '<small>kg</small></span>' +
     '<span class="sd-x">×</span>' +
@@ -24,6 +29,8 @@ function exerciseBlock(ex){
   ).join("");
   const meta = [sets.length + (sets.length === 1 ? " serie" : " series")];
   if (best && Number(best.kg) > 0) meta.push("mejor " + fmtKg(best.kg) + " kg");
+  const maxSecs = sets.reduce((m, s) => Math.max(m, Number(s.secs) || 0), 0);
+  if (maxSecs > 0) meta.push("máx " + fmtSecs(maxSecs));
   if (vol > 0) meta.push("vol. " + fmtKg(Math.round(vol)) + " kg");
   return '<div class="sd-ex"><div class="sd-ex-h"><span class="sd-ex-name">' + esc(ex.name || "") + '</span>' +
     '<span class="sd-ex-meta">' + meta.join(" · ") + '</span></div>' + rows + '</div>';

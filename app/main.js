@@ -11,7 +11,9 @@ import { KEY, migrateNames, save } from './core/storage.js';
 
 import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
-import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, tabRipple, today, uid } from './core/utils.js';
+import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, parseSecs, tabRipple, today, uid } from './core/utils.js';
+
+import { runningSetId, startTimer, stopTimer } from './ui/settimer.js';
 
 import { showLogin } from './screens/auth.js';
 
@@ -122,6 +124,10 @@ document.body.addEventListener("input", async e => {
   if (a === "dayname") d.name = t.value;
   else if (a === "subtitle") d.subtitle = t.value;
   else if (a === "exname") { const ex=d.exercises.find(x=>x.id===t.dataset.ex); if(ex) ex.name=t.value; }
+  else if (a === "secs") {
+    const ex=d.exercises.find(x=>x.id===t.dataset.ex); const s=ex&&ex.sets.find(x=>x.id===t.dataset.set);
+    if(s) s.secs=t.value;
+  }
   else if (a === "kg" || a === "reps") {
     const ex=d.exercises.find(x=>x.id===t.dataset.ex); const s=ex&&ex.sets.find(x=>x.id===t.dataset.set);
     if(s){
@@ -368,6 +374,26 @@ document.body.addEventListener("click", async e => {
     if(!wasDone && nowDone && !expandedOverride.has(ex.id)){ collapseExerciseAnimated(ex.id, renderApp, true); }
     else { renderApp(); }
     return;
+  }
+  // Cronómetro de la serie (ejercicios por tiempo, como la plancha). Si ya corre, lo frena y
+  // anota lo que duró; si no, cuenta hasta el objetivo y al llegar tilda la serie sola.
+  if (a === "set-timer") {
+    const s=ex&&ex.sets.find(x=>x.id===el.dataset.set); if(!s) return;
+    if(runningSetId()===s.id){
+      const r=stopTimer(); if(r && r.secs>0) s.secs=String(r.secs);
+      save(); renderApp(); return;
+    }
+    const target=parseSecs(s.target)||parseSecs(s.secs)||0;
+    startTimer(s.id, target, secs=>{
+      s.secs=String(secs);
+      if(!s.done){
+        s.done=true;
+        const dayDone=d.exercises.every(x=>allSetsDone(x));
+        if(!dayDone) startRest(effectiveRest(ex).sec);
+      }
+      save(); renderApp();
+    });
+    renderApp(); return;
   }
   if (a === "ex-expand") { expandedOverride.add(ex.id); renderApp(); return; }
   if (a === "ex-collapse") { collapseExerciseAnimated(ex.id, ()=>{ expandedOverride.delete(ex.id); renderApp(); }); return; }
@@ -667,6 +693,7 @@ document.body.addEventListener("click", async e => {
     renderCoach(); return;
   }
   if(a==="rt-menu"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day&&day.exercises[+b.dataset.i]; if(!ex) return; CoachState.coachExMenu=(CoachState.coachExMenu===ex.id)?null:ex.id; renderCoach(); return; }
+  if(a==="rt-timed"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day&&day.exercises[+b.dataset.i]; if(ex){ ex.timed=(b.dataset.v==="1"); renderCoach(); } return; }
   if(a==="rt-swap"){ CoachState.coachExMenu=null; CoachState.coachPicker={mode:"swap", i:(+b.dataset.i||0)}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }
   if(a==="rt-add"){ CoachState.coachPicker={mode:"add"}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }
   if(a==="rt-ins"){ CoachState.coachPicker={mode:"insert", idx:(+b.dataset.i||0)}; CoachState.coachPCat=null; CoachState.coachPQ=""; renderCoachPicker(); return; }

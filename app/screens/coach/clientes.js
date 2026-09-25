@@ -12,7 +12,7 @@ import { resolveAvatars } from '../../core/avatar.js';
 
 import { loadClientNotify } from './notificar.js';
 
-import { esc, fmtDate, mondayOf, today } from '../../core/utils.js';
+import { esc, fmtDate, fmtSecs, mondayOf, today } from '../../core/utils.js';
 
 import { renderCoach } from './index.js';
 
@@ -117,13 +117,13 @@ export function coachLogFor(sessions, dayName, name){
   (sessions||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).forEach(se=>{
     if(dayName && se.day && se.day!==dayName) return;
     const sets=[];
-    se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0}); }); });
+    se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0||(+st.secs||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0, secs:+st.secs||0}); }); });
     if(sets.length) out.push({date:se.date, ts:se.ts, sets:sets});
   });
   return out;
 }
 
-export function coachExerciseLog(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ const sets=[]; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0}); }); }); if(sets.length) out.push({date:se.date, ts:se.ts, sets:sets}); }); return out; }
+export function coachExerciseLog(sessions,name){ const out=[]; (sessions||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(se=>{ const sets=[]; se.exercises.forEach(ex=>{ if(ex.name===name) ex.sets.forEach(st=>{ if((+st.kg||0)>0||(+st.reps||0)>0||(+st.secs||0)>0) sets.push({kg:+st.kg||0, reps:+st.reps||0, secs:+st.secs||0}); }); }); if(sets.length) out.push({date:se.date, ts:se.ts, sets:sets}); }); return out; }
 
 export async function openClient(id){
   CoachState.coachSel=id; CoachState.coachData={loading:true}; CoachState.coachDailySel=null; CoachState.coachCkSel=null; CoachState.coachSessSel=null; CoachState.coachPhotoSel=null; CoachState.notifDraft=""; CoachState.notifSending=false; CoachState.coachDayFilter=null; CoachState.coachEditDay=0; renderCoach();
@@ -134,7 +134,7 @@ export async function openClient(id){
       // Las que crecen con el uso, paginadas (ver fetchAll en core/supabase.js).
       fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",id).order("measured_on")),
       // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
-      fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps)").eq("client_id",id).order("created_at").order("id")),
+      fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps,secs)").eq("client_id",id).order("created_at").order("id")),
       sb.from("routines").select("days").eq("client_id",id).maybeSingle(),
       fetchAll(()=>sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false})),
       fetchAll(()=>sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false})),
@@ -189,7 +189,7 @@ export function renderCoachCargas(d){
   const cch=series.length?renderWChart(series,true,true):'<div class="cal-hint">Sin kg registrados en este ejercicio'+(CoachState.coachDayFilter?' para este día':'')+'.</div>';
   const flog=coachExerciseLog(fsess,d.loadEx);
   const fkg=k=>(Math.round((+k||0)*10)/10);
-  const detail=flog.slice().reverse().map(e=>{ const chips=e.sets.map((st,ix)=>{ const kg=+st.kg||0, rp=+st.reps||0; const val=kg>0?(fkg(kg)+' kg'+(rp>0?' \u00d7 '+rp+' reps':'')):(rp>0?rp+' reps':'\u2014'); return '<div class="co-setline"><span class="co-setno">Serie '+(ix+1)+'</span><span class="co-setval">'+val+'</span></div>'; }).join(""); return '<div class="co-slog"><div class="co-slog-date">'+fmtDate(e.date)+'</div><div class="co-sets">'+chips+'</div></div>'; }).join("");
+  const detail=flog.slice().reverse().map(e=>{ const chips=e.sets.map((st,ix)=>{ const kg=+st.kg||0, rp=+st.reps||0, sc=+st.secs||0; const val=sc>0?((kg>0?fkg(kg)+' kg \u00b7 ':'')+fmtSecs(sc)):kg>0?(fkg(kg)+' kg'+(rp>0?' \u00d7 '+rp+' reps':'')):(rp>0?rp+' reps':'\u2014'); return '<div class="co-setline"><span class="co-setno">Serie '+(ix+1)+'</span><span class="co-setval">'+val+'</span></div>'; }).join(""); return '<div class="co-slog"><div class="co-slog-date">'+fmtDate(e.date)+'</div><div class="co-sets">'+chips+'</div></div>'; }).join("");
   out+='<select class="form-input" data-coach="ex">'+exOpts+'</select><div class="load-cap">Gráfico: máximo de kg por sesión</div>'+cch+(detail?'<div class="co-sub">Registro por sesión (peso \u00d7 reps de cada serie)</div>'+detail:'');
   return out;
 }
@@ -212,10 +212,10 @@ export function exTable(d, dayName, exName){
     for(let i=0;i<maxS;i++){
       const st=e.sets[i];
       if(!st) tds.push('<td class="em">\u2014</td>');
-      else { const kg=+st.kg||0, rp=+st.reps||0; tds.push('<td>'+(kg>0?(Math.round(kg*10)/10)+' kg':'\u2014')+(rp>0?' <span class="rp">\u00d7 '+rp+'</span>':'')+'</td>'); }
+      else { const kg=+st.kg||0, rp=+st.reps||0, sc=+st.secs||0; if(sc>0) tds.push('<td>'+(kg>0?(Math.round(kg*10)/10)+' kg \u00b7 ':'')+fmtSecs(sc)+'</td>'); else tds.push('<td>'+(kg>0?(Math.round(kg*10)/10)+' kg':'\u2014')+(rp>0?' <span class="rp">\u00d7 '+rp+'</span>':'')+'</td>'); }
     }
-    const mx=Math.max.apply(null,e.sets.map(x=>x.kg||0));
-    tds.push('<td class="mx">'+(mx>0?(Math.round(mx*10)/10)+' kg':'\u2014')+'</td>');
+    const mx=Math.max.apply(null,e.sets.map(x=>x.kg||0)), mxs=Math.max.apply(null,e.sets.map(x=>x.secs||0));
+    tds.push('<td class="mx">'+(mx>0?(Math.round(mx*10)/10)+' kg':mxs>0?fmtSecs(mxs):'\u2014')+'</td>');
     return '<tr>'+tds.join("")+'</tr>';
   }).join("");
   return '<table class="co-tbl"><thead><tr>'+th.join("")+'</tr></thead><tbody>'+rows+'</tbody></table>';
@@ -230,6 +230,8 @@ export function exSummary(d, dayName, exName){
   let best=null;
   last.sets.forEach(st=>{ if(!best || (st.kg||0)>=(best.kg||0)) best=st; });
   if(!best) return "";
+  const mxs=Math.max.apply(null,last.sets.map(x=>x.secs||0));
+  if(mxs>0 && !(best.kg>0)) return fmtDate(last.date)+": máx "+fmtSecs(mxs);
   const kg=Math.round((best.kg||0)*10)/10;
   const parts=[]; if(kg>0) parts.push(kg+" kg"); if((best.reps||0)>0) parts.push(best.reps+" reps");
   if(!parts.length) return "";
