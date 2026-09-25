@@ -10,7 +10,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, routineHash, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, clearAccountLeftovers, expectAuthLink, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, setPendingCode, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudEditSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, clearAccountLeftovers, expectAuthLink, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, setPendingCode, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, parseSecs, tabRipple, today, uid } from './core/utils.js';
 
@@ -60,6 +60,7 @@ import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
 import { productByCode, searchOFF } from './core/off.js';
 
 import { HistState, goFoodHist, openFoodHist, renderFoodHist, stepFoodHist } from './screens/comida-historial.js';
+import { EditState, cleanSessionEdit, openSessionEdit, removeSessionEditSet, renderSessionEdit, setSessionEditVal } from './ui/sessionedit.js';
 import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
 
 // Series cuyo peso se completó solo copiando el de la serie de arriba (ver input "kg").
@@ -94,7 +95,7 @@ export function renderApp(){
   initScrollReveal();
   setupExerciseFocus();
   renderRestBar();
-  const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="comida" && HistState.open) ? renderFoodHist() : "");
+  const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="comida" && HistState.open) ? renderFoodHist() : (State.view==="progreso" && EditState.se) ? renderSessionEdit() : "");
   if (State.view==="habitos" && HabitosState.pendingFocusHabit) { const i=document.getElementById("habitInput"); if(i) i.focus(); HabitosState.pendingFocusHabit=false; }
   if (State.view==="entreno" && HabitosState.pendingFocusDay) { const i=v.querySelector(".day-name"); if(i){ i.focus(); i.select(); } HabitosState.pendingFocusDay=false; }
 }
@@ -106,6 +107,14 @@ function paintFoodHist(){
   if(!card){ renderApp(); return; }
   const tmp=document.createElement("div"); tmp.innerHTML=renderFoodHist();
   const fresh=tmp.querySelector(".fh-sheet"); if(fresh) card.innerHTML=fresh.innerHTML;
+}
+
+// Editar entreno: al quitar una serie se redibuja solo el contenido de la ventana.
+function paintSessionEdit(){
+  const card=document.querySelector("#sheetHost .se-sheet");
+  if(!card){ renderApp(); return; }
+  const tmp=document.createElement("div"); tmp.innerHTML=renderSessionEdit();
+  const fresh=tmp.querySelector(".se-sheet"); if(fresh) card.innerHTML=fresh.innerHTML;
 }
 
 export function tick(){
@@ -122,6 +131,7 @@ setInterval(tick, 100);
 
 document.body.addEventListener("input", async e => {
   const t = e.target, a = t.dataset.action; if(!a) return;
+  if (a === "se-val") { setSessionEditVal(t); return; }
   if (a === "tm-min" || a === "tm-sec") {
     const mEl=document.getElementById("tmMin"), sEl=document.getElementById("tmSec");
     const mm=parseInt(mEl&&mEl.value)||0, ss=parseInt(sEl&&sEl.value)||0;
@@ -371,6 +381,15 @@ document.body.addEventListener("click", async e => {
   if (a === "rest-from-ex") { const sc=parseInt(el.dataset.sec)||0; if(sc>0) startRest(sc); return; }
   if (a === "rest-stop") { stopRest(); return; }
   if (a === "save-session") { saveSession(); return; }
+  if (a === "session-edit") { if(openSessionEdit(el.dataset.id)) renderApp(); return; }
+  if (a === "se-cancel") { closeSheet(()=>{ EditState.se=null; renderApp(); }); return; }
+  if (a === "se-rmset") { removeSessionEditSet(+el.dataset.e, +el.dataset.s); paintSessionEdit(); return; }
+  if (a === "se-save") {
+    const r=cleanSessionEdit(); if(r.error){ alert(r.error); return; }
+    const se=state.sessions.find(x=>x.id===EditState.se.id);
+    if(se){ se.exercises=r.exercises; save(); cloudEditSession(se).then(ok=>{ if(!ok && !isOnline()) alert("El cambio se guardó en este dispositivo y se envía a tu cuenta cuando vuelva internet."); }); }
+    closeSheet(()=>{ EditState.se=null; renderApp(); }); return;
+  }
   if (a === "session-remove") { if(confirm("¿Borrar este entreno del historial?")){ const _s=state.sessions.find(x=>x.id===el.dataset.id); if(_s&&_s.cloudId){ try{ cloudDeleteSession(_s.cloudId); }catch(e){} } state.sessions=state.sessions.filter(x=>x.id!==el.dataset.id); save(); renderApp(); } return; }
 
   // Días

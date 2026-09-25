@@ -897,6 +897,13 @@ async function sendItem(it){
     if(p.entries && p.entries.length){
       sbOk(await sb.from("session_entries").upsert(p.entries.map(e=>({id:e.id, session_id:p.id, client_id:uid, exercise_name:e.name, set_order:e.order, kg:e.kg, reps:e.reps, ...(e.secs>0?{secs:e.secs}:{})})),{onConflict:"id", ignoreDuplicates:true}));
     }
+  } else if(it.k==="sessionEdit"){
+    // Entreno corregido desde el historial: se reemplazan todas sus series. Borrar y volver
+    // a insertar con los mismos ids hace que reintentar dé el mismo resultado.
+    sbOk(await sb.from("session_entries").delete().eq("session_id",p.id).eq("client_id",uid));
+    if(p.entries && p.entries.length){
+      sbOk(await sb.from("session_entries").upsert(p.entries.map(e=>({id:e.id, session_id:p.id, client_id:uid, exercise_name:e.name, set_order:e.order, kg:e.kg, reps:e.reps, ...(e.secs>0?{secs:e.secs}:{})})),{onConflict:"id", ignoreDuplicates:true}));
+    }
   } else if(it.k==="feedback"){
     // Con RLS, un UPDATE que ninguna política permite NO da error: simplemente cambia 0
     // filas. Sin pedir las filas de vuelta el feedback "se guardaba" sin llegar nunca.
@@ -997,6 +1004,9 @@ function applyPending(){
     const p=it.p;
     if(it.k==="session"){
       if(!state.sessions.some(s=>s.id===p.id)) state.sessions.push({id:p.id, cloudId:p.id, date:p.date, ts:p.ts, day:p.day, exercises:p.exercises});
+    } else if(it.k==="sessionEdit"){
+      const s=state.sessions.find(x=>x.id===p.id || x.cloudId===p.id);
+      if(s) s.exercises=p.exercises;
     } else if(it.k==="feedback"){
       const s=state.sessions.find(x=>x.id===p.id);
       if(s){ if(p.rpe) s.rpe=p.rpe; if(p.pump) s.pump=p.pump; if(typeof p.joint==="boolean") s.joint=p.joint; }
@@ -1027,6 +1037,24 @@ export function cloudInsertSession(se){
   return enqueueAndSend("session", {id:se.id, date:se.date, day:se.day, ts:se.ts, exercises:se.exercises, entries:entries});
 }
 
+// Entreno corregido desde el historial. Si todavía no salió de la cola, se corrige ahí mismo;
+// si ya está en la nube, se manda el reemplazo de sus series (la última corrección pisa a
+// una anterior que todavía no se mandó).
+export function cloudEditSession(se){
+  const entries=[];
+  (se.exercises||[]).forEach(ex=>{ (ex.sets||[]).forEach((sset,i)=>{ entries.push({id:newId(), name:ex.name, order:i, kg:sset.kg, reps:sset.reps, secs:sset.secs||0}); }); });
+  if(!State.cloudUser) return Promise.resolve(false);
+  const q=readQueue(OUTBOX_KEY);
+  const pend=q.find(i=>i.uid===State.cloudUser.id && i.k==="session" && i.p && i.p.id===se.id);
+  // Todavía en la cola: se corrige ahí también (por si se reinstala antes de mandarlo). La
+  // corrección igual va aparte, después: si el entreno se estaba mandando justo ahora con
+  // los datos viejos, la corrección llega igual.
+  if(pend){ pend.p.exercises=se.exercises; writeQueue(OUTBOX_KEY, q); }
+  const cid=se.cloudId || (pend && se.id);
+  if(!cid) return Promise.resolve(true); // entrenos viejos, guardados antes de tener id de nube
+  return enqueueAndSend("sessionEdit", {id:cid, exercises:se.exercises, entries:entries}, cid);
+}
+
 export function cloudSessionFeedback(se){
   if(!se.cloudId) return Promise.resolve(true); // entrenos viejos, guardados antes de tener id de nube
   return enqueueAndSend("feedback", {id:se.cloudId, rpe:se.rpe||null, pump:se.pump||null, joint:(typeof se.joint==="boolean")?se.joint:null});
@@ -1040,7 +1068,7 @@ export async function cloudDeleteSession(cid){
   if(!State.sb||!State.cloudUser||!cid) return true;
   // Si todavía no salió de la cola (o tiene feedback pendiente), se descarta: si no,
   // volvería a aparecer en la nube después de borrarlo.
-  writeQueue(OUTBOX_KEY, readQueue(OUTBOX_KEY).filter(i=>!((i.k==="session"||i.k==="feedback") && i.p && i.p.id===cid)));
+  writeQueue(OUTBOX_KEY, readQueue(OUTBOX_KEY).filter(i=>!((i.k==="session"||i.k==="feedback"||i.k==="sessionEdit") && i.p && i.p.id===cid)));
   refreshSyncFoot();
   try{ sbOk(await State.sb.from("sessions").delete().eq("id",cid)); return true; }
   catch(e){ console.error("deleteSession",e); return false; }
