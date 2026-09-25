@@ -130,7 +130,7 @@ export function renderCheckin(){
       </div>
       <div class="ci-card">
         <div class="ci-status">Fotos de progreso (las ve tu coach)</div>
-        <div class="ph-grid">${CheckinState.myPhotos.map(p=>'<div class="ph-thumb"><img src="'+p.url+'"><button class="ph-del" data-action="photo-del" data-id="'+p.id+'" data-path="'+esc(p.path)+'">\u2715</button></div>').join("")||'<div class="cal-hint" style="padding:8px 0">Todav\u00eda no subiste fotos.</div>'}</div>
+        <div class="ph-grid">${CheckinState.myPhotos.map(p=>'<div class="ph-thumb"><img src="'+esc(p.url)+'"><button class="ph-del" data-action="photo-del" data-id="'+esc(p.id)+'" data-path="'+esc(p.path)+'">\u2715</button></div>').join("")||'<div class="cal-hint" style="padding:8px 0">Todav\u00eda no subiste fotos.</div>'}</div>
         <label class="form-save" style="margin-top:10px;display:block;text-align:center;cursor:pointer">\ud83d\udcf7 Subir foto<input type="file" accept="image/*" style="display:none" data-action="photo-pick"></label>
       </div>`;
   }

@@ -9,7 +9,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, routineHash, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, clearAccountLeftovers, expectAuthLink, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, setPendingCode, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, parseSecs, tabRipple, today, uid } from './core/utils.js';
 
@@ -463,6 +463,7 @@ document.body.addEventListener("click", async e=>{
     if(!State.sb){ showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.","forgot",{email:email}); return; }
     // En la app el link vuelve por gize://confirmado y se marca acá que es para recuperar.
     if(IS_NATIVE){ try{ localStorage.setItem(RECOVERY_REQ, String(Date.now())); }catch(e){} }
+    else expectAuthLink();
     const r=await State.sb.auth.resetPasswordForEmail(email, {redirectTo: IS_NATIVE ? "gize://confirmado" : location.origin + location.pathname});
     if(r.error){
       const rate = r.error.status===429 || /rate|seconds/i.test(r.error.message||"");
@@ -500,8 +501,10 @@ document.body.addEventListener("click", async e=>{
       if(!confirm("Tenés "+que+" que todavía no se guardaron en tu cuenta (sin conexión). Si cerrás sesión ahora se pierden.\n\nConectate a internet, abrí la app y esperá unos segundos antes de salir.\n\n¿Cerrar sesión igual?")) return;
     }
     try{ await pushLogout(); }catch(e){} // antes del signOut: borrar el dispositivo necesita la sesión
+    const logoutUid=State.cloudUser&&State.cloudUser.id;
     try{ await State.sb.auth.signOut(); }catch(e){}
     try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); localStorage.removeItem("gize_session_ephemeral"); }catch(e){}
+    clearAccountLeftovers(logoutUid);
     location.reload();
     return;
   }
@@ -544,6 +547,7 @@ document.body.addEventListener("click", async e=>{
     try{
       if(a==="do-signup"){
         const name=((document.getElementById("auName")||{}).value||"").trim();
+        if(!IS_NATIVE) expectAuthLink(); // el link de confirmación vuelve a este navegador
         const r=await State.sb.auth.signUp({email:email, password:pass, options:{data:{full_name:name, role:role}, emailRedirectTo:(IS_NATIVE ? "gize://confirmado" : location.origin + location.pathname)}}); // gize:// abre la app instalada (core/supabase.js → openAuthLink)
         // Mail ya registrado: con la confirmación por mail activada Supabase no da error
         // (para no revelar qué mails existen) y devuelve un usuario sin identidades; sin
@@ -552,7 +556,7 @@ document.body.addEventListener("click", async e=>{
                               : !!(r.data && r.data.user && Array.isArray(r.data.user.identities) && r.data.user.identities.length===0);
         if(taken){ if(window.coreCancel) window.coreCancel(); showLogin("Este mail ya tiene una cuenta asociada. Ingresá con tu contraseña o con Google.","in",{email:email}); return; }
         if(r.error) throw r.error;
-        if(code) { try{ localStorage.setItem("jfit_pending_code", code.toUpperCase()); }catch(e){} }
+        if(code) setPendingCode(code);
       } else {
         const r=await State.sb.auth.signInWithPassword({email:email, password:pass});
         if(r.error) throw r.error;

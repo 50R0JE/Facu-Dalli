@@ -5,7 +5,7 @@
 // cuando State.view === "config".
 import { State } from '../core/state.js';
 import { KEY } from '../core/storage.js';
-import { loadCloud, deleteMyStorageFiles, PROFILE_KEY } from '../core/supabase.js';
+import { clearAccountLeftovers, loadCloud, deleteMyStorageFiles, PROFILE_KEY } from '../core/supabase.js';
 import { esc } from '../core/utils.js';
 import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
@@ -268,6 +268,7 @@ document.body.addEventListener("click", async function (e) {
       const r = await State.sb.rpc("delete_own_account");
       if (r.error) throw r.error;
       try { localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); } catch (err) {}
+      clearAccountLeftovers(State.cloudUser && State.cloudUser.id);
       try { await State.sb.auth.signOut(); } catch (err) {}
       alert("Tu cuenta fue eliminada.");
       location.reload();

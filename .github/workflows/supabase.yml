@@ -8,7 +8,7 @@
 #                          Database (read-write), Edge Functions (read-write),
 #                          Edge Function Secrets (read-write), Auth Config (read-write).
 #   MP_ACCESS_TOKEN        opcional. Access Token de producción de Mercado Pago (tarea "secrets").
-#   SMTP_PASSWORD          opcional. Contraseña de aplicación de Gmail (tarea "mails").
+#   SMTP_PASSWORD          ya no se usa (los mails salen por Resend, configurado en el panel de Supabase). Se puede borrar.
 #   RESEND_API_KEY         opcional. Clave de Resend ("Sending access") para los avisos de pagos
 #                          a los socios (tarea "secrets").
 #   AVISOS_PAGOS           opcional. Mails que reciben los avisos de pagos, separados por coma.
@@ -29,13 +29,8 @@ on:
           - secrets
           - sql
           - cuentas-demo
-          - mails
       archivo:
         description: "Para 'sql': archivo a correr (ej: supabase/suscripciones.sql)"
-        required: false
-        default: ""
-      smtp_user:
-        description: "Para 'mails': Gmail que manda los mails (ej: tu-mail@gmail.com)"
         required: false
         default: ""
 
@@ -92,20 +87,22 @@ jobs:
           [ -n "$AVISOS_PAGOS" ] && set -- "$@" AVISOS_PAGOS="$AVISOS_PAGOS"
           if [ $# -eq 0 ]; then echo "::error::No hay secrets para cargar (MP_ACCESS_TOKEN o APNS_KEY_P8)"; exit 1; fi
           supabase secrets set --project-ref "$PROJECT_REF" "$@"
-          supabase secrets list --project-ref "$PROJECT_REF"
+          # Solo los nombres: la lista trae también un resumen (hash) de cada valor y el log es público.
+          supabase secrets list --project-ref "$PROJECT_REF" | awk -F'|' '{print $1}'
 
       - name: Correr SQL
         if: inputs.tarea == 'sql' || inputs.tarea == 'cuentas-demo'
         env:
           ARCHIVO: ${{ inputs.archivo }}
+          TAREA: ${{ inputs.tarea }}
           DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
         run: |
-          if [ "${{ inputs.tarea }}" = "cuentas-demo" ]; then
+          if [ "$TAREA" = "cuentas-demo" ]; then
             if [ ${#DEMO_PASSWORD} -lt 8 ]; then echo "::error::Falta el secret DEMO_PASSWORD (al menos 8 caracteres)"; exit 1; fi
             echo "::add-mask::$DEMO_PASSWORD"
             python3 -c 'import os,sys; pw=os.environ["DEMO_PASSWORD"].replace("\x27","\x27\x27"); sys.stdout.write(open("supabase/cuentas-demo.sql").read().replace("__DEMO_PASSWORD__", pw))' > "$RUNNER_TEMP/q.sql"
           else
-            case "$ARCHIVO" in supabase/*.sql) ;; *) echo "::error::El archivo tiene que ser supabase/<algo>.sql"; exit 1;; esac
+            case "$ARCHIVO" in *..*) echo "::error::Ruta inválida"; exit 1;; supabase/*.sql) ;; *) echo "::error::El archivo tiene que ser supabase/<algo>.sql"; exit 1;; esac
             [ -f "$ARCHIVO" ] || { echo "::error::No existe $ARCHIVO"; exit 1; }
             cp "$ARCHIVO" "$RUNNER_TEMP/q.sql"
           fi
@@ -114,26 +111,7 @@ jobs:
             "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
             --data @"$RUNNER_TEMP/body.json")
-          cat "$RUNNER_TEMP/out.json"; echo
-          [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Supabase respondió $code"; exit 1; }
-
-      # Mails de registro por Gmail en vez del servidor de Supabase (que manda 2-3 por hora).
-      - name: Configurar mails (SMTP de Gmail)
-        if: inputs.tarea == 'mails'
-        env:
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          SMTP_USER: ${{ inputs.smtp_user }}
-        run: |
-          if [ -z "$SMTP_PASSWORD" ] || [ -z "$SMTP_USER" ]; then echo "::error::Faltan el secret SMTP_PASSWORD o el input smtp_user"; exit 1; fi
-          jq -n --arg u "$SMTP_USER" --arg p "$SMTP_PASSWORD" '{
-            external_email_enabled: true,
-            smtp_host: "smtp.gmail.com", smtp_port: "465",
-            smtp_user: $u, smtp_pass: $p, smtp_admin_email: $u, smtp_sender_name: "GIZE",
-            rate_limit_email_sent: 100
-          }' > "$RUNNER_TEMP/auth.json"
-          code=$(curl -sS -o "$RUNNER_TEMP/out.json" -w '%{http_code}' -X PATCH \
-            "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
-            --data @"$RUNNER_TEMP/auth.json")
-          jq '{external_email_enabled, smtp_host, smtp_user, rate_limit_email_sent}' "$RUNNER_TEMP/out.json" 2>/dev/null || cat "$RUNNER_TEMP/out.json"
+          # El log es PÚBLICO (repo público): no se imprime el resultado, solo si anduvo y cuántas
+          # filas devolvió. Para ver datos, correr la consulta en el SQL Editor de Supabase.
+          jq -r 'if type=="array" then "Filas devueltas: \(length)" else "Mensaje: \(.message // "sin detalle")" end' "$RUNNER_TEMP/out.json" 2>/dev/null || echo "(respuesta sin formato JSON)"
           [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Supabase respondió $code"; exit 1; }

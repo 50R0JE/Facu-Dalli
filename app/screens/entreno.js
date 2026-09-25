@@ -138,7 +138,7 @@ export function renderBlockBanner(){
   const wkData=(b.weekPlan||{})[wk]||{};
   const wkGoal=wkData.goal||''; const wkNote=wkData.note||'';
   return '<div class="blk'+(dl?' deload':'')+'">'+
-    '<div class="blk-top"><span class="blk-w">Semana '+wk+(b.weeks?' de '+b.weeks:'')+'</span>'+(meta?'<span class="blk-meta">'+esc(meta)+'</span>':'')+'</div>'+
+    '<div class="blk-top"><span class="blk-w">Semana '+wk+(b.weeks?' de '+(parseInt(b.weeks)||''):'')+'</span>'+(meta?'<span class="blk-meta">'+esc(meta)+'</span>':'')+'</div>'+
     (dl?'<div class="blk-dl">SEMANA DE DESCARGA \u2014 No faltes al gimnasio: baj\u00e1 series y cargas para recuperarte.</div>':'')+
     (b.notes?'<div class="blk-note">'+esc(b.notes)+'</div>':'')+
     (wkGoal?'<div class="blk-wkgoal">⭐ Objetivo: '+esc(wkGoal)+'</div>':'')+
@@ -182,7 +182,7 @@ export function renderEntreno(){
       let bestReps=0; (ex.sets||[]).forEach(s=>{ const r=+s.reps||0; if(r>bestReps) bestReps=r; });
       let bestSecs=0; (ex.sets||[]).forEach(s=>{ const r=parseSecs(s.secs); if(r>bestSecs) bestSecs=r; });
       const bestStr = isTimedEx(ex) ? (bestSecs>0 ? 'máx '+fmtSecs(bestSecs) : 'Completado')
-        : best ? (best.kg+' kg × '+best.reps) : (bestReps>0 ? bestReps+' reps' : 'Completado');
+        : best ? ((+best.kg||0)+' kg × '+(parseInt(best.reps)||0)) : (bestReps>0 ? bestReps+' reps' : 'Completado'); // números: kg y reps pueden venir de la rutina que escribe el coach
       return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${esc(ex.id)}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
         <span class="ex-collapsed-name">${esc(ex.name)}</span>

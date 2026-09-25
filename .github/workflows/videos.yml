@@ -23,12 +23,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Revisar videos
         env:
           ARCHIVO: ${{ inputs.archivo || 'app/core/videos.js' }}
         run: |
-          case "$ARCHIVO" in *..*) echo "::error::Ruta inválida"; exit 1;; esac
+          case "$ARCHIVO" in *..*|/*) echo "::error::Ruta inválida"; exit 1;; esac
           node scripts/verificar-videos.mjs "$ARCHIVO"
       - uses: actions/upload-artifact@v4
         if: always()

@@ -182,7 +182,8 @@
   mount(); // splash de arranque de la página
 })();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- supabase-js fijo (vendor/README.md): antes venía del CDN sin versión fija, y un cambio ahí corría en todas las sesiones. -->
+<script src="vendor/supabase-2.117.1.js"></script>
 <script type="module" src="app/main.js"></script>
 </body>
 </html>
