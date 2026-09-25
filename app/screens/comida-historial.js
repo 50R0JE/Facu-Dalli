@@ -7,6 +7,8 @@
 // está abierta.
 import { State, state } from '../core/state.js';
 import { esc, fmtDate, today, ymd } from '../core/utils.js';
+import { foodEmoji } from '../core/foodemoji.js';
+import { MEALS } from './comida.js';
 
 export const HistState = { date: null, open: false };
 const cache = new Map(); // fecha → { status: "loading" | "done" | "error", items, msg }
@@ -50,11 +52,11 @@ async function loadDay(date, rerender) {
     rerender(); return;
   }
   try {
-    const r = await State.sb.from("food_entries").select("name, grams, kcal, protein, carbs, fat, unit")
+    const r = await State.sb.from("food_entries").select("name, grams, kcal, protein, carbs, fat, unit, meal")
       .eq("client_id", State.cloudUser.id).eq("log_date", date).order("pos");
     if (r.error) throw r.error;
     const items = (r.data || []).map(x => ({
-      name: x.name, grams: Number(x.grams) || 0, unit: x.unit || "g", kcal: Math.round(Number(x.kcal) || 0),
+      meal: x.meal || null, name: x.name, grams: Number(x.grams) || 0, unit: x.unit || "g", kcal: Math.round(Number(x.kcal) || 0),
       p: Number(x.protein) || 0, c: Number(x.carbs) || 0, f: Number(x.fat) || 0,
     }));
     cache.set(date, { status: "done", items });
@@ -92,8 +94,16 @@ export function renderFoodHist() {
   else if (!c.items.length) body = '<div class="cal-hint">No anotaste comidas ese día.</div>';
   else {
     const t = c.items.reduce((a, e) => ({ kcal: a.kcal + e.kcal, p: a.p + e.p, c: a.c + e.c, f: a.f + e.f }), { kcal: 0, p: 0, c: 0, f: 0 });
-    body = `<div class="fh-tot"><b>${t.kcal.toLocaleString("es-AR")} kcal</b><span>P ${r1(t.p)} g · C ${r1(t.c)} g · G ${r1(t.f)} g</span></div>` +
-      c.items.map(e => `<div class="diary-item fh-item"><div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit === "ml" ? "ml" : "g"} · P ${r1(e.p)} · C ${r1(e.c)} · G ${r1(e.f)}</span></div><div class="diary-kcal">${e.kcal} kcal</div></div>`).join("");
+    const row = e => `<div class="diary-item fh-item"><span class="food-emo" aria-hidden="true">${foodEmoji(e.name)}</span><div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit === "ml" ? "ml" : "g"} · P ${r1(e.p)} · C ${r1(e.c)} · G ${r1(e.f)}</span></div><div class="diary-kcal">${e.kcal} kcal</div></div>`;
+    // Por comida, como en el día de hoy. Lo anotado antes de las secciones va en "Otras comidas".
+    const known = new Set(MEALS.map(m => m[0]));
+    const groups = MEALS.concat([["otras", "Otras comidas", "🍴"]]).map(m => {
+      const list = c.items.filter(e => m[0] === "otras" ? !known.has(e.meal) : e.meal === m[0]);
+      if (!list.length) return "";
+      const kc = list.reduce((a, e) => a + e.kcal, 0);
+      return `<div class="fh-meal"><span>${m[2]} ${m[1]}</span><span>${kc.toLocaleString("es-AR")} kcal</span></div>` + list.map(row).join("");
+    }).join("");
+    body = `<div class="fh-tot"><b>${t.kcal.toLocaleString("es-AR")} kcal</b><span>P ${r1(t.p)} g · C ${r1(t.c)} g · G ${r1(t.f)} g</span></div>` + groups;
   }
   const canNext = addDays(sel, 1) < today();
   return `

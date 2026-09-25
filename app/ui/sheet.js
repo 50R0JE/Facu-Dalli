@@ -1,6 +1,6 @@
 import { esc } from '../core/utils.js';
 
-import { ComidaState, cookPortion, entryBase, previewStr, selectedFoodValues } from '../screens/comida.js';
+import { ComidaState, cookPortion, entryBase, mealChips, mealNow, previewStr, selectedFoodValues } from '../screens/comida.js';
 
 export const SheetState = {
 
@@ -20,6 +20,7 @@ export function renderSheet(){
     <div class="sheet-bg" data-action="portion-cancel"></div>
     <div class="sheet">
       <div class="sheet-title">${esc(title)}</div>
+      ${mealChips(ComidaState.sheetMeal || (isEdit ? ComidaState.editEntry.meal : ComidaState.meal) || mealNow(), "sheet-meal")}
       ${sf && sf.cook ? `<div class="sheet-cook" role="radiogroup" aria-label="¿Cómo lo pesaste?">
         <span class="sheet-cook-lbl">¿Cómo lo pesaste?</span>
         <div class="seg">${["crudo","cocido"].map(st=>`<button class="${ComidaState.cookState===st?'on':''}" role="radio" aria-checked="${ComidaState.cookState===st}" data-action="portion-cook" data-val="${st}">${st==="crudo"?"Crudo":"Cocido"}</button>`).join("")}</div>
