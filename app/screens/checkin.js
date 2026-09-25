@@ -34,6 +34,7 @@ export const CheckinState = {
 
 };
 
+let _lastSaveTap=0;
 export function saveSession(){
   const d=day(); const exs=[];
   (d.exercises||[]).forEach(ex=>{
@@ -41,6 +42,16 @@ export function saveSession(){
     if(sets.length) exs.push({name:ex.name, sets:sets});
   });
   if(!exs.length){ alert("Cargá kg, reps o segundos en al menos una serie antes de guardar el entreno."); return; }
+  // El mismo entreno guardado dos o tres veces seguidas (un tester lo guardó 3 veces en un
+  // minuto): varios toques rápidos se ignoran y, si ya se guardó igual hoy, se pregunta.
+  if(Date.now()-_lastSaveTap < 1500) return;
+  _lastSaveTap=Date.now();
+  const sig=JSON.stringify(exs);
+  const dup=(state.sessions||[]).slice().reverse().find(s=>s.date===today() && s.day===d.name && JSON.stringify(s.exercises)===sig);
+  if(dup){
+    const mins=Math.max(1, Math.round((Date.now()-(dup.ts||Date.now()))/60000));
+    if(!confirm("Este entreno ya lo guardaste hoy"+(dup.ts?" (hace "+mins+" min)":"")+", con los mismos pesos y repeticiones.\n\n¿Guardarlo otra vez?")) return;
+  }
   CheckinState.newPRs=detectPRs(exs, state.sessions); // contra el historial ANTES de sumar esta sesión
   const _ns={id:newId(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
   state.sessions.push(_ns);
