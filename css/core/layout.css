@@ -66,3 +66,10 @@
     color: var(--txt-3); font-size: 11px; font-weight: 600; cursor: pointer; border-radius: 4px; transition: var(--transition-tap); }
 
 .nav-item svg { width: 22px; height: 22px; }
+
+/* Con el teclado abierto (app/ui/keyboard.js) la barra de abajo quedaba flotando encima del
+   teclado en iPhone y tapaba lo que se estaba buscando (ej. resultados de Comida). */
+.kb-open .navbar { display: none; }
+/* Lugar abajo mientras se busca en Comida con el teclado abierto: sin esto, en una pantalla
+   corta el buscador no podía subir (app/ui/keyboard.js) y los resultados quedaban detrás. */
+.kb-search #view { padding-bottom: 100vh; }
