@@ -453,7 +453,7 @@ document.body.addEventListener("click", async e=>{
     b.disabled=true; b.lastChild.textContent="Abriendo Google...";
     if(!State.sb) await ensureSb();
     if(!State.sb){ showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", mode, V); return; }
-    try{ await signInWithGoogle({role:mode==="up"?role:"client", code:mode==="up"&&role==="client"?code:""}); } // web: la página se va a Google
+    try{ await signInWithGoogle({role:mode==="up"?role:"client", code:mode==="up"&&role==="client"?code:"", mode:mode, vals:V}); } // web: la página se va a Google
     catch(err){ showLogin("No se pudo entrar con Google: "+((err&&err.message)||err), mode, V); }
     return;
   }
