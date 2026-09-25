@@ -94,6 +94,10 @@ export async function signInWithGoogle(opts){
   opts = opts || {};
   try{ localStorage.setItem(GOOGLE_INTENT, JSON.stringify({role:opts.role==="coach"?"coach":"client", t:Date.now()})); }catch(e){}
   if(opts.code){ try{ localStorage.setItem("jfit_pending_code", opts.code.toUpperCase()); }catch(e){} }
+  // Android: la cuenta de Google del teléfono, con la ventana del sistema (dice "GIZE").
+  // Si no se puede (sin cuentas en el teléfono, versión instalada fuera de Play, etc.), sigue
+  // el navegador de siempre.
+  if(await nativeGoogleLogin(opts)) return;
   const native = NativeApp();
   const r = await State.sb.auth.signInWithOAuth({provider:"google", options:{
     redirectTo: native ? "gize://login" : location.origin + location.pathname,
@@ -106,6 +110,50 @@ export async function signInWithGoogle(opts){
     if(Browser) await Browser.open({url:r.data.url, presentationStyle:"popover"});
     else location.href = r.data.url; // sin el plugin, Capacitor abre las URLs externas en el navegador
   }
+}
+
+// ---- Login nativo con Google en Android (plugin @capgo/capacitor-social-login) ----
+// Usa Credential Manager: aparece la hoja del sistema con las cuentas del teléfono y el nombre
+// GIZE, sin navegador. Google devuelve un ID token para el cliente web (su "aud" es
+// GOOGLE_WEB_CLIENT_ID, que Supabase ya acepta) y se canjea con signInWithIdToken con nonce
+// (a Google va el SHA-256, a Supabase el original).
+// Requiere, en Google Cloud, un cliente OAuth de tipo Android con el paquete ar.com.gize.app y
+// la huella SHA-1 del certificado con que Play firma la app (Play Console → Integridad de la app).
+// Sin eso Google responde "developer error" y se cae al navegador, así que nunca queda trabado.
+// Devuelve true si el intento terminó acá (entró, o el usuario cerró la hoja), false si hay que
+// usar el navegador.
+let _nativeGoogleReady = null;
+async function nativeGoogleLogin(opts){
+  if(!IS_NATIVE_APP) return false;
+  let platform = ""; try{ platform = window.Capacitor.getPlatform(); }catch(e){}
+  const SL = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SocialLogin;
+  if(platform !== "android" || !SL || !(window.crypto && crypto.subtle)) return false;
+  const vals = opts.vals || {}, mode = opts.mode || "in";
+  let res;
+  const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+  try{
+    if(!_nativeGoogleReady) _nativeGoogleReady = SL.initialize({ google: { webClientId: GOOGLE_WEB_CLIENT_ID, mode: "online" } }).catch(e => { _nativeGoogleReady = null; throw e; });
+    await _nativeGoogleReady;
+    res = await SL.login({ provider: "google", options: { nonce: await sha256Hex(rawNonce) } });
+  }catch(e){
+    const m = String((e && (e.message || e.code)) || e);
+    // Cerró la hoja o tocó atrás: se vuelve al login como estaba, sin error.
+    if(/cancel/i.test(m)){ clearGoogleIntent(); showLogin("", mode, vals); return true; }
+    console.error("google nativo", m);
+    return false; // cualquier otra cosa: se prueba con el navegador
+  }
+  const idToken = res && res.result && res.result.idToken;
+  if(!idToken){ console.error("google nativo: sin idToken"); return false; }
+  if(window.coreReplay) window.coreReplay();
+  let r;
+  try { r = await State.sb.auth.signInWithIdToken({ provider: "google", token: idToken, nonce: rawNonce }); }
+  catch (e) { r = { error: e }; }
+  if(r.error || !r.data || !r.data.session){
+    clearGoogleIntent(); if(window.coreCancel) window.coreCancel();
+    showLogin(GOOGLE_ERROR_MSG + authErrDetail(r.error && r.error.message), mode, vals); return true;
+  }
+  try { await afterLogin(r.data.session.user); } finally { if(window.coreEnter) window.coreEnter(); }
+  return true;
 }
 
 // ---- Botón oficial de Google en la web (Google Identity Services) ----
