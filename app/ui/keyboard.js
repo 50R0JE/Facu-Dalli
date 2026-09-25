@@ -16,7 +16,27 @@
     last = v;
     root.style.setProperty("--kb", v + "px");
     root.classList.toggle("kb-open", v > 0);
+    if (v > 0) searchToTop();
+    // El lugar extra se saca recién con el teclado cerrado: sacarlo al tocar un resultado
+    // (cuando el buscador pierde el foco) movía la página justo debajo del dedo.
+    else root.classList.remove("kb-search");
   }
+  // Buscador de Comida: con el teclado abierto quedaba poco lugar debajo y los resultados
+  // se escondían detrás del teclado. Se sube el buscador arriba de todo, una vez por foco.
+  let lifted = null;
+  function searchToTop() {
+    const el = document.activeElement;
+    if (!el || el.id !== "foodSearch" || lifted === el) return;
+    lifted = el;
+    root.classList.add("kb-search");
+    setTimeout(() => {
+      if (document.activeElement !== el) return;
+      const row = el.closest(".food-search-row") || el;
+      const y = row.getBoundingClientRect().top + window.scrollY - 12;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }, 250);
+  }
+  document.addEventListener("focusout", (e) => { if (e.target === lifted) lifted = null; });
   vv.addEventListener("resize", update);
   vv.addEventListener("scroll", update);
   update();
