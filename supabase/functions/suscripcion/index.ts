@@ -116,7 +116,12 @@ async function syncPreapproval(id: string) {
   if (!coachId || !PLANES[plan]) { console.error("preapproval sin referencia GIZE", id); return null; }
   const db = admin();
   const { data: cur } = await db.from("coach_billing").select("*").eq("coach_id", coachId).maybeSingle();
-  if (!cur) { console.error("coach sin coach_billing", coachId); return null; }
+  if (!cur) {
+    // La cuenta del coach ya no existe (la borró): que Mercado Pago no le siga cobrando.
+    console.error("coach sin coach_billing", coachId);
+    if (pa.status === "authorized" || pa.status === "paused") await cancelarMP(id);
+    return null;
+  }
 
   // Aviso a los socios de los cambios de la suscripción (una vez por suscripción y estado).
   const estados: Record<string, [string, string]> = {
@@ -133,28 +138,39 @@ async function syncPreapproval(id: string) {
   }
 
   if (pa.status === "authorized") {
-    // Pagado hasta: un mes después del último cobro (o la fecha del próximo), más el margen.
+    // Solo cuentan la suscripción vigente y la última que pidió el coach. Otra autorizada
+    // (un checkout viejo que igual pagó, dos toques seguidos en "pagar") se da de baja:
+    // si no, Mercado Pago cobraba las dos todos los meses.
+    if (id !== cur.mp_preapproval_id && id !== cur.mp_pending_id) {
+      console.error("suscripción que ya no es la pedida, se cancela", id);
+      await cancelarMP(id);
+      return { coachId, plan };
+    }
+    // El plan se activa (y paid_until avanza) recién con un cobro hecho: antes bastaba con
+    // autorizar la suscripción y se daba un mes aunque el primer cobro fallara.
     const last = pa.summarized && pa.summarized.last_charged_date;
-    const base = last ? addMonth(new Date(last)) : (pa.next_payment_date ? new Date(pa.next_payment_date) : null);
+    const cobros = Number((pa.summarized && pa.summarized.charged_quantity) || 0);
+    if (!last || cobros < 1) return { coachId, plan };
     let paidUntil = cur.paid_until ? new Date(cur.paid_until) : null;
-    if (base) {
-      const cand = new Date(base.getTime() + MARGEN_DIAS * 864e5);
-      if (!paidUntil || cand > paidUntil) paidUntil = cand;
-    }
-    // Si cambió de plan, se da de baja la suscripción anterior (no cobrar dos veces).
-    if (cur.mp_preapproval_id && cur.mp_preapproval_id !== id) {
-      try { await mp("/preapproval/" + encodeURIComponent(cur.mp_preapproval_id), { method: "PUT", body: JSON.stringify({ status: "cancelled" }) }); }
-      catch (e) { console.error("no se pudo cancelar la anterior", (e as Error).message); }
-    }
+    const cand = new Date(addMonth(new Date(last)).getTime() + MARGEN_DIAS * 864e5);
+    if (!paidUntil || cand > paidUntil) paidUntil = cand;
+    // Si cambió de plan, se da de baja la anterior recién ahora que la nueva cobró: si la
+    // nueva no se llegaba a cobrar, el coach se quedaba sin ninguna.
+    if (cur.mp_preapproval_id && cur.mp_preapproval_id !== id) await cancelarMP(cur.mp_preapproval_id);
     await db.from("coach_billing").update({
       plan, max_clients: PLANES[plan].max, mp_preapproval_id: id, mp_status: "authorized",
-      pending_plan: null, paid_until: paidUntil ? paidUntil.toISOString() : cur.paid_until, updated_at: new Date().toISOString(),
+      pending_plan: null, mp_pending_id: null, paid_until: paidUntil.toISOString(), updated_at: new Date().toISOString(),
     }).eq("coach_id", coachId);
   } else if (id === cur.mp_preapproval_id) {
     // paused / cancelled de la suscripción vigente: queda activo hasta paid_until.
     await db.from("coach_billing").update({ mp_status: pa.status, updated_at: new Date().toISOString() }).eq("coach_id", coachId);
   }
   return { coachId, plan };
+}
+
+async function cancelarMP(id: string) {
+  try { await mp("/preapproval/" + encodeURIComponent(id), { method: "PUT", body: JSON.stringify({ status: "cancelled" }) }); }
+  catch (e) { console.error("no se pudo cancelar", id, (e as Error).message); }
 }
 
 async function webhook(req: Request, url: URL) {
@@ -257,7 +273,10 @@ Deno.serve(async (req) => {
         ? "Ese mail es el de la cuenta que cobra. Poné el mail de la cuenta de Mercado Pago que va a pagar."
         : "Mercado Pago rechazó el pedido. Revisá que el mail sea el de la cuenta de Mercado Pago que va a pagar. (Detalle: " + msg.slice(0, 200) + ")" }, 502);
     }
-    await db.from("coach_billing").update({ pending_plan: plan, updated_at: new Date().toISOString() }).eq("coach_id", coachId);
+    // El checkout anterior que no se terminó de pagar se da de baja: si el coach lo pagaba
+    // igual (otra pestaña, dos toques), quedaban dos suscripciones cobrando.
+    if (bill.mp_pending_id && bill.mp_pending_id !== bill.mp_preapproval_id) await cancelarMP(bill.mp_pending_id);
+    await db.from("coach_billing").update({ pending_plan: plan, mp_pending_id: pa.id, updated_at: new Date().toISOString() }).eq("coach_id", coachId);
     return json({ url: pa.init_point });
   }
 
