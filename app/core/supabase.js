@@ -38,8 +38,12 @@ const CONFIRM_ERROR = !!(BOOT_AUTH.get("error_code") || BOOT_AUTH.get("error_des
 const CONFIRM_ERROR_MSG = "El link de confirmación venció o ya se usó. Probá ingresar con tu email y contraseña; si no te deja, registrate de nuevo para recibir otro mail.";
 
 // App nativa: quien se registra desde la app recibe un mail cuyo link vuelve con
-// gize://confirmado#access_token=...&refresh_token=... (ver emailRedirectTo en main.js).
-// Android/iPhone abren la app instalada y acá se inicia la sesión con esos tokens.
+// gize://confirmado?code=... (ver emailRedirectTo en main.js); el login con Google vuelve
+// con gize://login?code=... Android/iPhone abren la app instalada y acá se canjea el código.
+// En la app se usa PKCE (flowType en ensureSb): el código solo sirve junto con una clave que
+// quedó guardada en ESTE celular al empezar. Otra app que se registre para abrir gize:// no
+// puede usarlo, y un link armado a mano no puede meter a nadie en una cuenta ajena.
+const IS_NATIVE_APP = (()=>{ try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) { return false; } })();
 const NativeApp = () => { try { return (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.App) || null; } catch (e) { return null; } };
 const AUTH_LINK_USED = "gize_auth_link_used";
 async function openAuthLink(url){
@@ -48,12 +52,13 @@ async function openAuthLink(url){
   const p=new URLSearchParams((url.split("#")[1]||"") + "&" + ((url.split("?")[1]||"").split("#")[0]));
   // getLaunchUrl() devuelve el mismo link en cada recarga de la app (ej. después de cerrar
   // sesión): sin esta marca, el logout volvía a entrar solo con los tokens del mail.
-  const mark=(p.get("access_token")||p.get("error_code")||"").slice(-24);
+  const mark=(p.get("code")||p.get("access_token")||p.get("error_code")||"").slice(-24);
   try{ if(mark && localStorage.getItem(AUTH_LINK_USED)===mark) return false; localStorage.setItem(AUTH_LINK_USED, mark); }catch(e){}
   const failMsg = isGoogle ? GOOGLE_ERROR_MSG : CONFIRM_ERROR_MSG;
   if(p.get("error")||p.get("error_code")||p.get("error_description")){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
-  const at=p.get("access_token"), rt=p.get("refresh_token"); if(!at||!rt) return false;
-  const r=await State.sb.auth.setSession({access_token:at, refresh_token:rt});
+  // Solo el código PKCE: un link con tokens sueltos (#access_token=...) se ignora.
+  const code=p.get("code"); if(!code) return false;
+  const r=await State.sb.auth.exchangeCodeForSession(code);
   if(r.error||!r.data.session){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
   if(isGoogle){
     if(window.coreReplay) window.coreReplay();
@@ -160,7 +165,8 @@ export function setRememberSession(on){ try{ localStorage.setItem(REMEMBER_KEY, 
 const authStorage = {
   getItem(k){ try{ const s=sessionStorage.getItem(k); if(s!=null) return s; }catch(e){} try{ return localStorage.getItem(k); }catch(e){ return null; } },
   setItem(k, v){
-    const keep=rememberSession();
+    // La clave PKCE tiene que sobrevivir a que el sistema cierre la app mientras está en Google.
+    const keep=rememberSession() || /code-verifier$/.test(k);
     try{ (keep ? localStorage : sessionStorage).setItem(k, v); }catch(e){}
     try{ (keep ? sessionStorage : localStorage).removeItem(k); }catch(e){}
   },
@@ -172,7 +178,7 @@ export function ensureSb(){
   if (State.sb) return Promise.resolve(State.sb);
   if (_sbReady) return _sbReady;
   const tryInit = () => {
-    if (!State.sb && window.supabase) { try { State.sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{storage:authStorage}}); } catch(e){} }
+    if (!State.sb && window.supabase) { try { State.sb = window.supabase.createClient(SB_URL, SB_KEY, {auth:{storage:authStorage, flowType: IS_NATIVE_APP ? "pkce" : "implicit"}}); } catch(e){} }
     return !!State.sb;
   };
   if (_sbFailed && !window.supabase) reloadSbScript();
