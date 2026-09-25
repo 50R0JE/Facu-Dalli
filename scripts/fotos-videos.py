@@ -99,7 +99,7 @@ def main():
                     if r["id"] not in ids: ids.append(r["id"]); extra[r["id"]] = r
             except Exception as e:
                 print("búsqueda falló", q, e)
-        ids = ids[:9]
+        ids = ids[:10]
         with ThreadPoolExecutor(6) as ex: infos = list(ex.map(info, ids))
         rows = []
         for n, r in enumerate(infos, 1):
