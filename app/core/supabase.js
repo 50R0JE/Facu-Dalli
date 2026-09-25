@@ -107,7 +107,7 @@ function takeGoogleIntent(){
 }
 export async function signInWithGoogle(opts){
   opts = opts || {};
-  try{ localStorage.setItem(GOOGLE_INTENT, JSON.stringify({role:opts.role==="coach"?"coach":"client", t:Date.now()})); }catch(e){}
+  try{ localStorage.setItem(GOOGLE_INTENT, JSON.stringify({role:opts.role==="coach"?"coach":"client", mode:opts.mode==="up"?"up":"in", t:Date.now()})); }catch(e){}
   if(opts.code){ try{ localStorage.setItem("jfit_pending_code", opts.code.toUpperCase()); }catch(e){} }
   // Android: la cuenta de Google del teléfono, con la ventana del sistema (dice "GIZE").
   // Si no se puede (sin cuentas en el teléfono, versión instalada fuera de Play, etc.), sigue
@@ -248,7 +248,7 @@ async function googleCredentialLogin(resp, rawNonce){
   // Si algo falla, el login vuelve como estaba (modo, "Soy coach", código y lo escrito).
   const V = { role, code, name: ((document.getElementById("auName") || {}).value || "").trim(), email: ((document.getElementById("auEmail") || {}).value || "").trim() };
   // Lo mismo que guarda signInWithGoogle antes de irse: afterLogin lo aplica (coach / código).
-  try { localStorage.setItem(GOOGLE_INTENT, JSON.stringify({ role: isUp && role === "coach" ? "coach" : "client", t: Date.now() })); } catch (e) {}
+  try { localStorage.setItem(GOOGLE_INTENT, JSON.stringify({ role: isUp && role === "coach" ? "coach" : "client", mode: isUp ? "up" : "in", t: Date.now() })); } catch (e) {}
   if (isUp && role === "client" && code) { try { localStorage.setItem("jfit_pending_code", code.toUpperCase()); } catch (e) {} }
   if (window.coreReplay) window.coreReplay();
   if (!State.sb) await ensureSb();
@@ -416,6 +416,18 @@ export async function afterLogin(sessionUser){
   if(!State.cloudProfile) State.cloudProfile=cachedProfile(); // sin conexión: el último perfil conocido
   // Registro con Google eligiendo "Soy coach": la cuenta nace como cliente (ver login-google.sql).
   const gi=takeGoogleIntent();
+  // Entró con Google desde "Ingresar" (no desde "Crear cuenta") y la cuenta se creó recién:
+  // puede que ya tuviera otra cuenta con otro mail (a un tester le pasó y creyó que había
+  // perdido todo). Se le avisa con qué mail quedó y qué hacer si no era la que quería.
+  try{
+    const u=State.cloudUser||{};
+    const fresh = u.created_at && Date.now()-Date.parse(u.created_at) < 10*60*1000;
+    const viaGoogle = (u.app_metadata && u.app_metadata.provider==="google") || (u.identities||[]).some(i=>i.provider==="google");
+    if(gi && gi.mode!=="up" && Date.now()-gi.t < 15*60*1000 && fresh && viaGoogle){
+      const mail=u.email||"tu cuenta de Google";
+      setTimeout(()=>alert("Creamos una cuenta nueva de GIZE con "+mail+".\n\nSi es tu primera vez, ¡bienvenido! Si ya tenías una cuenta con OTRO mail, andá a Ajustes → Salir y entrá con ese mail y tu contraseña: ahí están tus datos."), 900);
+    }
+  }catch(e){}
   if(gi && gi.role==="coach" && Date.now()-gi.t < 15*60*1000 && State.cloudProfile && State.cloudProfile.role!=="coach"){
     try{
       const rc=await State.sb.rpc("become_coach_new_account");
