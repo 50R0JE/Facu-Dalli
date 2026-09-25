@@ -7,7 +7,9 @@ import { loadCoachQuestions } from '../screens/coach/preguntas.js';
 
 import { State, state } from './state.js';
 
-import { KEY, migrateNames, save } from './storage.js';
+import { DEFAULT } from './data.js';
+
+import { KEY, markRoutineSynced, migrateNames, routineHash, save } from './storage.js';
 
 import { storageErrorText, today, ymd } from './utils.js';
 
@@ -432,7 +434,7 @@ export async function loadCloud(){
     const uid=State.cloudUser.id, sb=State.sb;
     const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp, cq, fw] = await Promise.all([
       sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
-      sb.from("routines").select("days").eq("client_id",uid).maybeSingle(),
+      sb.from("routines").select("days, updated_at").eq("client_id",uid).maybeSingle(),
       // Las tablas que crecen con el uso van con fetchAll() (sin eso, más de 1000 filas se
       // cortaban). Orden único: fecha (única por cliente) o created_at + id.
       fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on")),
@@ -462,13 +464,23 @@ export async function loadCloud(){
     }
     const rt=sbOk(rt0);
     if(rt.data && Array.isArray(rt.data.days) && rt.data.days.length){
-      // Con coach, la rutina manda el coach: se toma la de la nube y solo se conserva lo
-      // que el cliente cargó a mano (kg, reps, tildes) de cada serie.
-      state.days = routineLocked() ? mergeLocalProgress(rt.data.days, state.days) : rt.data.days;
+      if(routineLocked()){
+        // Con coach, la rutina manda el coach: se toma la de la nube y solo se conserva lo
+        // que el cliente cargó a mano (kg, reps, tildes) de cada serie.
+        state.days = mergeLocalProgress(rt.data.days, state.days);
+      } else if(localRoutineWins(rt.data)){
+        // El cliente cambió su rutina en el celular sin poder subirla (sin señal) y ese
+        // cambio es más nuevo que la nube: se sube en vez de perderlo.
+        sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
+      } else {
+        state.days = rt.data.days;
+      }
       migrateNames(state.days);
       if(!state.days.find(d=>d.id===State.activeId)) State.activeId=state.days[0].id;
+      markRoutineSynced(state.days);
     } else if(!routineLocked()) {
       sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
+      markRoutineSynced(state.days);
     }
     State.cloudReady=true;
     if(!ws.error && Array.isArray(ws.data)){
@@ -510,8 +522,39 @@ export async function loadCloud(){
     save();
   }catch(e){ console.error("loadCloud",e); }
   State.cloudLoading=false;
+  // Sin esto, si la app abría sin señal no volvía a intentar en toda la sesión: la rutina
+  // nunca se subía y los cambios quedaban solo en el celular.
+  if(!State.cloudReady) scheduleCloudRetry(); else _retryN=0;
   syncExtras();
 }
+
+// ¿La rutina del celular le gana a la de la nube? Solo si cambió acá después de la última
+// sincronización y ese cambio es más nuevo que la última vez que se guardó en la nube.
+// Celulares con la versión anterior (sin huella guardada): gana lo local solo si la nube
+// todavía tiene la rutina de ejemplo con la que arranca toda cuenta y el celular no.
+function localRoutineWins(cloud){
+  const exNames=days=>(days||[]).map(d=>(d.exercises||[]).map(e=>e.name).join(",")).join("|");
+  const isDefault=days=>exNames(days)===exNames(DEFAULT.days);
+  if(!state.routineHash) return isDefault(cloud.days) && !isDefault(state.days);
+  if(routineHash(state.days)===state.routineHash) return false;
+  const cloudTs=Date.parse(cloud.updated_at)||0;
+  return (state.routineEditedAt||0) > cloudTs;
+}
+
+let _retryT=null, _retryN=0;
+function scheduleCloudRetry(){
+  clearTimeout(_retryT);
+  const ms=Math.min(300000, 15000*Math.pow(2, _retryN++));
+  _retryT=setTimeout(retryCloud, ms);
+}
+async function retryCloud(){
+  if(State.cloudReady || State.cloudLoading || !State.sb || !State.cloudUser) return;
+  await loadCloud();
+  if(State.cloudReady){
+    if(State.cloudProfile && State.cloudProfile.role==="coach") renderCoach(); else renderApp();
+  }
+}
+window.addEventListener("online", ()=>{ if(State.cloudUser && !State.cloudReady) retryCloud(); });
 
 // ===== Comidas, agua, pasos, hábitos y preferencias =====
 // Se comparan contra lo último enviado (o leído de la nube) y, si cambió, van a la cola
@@ -594,7 +637,11 @@ export function cloudSyncCore(){
     try{
       // Con coach asignado la rutina es SOLO del coach: subir la copia del cliente en cada
       // save() pisaba lo que el coach acababa de cambiar.
-      if(!routineLocked()) sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:state.days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
+      if(!routineLocked()){
+        const days=state.days, h=routineHash(days);
+        sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
+        if(routineHash(state.days)===h) markRoutineSynced(state.days); // si cambió mientras subía, queda pendiente para la próxima
+      }
       const rows=(state.weights||[]).map(w=>({client_id:State.cloudUser.id, measured_on:w.date, kg:w.kg}));
       if(rows.length) sbOk(await State.sb.from("body_weights").upsert(rows,{onConflict:"client_id,measured_on"}));
       // Se borra de la nube solo lo que este dispositivo ya había visto ahí y el cliente

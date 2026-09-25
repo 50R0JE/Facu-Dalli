@@ -8,7 +8,30 @@ import { muscleOf, uid } from './utils.js';
 
 export const KEY = "rutina_jero_v1";
 
-export function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} try { cloudSyncCore(); } catch(e){} }
+// Huella de la rutina para saber si cambió en el celular desde la última vez que quedó igual
+// que en la nube (state.routineHash). Si el celular no pudo sincronizar (sin señal en el
+// gimnasio) y el cliente armó o cambió su rutina, al volver la conexión la nube NO la pisa:
+// se compara la hora de ese cambio (state.routineEditedAt) con la de la nube (ver loadCloud).
+export function routineHash(days){
+  const s=JSON.stringify(days||[]); let h=5381;
+  for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0;
+  return (h>>>0).toString(36)+"."+s.length;
+}
+let _seenRoutine=null;
+try { _seenRoutine=routineHash(state.days); } catch(e) {}
+function noteRoutineEdit(){
+  const h=routineHash(state.days);
+  if(_seenRoutine!==null && h!==_seenRoutine && h!==state.routineHash) state.routineEditedAt=Date.now();
+  _seenRoutine=h;
+}
+// La rutina local quedó igual a la de la nube (se bajó o se subió).
+export function markRoutineSynced(days){
+  state.routineHash=routineHash(days);
+  _seenRoutine=routineHash(state.days);
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+export function save(){ try { noteRoutineEdit(); } catch(e) {} try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} try { cloudSyncCore(); } catch(e){} }
 
 // Los id de la rutina van dentro del HTML (data-ex, data-set…). La rutina la puede escribir
 // otra persona (el coach, o el cliente antes de vincularse), así que un id raro se cambia
