@@ -4,57 +4,74 @@
   Dónde va: Supabase → Authentication → Emails → "Confirm signup".
     · Subject: Confirmá tu cuenta de GIZE
     · Body (pestaña Source): este archivo entero.
-  Supabase reemplaza {{ .ConfirmationURL }} por el link de confirmación, {{ .Data.full_name }}
-  por el nombre que puso al registrarse y {{ .Data.role }} por "coach" o "client".
-  Hecho con tablas y estilos en línea: es lo único que Gmail, Outlook y Apple Mail muestran
-  igual. El logo es un PNG servido desde gize.ar (Gmail no muestra SVG).
+  Supabase reemplaza {{ .ConfirmationURL }} por el link de confirmación y {{ .Data.role }}
+  por "coach" o "client".
+
+  Por qué es claro y no negro: Gmail en el celular con modo oscuro invierte los colores de
+  los mails oscuros (el fondo negro queda claro, el texto blanco queda oscuro y el logo queda
+  como una caja). Un mail claro lo oscurece bien solo. En Apple Mail y Outlook, que respetan
+  el modo oscuro, pasa a la paleta de la app con @media (prefers-color-scheme: dark).
+  - El ícono es un PNG con fondo transparente fuera de las esquinas: se ve igual en claro y
+    en oscuro (Gmail no muestra SVG).
+  - El texto del botón es oscuro sobre el azul: si Gmail lo invierte queda claro sobre azul,
+    que también se lee (el blanco sobre azul quedaba oscuro sobre azul).
+  - Tablas y estilos en línea: es lo único que Gmail, Outlook y Apple Mail muestran igual.
 -->
 <html lang="es" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<meta name="supported-color-schemes" content="dark">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
 <title>Confirmá tu cuenta de GIZE</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;padding:0;background:#000000;}
-  a{color:#2FA0FF;}
+  body{margin:0;padding:0;}
+  a{color:#0072BB;}
   @media (max-width:520px){
     .card{border-radius:0 !important;border-left:0 !important;border-right:0 !important;}
     .pad{padding-left:24px !important;padding-right:24px !important;}
     .h1{font-size:26px !important;}
   }
+  @media (prefers-color-scheme: dark){
+    .bg{background:#000000 !important;}
+    .card{background:#0B0D11 !important;border-color:#1C2029 !important;}
+    .t1{color:#FFFFFF !important;}
+    .t2{color:#D5DAE1 !important;}
+    .t3{color:#8F98A6 !important;}
+    .box{background:#12151B !important;border-color:#1C2029 !important;}
+    .lnk{color:#2FA0FF !important;}
+  }
 </style>
 </head>
-<body style="margin:0;padding:0;background:#000000;">
+<body class="bg" style="margin:0;padding:0;background:#F2F4F7;">
 <!-- Texto de vista previa (lo que se ve en la bandeja al lado del asunto). -->
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#000000;">Tocá el botón para activar tu cuenta y empezar a entrenar.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Tocá el botón para activar tu cuenta y empezar a entrenar.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background:#000000;">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F2F4F7" style="background:#F2F4F7;">
   <tr>
     <td align="center" style="padding:32px 12px;">
 
-      <table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0B0D11"
-             style="max-width:480px;background:#0B0D11;border:1px solid #1C2029;border-radius:20px;overflow:hidden;">
+      <table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF"
+             style="max-width:480px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:20px;overflow:hidden;">
         <!-- Filete RGB de la marca -->
         <tr>
           <td style="padding:0;font-size:0;line-height:0;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-              <td width="25%" height="4" bgcolor="#2FA0FF" style="background:#2FA0FF;height:4px;font-size:0;line-height:0;">&nbsp;</td>
-              <td width="25%" height="4" bgcolor="#A65CFF" style="background:#A65CFF;height:4px;font-size:0;line-height:0;">&nbsp;</td>
-              <td width="25%" height="4" bgcolor="#FF3DAE" style="background:#FF3DAE;height:4px;font-size:0;line-height:0;">&nbsp;</td>
-              <td width="25%" height="4" bgcolor="#25E8C8" style="background:#25E8C8;height:4px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#2FA0FF" style="background:#2FA0FF;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#A65CFF" style="background:#A65CFF;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#FF3DAE" style="background:#FF3DAE;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#25E8C8" style="background:#25E8C8;height:5px;font-size:0;line-height:0;">&nbsp;</td>
             </tr></table>
           </td>
         </tr>
 
-        <!-- Logo -->
+        <!-- Ícono -->
         <tr>
-          <td class="pad" align="center" style="padding:36px 40px 8px;">
+          <td class="pad" align="center" style="padding:40px 40px 0;">
             <a href="https://gize.ar/" style="text-decoration:none;">
-              <img src="https://gize.ar/brand/mail/gize-firma.png" width="150" height="56" alt="GIZE"
-                   style="display:block;width:150px;height:56px;border:0;outline:none;color:#FFFFFF;font:700 28px Arial,sans-serif;letter-spacing:.14em;">
+              <img src="https://gize.ar/brand/mail/gize-icono.png" width="64" height="64" alt="GIZE"
+                   style="display:block;width:64px;height:64px;border:0;outline:none;border-radius:16px;">
             </a>
           </td>
         </tr>
@@ -62,45 +79,47 @@
         <!-- Título y texto -->
         <tr>
           <td class="pad" align="center" style="padding:24px 40px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;">
-            <h1 class="h1" style="margin:0;color:#FFFFFF;font-size:30px;line-height:1.2;font-weight:700;">
-              {{ if .Data.full_name }}¡Hola, {{ .Data.full_name }}!{{ else }}¡Hola!{{ end }}
+            <h1 class="h1 t1" style="margin:0;color:#0B0D11;font-size:30px;line-height:1.2;font-weight:700;letter-spacing:-.01em;">
+              Confirmá tu mail
             </h1>
-            <p style="margin:14px 0 0;color:#D5DAE1;font-size:16px;line-height:1.6;">
-              Te damos la bienvenida a <b style="color:#FFFFFF;">GIZE</b>. Falta un solo paso:
-              confirmá tu mail para activar la cuenta.
+            <p class="t2" style="margin:12px 0 0;color:#4A5260;font-size:16px;line-height:1.6;">
+              Te damos la bienvenida a GIZE.<br>Tocá el botón para activar tu cuenta.
             </p>
           </td>
         </tr>
 
         <!-- Botón (tabla para que se vea igual en Outlook) -->
         <tr>
-          <td class="pad" align="center" style="padding:32px 40px 8px;">
+          <td class="pad" align="center" style="padding:30px 40px 0;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
               <td align="center" bgcolor="#2FA0FF" style="background:#2FA0FF;border-radius:999px;">
                 <a href="{{ .ConfirmationURL }}" target="_blank"
-                   style="display:inline-block;padding:16px 40px;font-family:'Outfit',Arial,Helvetica,sans-serif;font-size:17px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:999px;">
+                   style="display:inline-block;padding:16px 44px;font-family:'Outfit',Arial,Helvetica,sans-serif;font-size:17px;font-weight:700;color:#04121F;text-decoration:none;border-radius:999px;">
                   Confirmar mi cuenta
                 </a>
               </td>
             </tr></table>
           </td>
         </tr>
-
         <!-- Qué sigue -->
         <tr>
-          <td class="pad" style="padding:28px 40px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#12151B"
-                   style="background:#12151B;border:1px solid #1C2029;border-radius:14px;">
-              <tr><td style="padding:16px 18px;color:#8F98A6;font-size:14px;line-height:1.7;">
-                <b style="color:#FFFFFF;">Lo que te espera adentro</b><br>
+          <td class="pad" style="padding:30px 40px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;">
+            <table role="presentation" class="box" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F6F8FA"
+                   style="background:#F6F8FA;border:1px solid #E4E7EC;border-radius:14px;">
+              <tr><td style="padding:18px 20px;font-size:15px;line-height:1.5;">
+                <div class="t1" style="color:#0B0D11;font-weight:700;padding-bottom:10px;">Lo que te espera adentro</div>
                 {{ if eq .Data.role "coach" }}
-                <span style="color:#2FA0FF;">●</span>&nbsp; Todas las rutinas de tus clientes<br>
-                <span style="color:#A65CFF;">●</span>&nbsp; Sus entrenos, pesos y check-ins al día<br>
-                <span style="color:#25E8C8;">●</span>&nbsp; 14 días gratis para probar todo
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr><td valign="top" style="padding:3px 10px 3px 0;color:#2FA0FF;font-size:12px;">●</td><td class="t2" style="padding:3px 0;color:#4A5260;">Todas las rutinas de tus clientes</td></tr>
+                  <tr><td valign="top" style="padding:3px 10px 3px 0;color:#A65CFF;font-size:12px;">●</td><td class="t2" style="padding:3px 0;color:#4A5260;">Sus entrenos, pesos y check-ins al día</td></tr>
+                  <tr><td valign="top" style="padding:3px 10px 3px 0;color:#25E8C8;font-size:12px;">●</td><td class="t2" style="padding:3px 0;color:#4A5260;">14 días gratis para probar todo</td></tr>
+                </table>
                 {{ else }}
-                <span style="color:#2FA0FF;">●</span>&nbsp; Tu rutina, serie por serie<br>
-                <span style="color:#A65CFF;">●</span>&nbsp; Tu progreso: peso, entrenos y fotos<br>
-                <span style="color:#25E8C8;">●</span>&nbsp; Tu coach, siempre al tanto
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr><td valign="top" style="padding:3px 10px 3px 0;color:#2FA0FF;font-size:12px;">●</td><td class="t2" style="padding:3px 0;color:#4A5260;">Tu rutina, serie por serie</td></tr>
+                  <tr><td valign="top" style="padding:3px 10px 3px 0;color:#A65CFF;font-size:12px;">●</td><td class="t2" style="padding:3px 0;color:#4A5260;">Tu progreso: peso, entrenos y fotos</td></tr>
+                  <tr><td valign="top" style="padding:3px 10px 3px 0;color:#25E8C8;font-size:12px;">●</td><td class="t2" style="padding:3px 0;color:#4A5260;">Tu coach, siempre al tanto</td></tr>
+                </table>
                 {{ end }}
               </td></tr>
             </table>
@@ -109,9 +128,9 @@
 
         <!-- Link de respaldo -->
         <tr>
-          <td class="pad" style="padding:24px 40px 36px;font-family:'Outfit',Arial,Helvetica,sans-serif;color:#8F98A6;font-size:13px;line-height:1.6;">
+          <td class="pad t3" style="padding:26px 40px 36px;font-family:'Outfit',Arial,Helvetica,sans-serif;color:#8F98A6;font-size:12px;line-height:1.6;">
             ¿El botón no funciona? Copiá este link en el navegador:<br>
-            <a href="{{ .ConfirmationURL }}" style="color:#2FA0FF;word-break:break-all;">{{ .ConfirmationURL }}</a>
+            <a class="lnk" href="{{ .ConfirmationURL }}" style="color:#0072BB;word-break:break-all;">{{ .ConfirmationURL }}</a>
           </td>
         </tr>
       </table>
@@ -119,10 +138,9 @@
       <!-- Pie -->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
         <tr>
-          <td align="center" style="padding:20px 24px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;color:#5C6573;font-size:12px;line-height:1.6;">
-            Si no creaste una cuenta en GIZE, ignorá este mail: no pasa nada.<br>
-            <a href="https://gize.ar/" style="color:#8F98A6;text-decoration:none;">gize.ar</a>
-            &nbsp;·&nbsp; Rosario, Argentina
+          <td class="t3" align="center" style="padding:20px 24px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;color:#8F98A6;font-size:12px;line-height:1.6;">
+            Si no creaste una cuenta en GIZE, ignorá este mail.<br>
+            <a class="t3" href="https://gize.ar/" style="color:#8F98A6;text-decoration:none;">gize.ar</a>&nbsp;·&nbsp;Rosario, Argentina
           </td>
         </tr>
       </table>
