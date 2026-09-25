@@ -676,8 +676,18 @@ async function enqueueAndSend(k, p, key){
   refreshSyncFoot();
   await flushOutbox();
   if(readQueue(OUTBOX_KEY).some(i=>i.id===id)) await flushOutbox(); // un envío en curso pudo no llegar a verlo
+  // Con internet, un fallo suele ser pasajero (token vencido al volver de segundo plano,
+  // un corte breve): se renueva la sesión y se reintenta antes de darlo por pendiente.
+  for(const wait of [1000, 2500]){
+    if(!readQueue(OUTBOX_KEY).some(i=>i.id===id) || !isOnline()) break;
+    await new Promise(r=>setTimeout(r, wait));
+    try{ await State.sb.auth.getSession(); }catch(e){}
+    await flushOutbox();
+  }
   return !readQueue(OUTBOX_KEY).some(i=>i.id===id);
 }
+
+export function isOnline(){ return navigator.onLine!==false; }
 
 // loadCloud pisa state.sessions/daily/checkins con lo que hay en la nube: lo que
 // todavía está en la cola (y por eso la nube no lo tiene) se vuelve a poner encima.
