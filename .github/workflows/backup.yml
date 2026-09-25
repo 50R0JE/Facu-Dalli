@@ -1,0 +1,107 @@
+# Copia de seguridad de la base de Supabase, cifrada, y prueba de que se puede restaurar.
+# Corre sola los lunes y también a mano: Actions → "Backup de la base" → Run workflow.
+#
+# Qué hace:
+#   1. pg_dump de toda la base (datos de usuarios, rutinas, entrenos, planes…). Las fotos
+#      (Storage) no entran: son archivos, no filas de la base.
+#   2. La cifra con BACKUP_PASSWORD (AES-256). El repo es público y cualquiera con cuenta de
+#      GitHub puede bajar los Artifacts: sin la contraseña el archivo no sirve para nada.
+#   3. La restaura en una base vacía y compara cuántas filas tiene cada tabla con la original.
+#      Si falta algo, la ejecución sale en rojo.
+#   El archivo queda 90 días en la ejecución (Artifacts → backup-base).
+#
+# Secrets (Settings → Secrets and variables → Actions):
+#   SUPABASE_DB_URL   Supabase → botón "Connect" → "Session pooler" → la URI, con la
+#                     contraseña de la base en lugar de [YOUR-PASSWORD].
+#   BACKUP_PASSWORD   una contraseña larga para cifrar las copias. Guardala aparte (gestor de
+#                     contraseñas): sin ella no se puede abrir ninguna copia.
+#
+# Restaurar una copia de verdad (en una emergencia):
+#   gpg -d backup-AAAA-MM-DD.dump.gpg > backup.dump
+#   pg_restore --clean --if-exists --no-owner -d "URI de la base" backup.dump
+#
+# El log es PÚBLICO: no se imprime ningún dato ni cuántas filas tiene cada tabla, solo si
+# cada una llegó completa.
+name: Backup de la base
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    services:
+      prueba:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: prueba
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      PASS: ${{ secrets.BACKUP_PASSWORD }}
+      PG: docker run --rm --network host -v ${{ github.workspace }}/out:/out -e PGPASSWORD=prueba postgres:18
+      # Tablas que se comparan después de restaurar.
+      TABLAS: >-
+        auth.users public.profiles public.routines public.sessions public.session_entries
+        public.body_weights public.daily_logs public.checkins public.checkin_photos
+        public.food_entries public.coach_billing public.routine_templates
+    steps:
+      - name: Revisar los secrets
+        run: |
+          [ -n "$DB_URL" ] || { echo "::error::Falta el secret SUPABASE_DB_URL"; exit 1; }
+          [ ${#PASS} -ge 16 ] || { echo "::error::Falta el secret BACKUP_PASSWORD (al menos 16 caracteres)"; exit 1; }
+          echo "::add-mask::$DB_URL"
+          mkdir -p out
+
+      - name: Copiar la base
+        run: |
+          $PG pg_dump "$DB_URL" -Fc --no-owner --no-privileges -f /out/backup.dump
+          # Filas por tabla en la base original (queda en el runner, no en el log).
+          for t in $TABLAS; do
+            n=$($PG psql "$DB_URL" -Atc "select count(*) from $t" 2>/dev/null || echo "?")
+            echo "$t $n" >> out/filas.txt
+          done
+
+      - name: Probar que se puede restaurar
+        run: |
+          # Lo que en Supabase ya existe y la copia da por hecho (roles y extensiones).
+          $PG psql -h localhost -U postgres -qc "
+            do \$\$ declare r text; begin
+              foreach r in array array['anon','authenticated','service_role','supabase_admin','supabase_auth_admin','supabase_storage_admin','authenticator','dashboard_user','pgbouncer'] loop
+                if not exists (select 1 from pg_roles where rolname = r) then execute format('create role %I', r); end if;
+              end loop; end \$\$;
+            create schema if not exists extensions;
+            create extension if not exists pgcrypto with schema extensions;
+            create extension if not exists \"uuid-ossp\" with schema extensions;"
+          # Algunos objetos propios de Supabase no existen en un Postgres común: esos errores
+          # se ignoran; lo que importa es que lleguen todas las filas.
+          $PG pg_restore -h localhost -U postgres -d postgres --no-owner --no-privileges /out/backup.dump > /dev/null 2>&1 || true
+          mal=0
+          while read -r t n; do
+            m=$($PG psql -h localhost -U postgres -Atc "select count(*) from $t" 2>/dev/null || echo "x")
+            if [ "$n" = "?" ]; then echo "- $t: no existe en la base (se saltea)";
+            elif [ "$m" = "$n" ]; then echo "OK $t";
+            else echo "::error::$t no se restauró completa"; mal=1; fi
+          done < out/filas.txt
+          [ $mal -eq 0 ] || exit 1
+
+      - name: Cifrar
+        run: |
+          f="backup-$(date -u +%F).dump.gpg"
+          printf '%s' "$PASS" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --symmetric --cipher-algo AES256 -o "out/$f" out/backup.dump
+          rm -f out/backup.dump out/filas.txt
+          ls out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backup-base
+          path: out/*.gpg
+          retention-days: 90
