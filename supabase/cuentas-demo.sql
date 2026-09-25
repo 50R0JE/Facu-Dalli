@@ -1,6 +1,6 @@
 -- Cuentas demo para la revisión de Google Play (Contenido de la app → Datos de inicio de
 -- sesión). Las crea el workflow "Supabase" (tarea cuentas-demo), que reemplaza
--- __DEMO_PASSWORD__ por la contraseña que se le pasa: la contraseña no queda en el repo.
+-- la marca de la contraseña por la que se le pasa: la contraseña no queda en el repo.
 -- Se puede correr varias veces: si las cuentas ya existen, solo les actualiza la contraseña.
 --
 --   jeronimoperpi+coach@gmail.com    coach con plan de cortesía (sin vencimiento)
