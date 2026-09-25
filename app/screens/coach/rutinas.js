@@ -349,10 +349,14 @@ export function renderCoachRoutine(d){
     '<div class="co-day-card">'+
       '<div class="co-day-head-row">'+
         '<input class="co-dayname" data-coach="day-name" value="'+esc(day.name||"")+'" placeholder="Nombre del d\u00eda">'+
-        (rt.length>1?'<button class="co-daynav-btn" data-coach="day-prev" title="D\u00eda anterior">'+chevronLeftSvg+'</button>':'')+
-        (rt.length>1?'<button class="co-daynav-btn" data-coach="day-next" title="D\u00eda siguiente">'+chevronRightSvg+'</button>':'')+
-        (rt.length>1?'<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>':'')+
       '</div>'+
+      // Mover el día entero antes o después (ej. Espalda antes que Pecho) sin rearmarlo.
+      // Para pasar de un día a otro están las pestañas de arriba.
+      (rt.length>1 ? '<span class="co-note-lbl co-day-move-lbl">Mover este d\u00eda</span><div class="co-day-move">'+
+        '<button class="co-day-mv" data-coach="day-left" aria-label="Mover este d\u00eda antes"'+(CoachState.coachEditDay===0?' disabled':'')+'>'+chevronLeftSvg+'<span>Antes</span></button>'+
+        '<button class="co-day-mv" data-coach="day-right" aria-label="Mover este d\u00eda despu\u00e9s"'+(CoachState.coachEditDay===rt.length-1?' disabled':'')+'><span>Despu\u00e9s</span>'+chevronRightSvg+'</button>'+
+        '<button class="co-day-del" data-coach="day-del">Borrar d\u00eda</button>'+
+      '</div>' : '')+
       '<div class="co-daystats"><span class="co-stat"><b>'+totalEx+'</b> ejercicio'+(totalEx===1?'':'s')+'</span><span class="co-stat"><b>'+totalSets+'</b> serie'+(totalSets===1?'':'s')+' en total</span></div>'+
       '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
     '</div>'+
