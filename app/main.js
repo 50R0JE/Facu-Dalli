@@ -30,7 +30,7 @@ import { renderCoachSettings } from './screens/coach/settings.js';
 // Registra los eventos del editor de preguntas del coach (efecto al importarlo).
 import './screens/coach/preguntas.js';
 
-import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, renderCoachPicker, rtDays } from './screens/coach/rutinas.js';
+import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, renderCoachPicker, renderCopyPicker, rtDays } from './screens/coach/rutinas.js';
 
 import { CoachState } from './screens/coach/state.js';
 
@@ -615,6 +615,18 @@ document.body.addEventListener("click", async e => {
     setTimeout(()=>{ b.innerHTML=prevHtml; b.classList.remove("copied"); }, 1600);
     return;
   }
+  if(a==="rotate-invite"){
+    if(!confirm("¿Cambiar tu código de invitación?\n\nEl código actual deja de servir: nadie más se va a poder vincular con él. Tus clientes ya vinculados siguen igual.")) return;
+    b.disabled=true;
+    try{
+      const r=await State.sb.rpc("rotate_invite_code");
+      if(r.error) throw r.error;
+      if(!r.data) throw new Error("no se generó el código");
+      CoachState.coachInvite=r.data;
+      alert("Listo. Tu código nuevo es "+r.data+".");
+    }catch(err){ alert("No se pudo cambiar el código: "+((err&&err.message)||err)); }
+    renderCoach(); return;
+  }
   if(a==="open"){ CoachState.coachClientTab="ficha"; openClient(b.dataset.id); return; }
   if(a==="back"){ CoachState.coachSel=null; CoachState.coachData=null; renderCoach(); refreshCoachClients(); return; }
   if(a==="refresh"){ if(CoachState.coachSel) openClient(CoachState.coachSel); return; }
@@ -683,6 +695,41 @@ document.body.addEventListener("click", async e => {
       if(r.error) throw r.error;
       await loadTpls(); alert("Guardada en “Mis rutinas” \u2713");
     }catch(e){ alert("No se pudo: "+((e&&e.message)||e)); }
+    return;
+  }
+  if(a==="remove-client"){
+    const d=CoachState.coachData; if(!d||!d.id) return;
+    const nm=d.name||"este cliente";
+    if(!confirm("¿Desvincular a "+nm+"?\n\nVas a dejar de ver sus entrenos y su progreso, y no vas a poder editarle la rutina. "+nm+" no pierde nada: conserva su rutina y sus registros, y se puede volver a vincular con tu código.")) return;
+    b.disabled=true;
+    try{
+      const r=await State.sb.rpc("coach_remove_client",{client:d.id});
+      if(r.error) throw r.error;
+      if(r.data!==true) throw new Error("ya no estaba vinculado a vos");
+      CoachState.coachClients=CoachState.coachClients.filter(c=>c.id!==d.id);
+      CoachState.coachSel=null; CoachState.coachData=null;
+      renderCoach(); refreshCoachClients();
+    }catch(err){ alert("No se pudo desvincular: "+((err&&err.message)||err)); b.disabled=false; }
+    return;
+  }
+  if(a==="rt-copy"){ CoachState.coachCopyPicker={}; renderCopyPicker(); return; }
+  if(a==="cpy-cancel"){ if(CoachState.coachCopyPicker&&CoachState.coachCopyPicker.loading) return; closeSheet(()=>{ CoachState.coachCopyPicker=null; renderCopyPicker(); }, {host:"#applyMount", card:".cp-ccard", duration:150}); return; }
+  if(a==="cpy-to"){
+    const st=CoachState.coachCopyPicker; if(!st||st.loading) return;
+    const to=CoachState.coachClients.find(c=>c.id===b.dataset.id); if(!to) return;
+    const toName=to.full_name||to.email||"ese cliente";
+    const days=JSON.parse(JSON.stringify(CoachState.coachData.routine||[]));
+    if(!days.length){ alert("Esta rutina está vacía: no hay nada para copiar."); return; }
+    if(!confirm("¿Copiar esta rutina a "+toName+"?\n\nReemplaza la rutina que tenga ahora.")) return;
+    // Ids nuevos y sin lo que cargó este cliente (kg, reps, segundos y tildes).
+    days.forEach(d=>{ d.id=uid(); (d.exercises||[]).forEach(ex=>{ ex.id=uid(); (ex.sets||[]).forEach(s=>{ s.id=uid(); s.kg=""; s.reps=""; s.done=false; if("secs" in s) s.secs=""; }); }); });
+    st.loading=true; renderCopyPicker();
+    try{
+      const r=await State.sb.from("routines").upsert({client_id:to.id, days:days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"});
+      if(r.error) throw r.error;
+      closeSheet(()=>{ CoachState.coachCopyPicker=null; renderCopyPicker(); }, {host:"#applyMount", card:".cp-ccard", duration:150});
+      alert("Rutina copiada a "+toName+" ✓");
+    }catch(err){ st.loading=false; renderCopyPicker(); alert("No se pudo copiar: "+((err&&err.message)||err)); }
     return;
   }
   if(a==="rt-apply"){

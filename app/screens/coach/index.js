@@ -4,7 +4,7 @@ import { esc, fmtDate } from '../../core/utils.js';
 
 import { coachActivity, coachInitials, renderCoachInfo } from './clientes.js';
 
-import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine } from './rutinas.js';
+import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine, renderCopyPicker } from './rutinas.js';
 
 import { picker, renderCoachCheckins, renderCoachDaily, renderCoachPhotos, renderCoachWeekly } from './seguimiento.js';
 
@@ -30,6 +30,7 @@ function secHead(title, kind){
 export function renderCoach(){
   const host=document.getElementById("coachHost"); if(!host) return;
   if(!CoachState.coachSel && CoachState.coachApplyPicker){ CoachState.coachApplyPicker=null; renderApplyPicker(); }
+  if(!CoachState.coachSel && CoachState.coachCopyPicker){ CoachState.coachCopyPicker=null; renderCopyPicker(); }
   host.style.display="block";
   showSilkBg();
   document.body.classList.add("silk-coach");
@@ -86,7 +87,7 @@ export function renderCoach(){
       // Va como reemplazo del bloque entero (sin buscador ni grid), no como un item más.
       body=(!CoachState.coachSearch && !CoachState.coachClients.length) ? onboard : searchBox+list;
     }
-    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-logout co-q-btn" data-coach="q-open" title="Preguntas del registro diario y del check-in">Preguntas</button><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.</div></div>'+renderPlanBanner()+tabs+body+'</div>';
+    host.innerHTML='<div class="co-wrap"><div class="co-head"><div class="co-brand"><img class="brand-logo" src="brand/logo/gize-firma-horizontal.svg" alt="GIZE"><span class="co-brand-dash">-</span><span class="co-brand-tag">Panel de coach</span></div><div class="co-head-actions"><button class="co-logout co-q-btn" data-coach="q-open" title="Preguntas del registro diario y del check-in">Preguntas</button><button class="co-gear" data-coach="open-settings" title="Configuración">'+gearSvg+'</button><button class="co-logout" data-auth="logout">Salir</button></div></div><div class="co-invite">Tu código de invitación<br><span class="co-code">'+esc(CoachState.coachInvite||"—")+'</span>'+(CoachState.coachInvite?'<button class="co-copy-btn co-invite-copy" data-coach="copy-invite">'+copySvg+' Copiar código</button>':'')+'<div class="co-invite-sub">Compartíselo a tus clientes para que se vinculen a vos.'+(CoachState.coachInvite?' <button class="co-invite-rotate" data-coach="rotate-invite">Cambiar código</button>':'')+'</div></div>'+renderPlanBanner()+tabs+body+'</div>';
   } else if(CoachState.coachTplEdit){
     const rt=CoachState.coachTplEdit.days||[];
     let ed="";
@@ -136,7 +137,8 @@ export function renderCoach(){
              '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
              '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
              '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
-             '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wblock;
+             '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wblock+
+             '<button class="logout-btn cfg-danger co-remove-client" data-coach="remove-client">Desvincular alumno</button>';
       }
       body=tabs+panel;
     }

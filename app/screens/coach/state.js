@@ -39,6 +39,9 @@ export const CoachState = {
 
   coachApplyPicker: null,
 
+  // "Copiar a otro cliente": {loading?} mientras se copia; null = cerrado.
+  coachCopyPicker: null,
+
   tplsError: null,
 
   coachPicker: null,

@@ -236,6 +236,28 @@ export function applyPickerMarkup(){
     '<button class="logout-btn" style="margin-top:8px" data-coach="ap-back">‹ Elegir otra rutina</button>';
 }
 
+// "Copiar a otro cliente": elegir a qué alumno se le pasa la rutina que se está viendo.
+export function copyPickerMarkup(){
+  const others=CoachState.coachClients.filter(c=>c.id!==CoachState.coachSel);
+  const busy=CoachState.coachCopyPicker && CoachState.coachCopyPicker.loading;
+  const opts=others.length
+    ? others.map(c=>'<div class="cp-copt" data-coach="cpy-to" data-id="'+esc(c.id)+'">'+esc(c.full_name||c.email||"Cliente")+'</div>').join("")
+    : '<div class="cal-hint">No tenés otros clientes vinculados.</div>';
+  return '<div class="cp-title">Copiar a otro cliente</div>'+
+    '<div class="cp-sub">'+(busy?'Copiando…':'Elegí a quién le pasás esta rutina. Reemplaza la rutina que tenga ese cliente; los pesos y repeticiones cargados no se copian.')+'</div>'+
+    '<div class="cp-clist">'+opts+'</div>'+
+    '<button class="logout-btn" data-coach="cpy-cancel">Cancelar</button>';
+}
+
+export function renderCopyPicker(){
+  let el=document.getElementById("applyMount");
+  if(!el){ el=document.createElement("div"); el.id="applyMount"; document.body.appendChild(el); }
+  if(!CoachState.coachCopyPicker){ el.innerHTML=""; return; }
+  const existing = el.querySelector(".cp-ccard");
+  if(existing){ existing.innerHTML = copyPickerMarkup(); return; }
+  el.innerHTML='<div class="cp-bg" data-coach="cpy-cancel"></div><div class="cp-ccard">'+copyPickerMarkup()+'</div>';
+}
+
 export function renderApplyPicker(){
   let el=document.getElementById("applyMount");
   if(!el){ el=document.createElement("div"); el.id="applyMount"; document.body.appendChild(el); }
