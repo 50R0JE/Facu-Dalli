@@ -30,7 +30,6 @@ on:
           - sql
           - cuentas-demo
           - mails
-          - plantillas
       archivo:
         description: "Para 'sql': archivo a correr (ej: supabase/suscripciones.sql)"
         required: false
@@ -116,24 +115,6 @@ jobs:
             -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
             --data @"$RUNNER_TEMP/body.json")
           cat "$RUNNER_TEMP/out.json"; echo
-          [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Supabase respondió $code"; exit 1; }
-
-      # Textos de los mails (confirmar cuenta y contraseña nueva) desde supabase/mails/, sin
-      # pegarlos a mano en el panel. Solo toca asunto y cuerpo: el SMTP queda como está.
-      - name: Cargar plantillas de mails
-        if: inputs.tarea == 'plantillas'
-        run: |
-          jq -n --rawfile conf supabase/mails/confirmacion.html --rawfile rec supabase/mails/recuperar.html '{
-            mailer_subjects_confirmation: "Confirmá tu cuenta de GIZE",
-            mailer_templates_confirmation_content: $conf,
-            mailer_subjects_recovery: "Elegí una contraseña nueva para GIZE",
-            mailer_templates_recovery_content: $rec
-          }' > "$RUNNER_TEMP/auth.json"
-          code=$(curl -sS -o "$RUNNER_TEMP/out.json" -w '%{http_code}' -X PATCH \
-            "https://api.supabase.com/v1/projects/$PROJECT_REF/config/auth" \
-            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
-            --data @"$RUNNER_TEMP/auth.json")
-          jq '{mailer_subjects_confirmation, mailer_subjects_recovery, confirmacion_chars: (.mailer_templates_confirmation_content|length), recuperar_chars: (.mailer_templates_recovery_content|length)}' "$RUNNER_TEMP/out.json" 2>/dev/null || cat "$RUNNER_TEMP/out.json"
           [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Supabase respondió $code"; exit 1; }
 
       # Mails de registro por Gmail en vez del servidor de Supabase (que manda 2-3 por hora).
