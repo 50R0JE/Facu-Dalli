@@ -1,0 +1,37 @@
+# Revisa los videos de ejercicios de YouTube (existen, son Shorts, se pueden insertar y de
+# qué canal son). A mano: Actions → "Videos" → Run workflow. También corre solo cada lunes
+# sobre la biblioteca de la app, para enterarnos si algún autor borró un video.
+name: Videos
+
+on:
+  workflow_dispatch:
+    inputs:
+      archivo:
+        description: "Archivo con los videos a revisar"
+        required: false
+        default: "app/core/videos.js"
+  schedule:
+    - cron: "17 12 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Revisar videos
+        env:
+          ARCHIVO: ${{ inputs.archivo || 'app/core/videos.js' }}
+        run: |
+          case "$ARCHIVO" in *..*) echo "::error::Ruta inválida"; exit 1;; esac
+          node scripts/verificar-videos.mjs "$ARCHIVO"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: videos-resultado
+          path: videos-resultado.json
