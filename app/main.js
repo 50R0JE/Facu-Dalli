@@ -64,6 +64,9 @@ import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
 const autoKg = new Set();
 
 export function renderApp(){
+  // Una cuenta de coach ve solo su panel: si algo pedía la pantalla del cliente, quedaba
+  // dibujada debajo del panel (que es transparente) y se veían las dos encimadas.
+  if(State.cloudProfile && State.cloudProfile.role==="coach"){ const v=document.getElementById("view"); if(v) v.innerHTML=""; renderCoach(); return; }
   setTimeout(renderFeedback,0);
   checkDaily();
   document.getElementById("nav-entreno").classList.toggle("active", State.view==="entreno");
