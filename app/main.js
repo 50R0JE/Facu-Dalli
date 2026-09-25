@@ -9,7 +9,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, PROFILE_KEY, RECOVERY_REQ, sbOk, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, parseSecs, tabRipple, today, uid } from './core/utils.js';
 
@@ -453,7 +453,38 @@ document.body.addEventListener("click", async e=>{
   const b=e.target.closest("[data-auth]"); if(!b) return;
   const a=b.dataset.auth;
   if(a==="to-signup"){ showLogin("","up"); return; }
-  if(a==="to-login"){ showLogin("","in"); return; }
+  if(a==="to-login"){ showLogin("","in",{email:((document.getElementById("auEmail")||{}).value||"").trim()}); return; }
+  if(a==="to-forgot"){ showLogin("","forgot",{email:((document.getElementById("auEmail")||{}).value||"").trim()}); return; }
+  if(a==="do-forgot"){
+    const email=((document.getElementById("auEmail")||{}).value||"").trim();
+    if(!/^[^@ ]+@[^@ ]+\.[^@ ]+$/.test(email)){ showLogin("Poné el mail con el que te registraste (ej: nombre@gmail.com).","forgot",{email:email}); return; }
+    b.disabled=true; b.textContent="Enviando...";
+    if(!State.sb) await ensureSb();
+    if(!State.sb){ showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.","forgot",{email:email}); return; }
+    // En la app el link vuelve por gize://confirmado y se marca acá que es para recuperar.
+    if(IS_NATIVE){ try{ localStorage.setItem(RECOVERY_REQ, String(Date.now())); }catch(e){} }
+    const r=await State.sb.auth.resetPasswordForEmail(email, {redirectTo: IS_NATIVE ? "gize://confirmado" : location.origin + location.pathname});
+    if(r.error){
+      const rate = r.error.status===429 || /rate|seconds/i.test(r.error.message||"");
+      showLogin(rate ? "Ya te mandamos un link hace un momento. Esperá un minuto y probá de nuevo." : "No se pudo mandar el mail: "+r.error.message,"forgot",{email:email}); return;
+    }
+    // Supabase no dice si el mail tiene cuenta (para no revelar quién está registrado).
+    showLogin("Listo. Si ese mail tiene una cuenta en GIZE, te llega un link para elegir una contraseña nueva. Revisá también la carpeta de spam."+(IS_NATIVE?" Abrilo en este celular.":""),"forgot",{email:email});
+    return;
+  }
+  if(a==="do-newpass"){
+    const pass=(document.getElementById("auPass")||{}).value||"";
+    if(pass.length<6){ showLogin("La contraseña necesita al menos 6 caracteres.","newpass"); return; }
+    b.disabled=true; b.textContent="Guardando...";
+    const r=await State.sb.auth.updateUser({password:pass});
+    if(r.error){
+      const same=/different from the old|same/i.test(r.error.message||"");
+      showLogin(same ? "Esa es tu contraseña actual: elegí una distinta." : "No se pudo guardar: "+r.error.message+". Si el link venció, pedí uno nuevo desde \"¿Olvidaste tu contraseña?\".","newpass"); return;
+    }
+    if(window.coreReplay) window.coreReplay();
+    try{ await afterLogin(r.data.user); } finally { if(window.coreEnter) window.coreEnter(); }
+    return;
+  }
   if(a==="logout"){
     // El logout de antes no borraba nada de localStorage: si en el mismo dispositivo
     // después iniciaba sesión OTRA persona, heredaba el diario de comidas, hábitos, agua,
