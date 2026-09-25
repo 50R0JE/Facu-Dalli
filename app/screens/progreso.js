@@ -1,4 +1,4 @@
-import { xSvg } from '../core/icons.js';
+import { pencilSvg, xSvg } from '../core/icons.js';
 
 import { State, state } from '../core/state.js';
 
@@ -111,7 +111,8 @@ export function renderHistorial(){
   if(!sess.length) return "";
   // Todos los entrenos (antes solo los últimos 20): cerrados ocupan una fila cada uno.
   const items=sess.map(se=>renderSessionItem(se, {
-    removeBtn:'<button class="diary-rm" data-action="session-remove" data-id="'+esc(se.id)+'" title="Borrar entreno" aria-label="Borrar entreno">'+xSvg+'</button>'
+    removeBtn:'<div class="sess-acts"><button class="diary-rm sess-edit" data-action="session-edit" data-id="'+esc(se.id)+'" title="Editar entreno" aria-label="Editar entreno">'+pencilSvg+'</button>'+
+      '<button class="diary-rm" data-action="session-remove" data-id="'+esc(se.id)+'" title="Borrar entreno" aria-label="Borrar entreno">'+xSvg+'</button></div>'
   })).join("");
   return '<div class="hb-head" style="margin-top:28px"><div class="hb-title">Historial de entrenos</div><div class="title-accent"></div></div><div class="sess-hint">Tocá un entreno para ver los pesos y las series.</div>'+items;
 }
