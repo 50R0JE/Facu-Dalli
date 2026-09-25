@@ -235,7 +235,7 @@ export function renderComida(){
   const tot = past ? items.reduce((a,e)=>({kcal:a.kcal+(Number(e.kcal)||0), p:a.p+(Number(e.p)||0), c:a.c+(Number(e.c)||0), f:a.f+(Number(e.f)||0)}), {kcal:0,p:0,c:0,f:0}) : diaryTotals();
   const dayNav = `<div class="day-nav">
       <button class="day-arrow" data-action="day-prev" aria-label="Día anterior">‹</button>
-      <div class="day-lbl"><b>${dayLabel(vd)}</b><span>${vd===td ? dayShort(vd) : "Deslizá para cambiar de día"}</span></div>
+      <div class="day-lbl"><b>${dayLabel(vd)}</b><span>${vd===td ? dayShort(vd) : (dayLabel(vd)===dayShort(vd) ? "Día anterior" : dayShort(vd))}</span></div>
       <button class="day-arrow" data-action="day-next" aria-label="Día siguiente"${past?'':' disabled'}>›</button>
     </div>`;
   // planFull/planBanner se calculan acá (ya con coachPlan cargado) pero se insertan al
@@ -256,11 +256,11 @@ export function renderComida(){
   };
   const r1 = n => (Math.round((Number(n)||0)*10)/10).toLocaleString("es-AR");
   const item = e=>`
-    <div class="diary-item${past?' ro':''}"${past?'':` data-action="diary-edit" data-id="${esc(e.id)}"`}>
+    <div class="diary-item" data-action="diary-edit" data-id="${esc(e.id)}">
       <span class="food-emo" aria-hidden="true">${foodEmoji(e.name)}</span>
       <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${r1(e.p)} · C ${r1(e.c)} · G ${r1(e.f)}</span></div>
       <div class="diary-kcal">${e.kcal} kcal</div>
-      ${past?'':`<button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>`}
+      <button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>
     </div>`;
   const known = new Set(MEALS.map(m=>m[0]));
   const sections = (past && pd.status!=="done") ? `<div class="cal-hint">${pd.status==="loading" ? "Cargando…" : esc(pd.msg)}</div>` : MEALS.concat(items.some(e=>!known.has(e.meal)) ? [["otras","Otras comidas","🍴"]] : []).map(m=>{
@@ -268,7 +268,7 @@ export function renderComida(){
     const kc = list.reduce((a,e)=>a+(Number(e.kcal)||0),0);
     return `<section class="meal">
       <div class="meal-head"><span class="meal-ic" aria-hidden="true">${m[2]}</span><span class="meal-t">${m[1]}</span><span class="meal-k">${kc ? kc.toLocaleString("es-AR")+" kcal" : ""}</span>
-        ${(m[0]!=="otras" && !past) ? `<button class="meal-add" data-action="meal-add" data-meal="${m[0]}" aria-label="Agregar a ${m[1]}">+</button>` : ""}</div>
+        ${m[0]!=="otras" ? `<button class="meal-add" data-action="meal-add" data-meal="${m[0]}" aria-label="Agregar a ${m[1]}">+</button>` : ""}</div>
       ${list.length ? list.map(item).join("") : `<div class="meal-empty">${past?"Nada anotado":"Todavía nada"}</div>`}
     </section>`;
   }).join("");
@@ -293,7 +293,13 @@ export function renderComida(){
       ${mbar("Carbos", tot.c, mt.c)}
       ${mbar("Grasas", tot.f, mt.f)}
     </div>
-    ${past ? `<div class="meals">${sections}</div>
+    ${past ? (pd.status!=="done" ? `<div class="meals">${sections}</div>` : `
+    <div class="food-search-row">
+      <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Agregar a ${esc(dayLabel(vd).toLowerCase())}…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
+      <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
+    </div>
+    <div id="foodResults">${renderResults(ComidaState.foodQuery)}</div>
+    <div class="meals">${sections}</div>`)+`
     <button class="ctrl day-today" data-action="day-today">Volver a hoy</button>
     </div>` : `
     <button class="cal-edit" data-action="cal-open">Editar meta</button>

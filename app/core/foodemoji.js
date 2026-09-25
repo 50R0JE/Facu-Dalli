@@ -4,43 +4,74 @@
 import { FOODS } from './data.js';
 import { norm } from './utils.js';
 
-// El orden importa: lo más específico primero (helado de chocolate → 🍦, no 🍫).
+// El orden importa: lo más específico primero (helado de chocolate → 🍦, no 🍫). Se
+// busca en el nombre sin tildes, entre espacios y sin "sin azúcar" / "sin TACC" (para que
+// "Gaseosa sin azúcar" no dé 🍯).
 const RULES = [
+  // Lo que empieza por su nombre de producto (manda sobre el resto de las palabras)
+  [/^ huevo (?!de chocolate)/, "🥚"], [/^ pan\b/, "🍞"], [/aceite de oliva|aceituna/, "🫒"],
+  [/^ (aceite|grasa)\b|mayonesa|salsa de soja/, "🫙"], [/soja texturizada/, "🫘"],
+  [/cerveza|birra/, "🍺"], [/\bvino\b|champagne|espumante|sidra|fernet|vermut|aperitivo|aperol|campari|whisky|vodka|\bron\b|\bgin\b|tequila|licor|daiquiri|trago|clerico|cuba libre|destornillador/, "🍷"],
+  // Platos y preparaciones (mandan sobre sus ingredientes)
+  [/\bflan\b|\bpostre\b|mousse|arroz con leche|crema pastelera|\bpudding\b|budin de pan/, "🍮"],
+  [/pastafrola|\btarta\b|pascualina|quiche|\btartas?\b|pastel de papa/, "🥧"],
+  [/panqueque|\bcrepes?\b/, "🥞"], [/waffle|wafle/, "🧇"], [/muffin|cupcake|magdalena/, "🧁"],
+  [/helad|palito bombon|cucurucho|milkshake|yogur helado/, "🍦"],
+  [/\btorta\b|budin|brownie|lemon pie|chocotorta|cheesecake|bizcochuelo|pionono|tiramisu/, "🍰"],
+  [/\bdonas?\b|donut/, "🍩"], [/medialuna|factura|croissant|churro|pastelito/, "🥐"],
+  [/pizza|fugazza|fugazzeta|pizzeta|calzone|prepizza/, "🍕"],
+  [/big mac|cuarto de libra|hamburgues|burger/, "🍔"], [/pancho|salchicha|hot ?dog/, "🌭"],
+  [/shawarma|kebab|doner/, "🥙"], [/humita en chala|\btamal/, "🫔"],
+  [/empanada|canelon|raviol|sorrentino|capelet|tortelin|agnolotti|tapas para empanadas/, "🥟"],
+  [/sandwich|sanguche|\btostado (de|jyq|jamon)|\bwrap\b|choripan|morcipan|\bal pan\b|\ben pan\b|lomito completo/, "🥪"],
+  [/\btacos?\b|burrito|quesadilla|fajita|nacho|dorito/, "🌮"], [/sushi|\broll\b|sashimi|niguiri/, "🍣"],
+  [/ensalada de frutas|coctel de frutas|coctel de fruta/, "🍓"], [/ensalada/, "🥗"],
+  [/\bsopa\b|caldo|guiso|locro|puchero|estofado|carbonada|cazuela|maiz pisado/, "🍲"],
+  [/lasana|lasagna/, "🍝"], [/provoleta/, "🧀"],
   [/milanesa de (soja|berenjena|calabaza|zapallo|quinoa|lentejas?|garbanzos?)|seitan|tempeh|medallon de (lentejas|vegetales)/, "🥗"],
-  [/aceite de oliva|aceitunas?/, "🫒"], [/\baceite\b|\bgrasa (vacuna|de cerdo)\b|rocio vegetal/, "🫙"],
-  [/\bbife\b|asado de tira|\bvacio\b|matambre|churrasco/, "🥩"],
-  [/huevo|clara|yema|omelet/, "🥚"],
-  [/gaseosa|agua saborizada|bebida isotonica|energizante|\bjugo\b/, "🥤"],
-  [/helad|palito|bombon helado/, "🍦"], [/\btorta\b|budin|brownie|lemon pie|chocotorta|cheesecake|tarta dulce/, "🍰"],
-  [/alfajor|galletit|galleta|oreo|cookie|vainilla/, "🍪"], [/chocolat|cacao|nutella|bon ?o ?bon/, "🍫"],
-  [/caramelo|chicle|gomita|golosina|turron|garrapinada/, "🍬"], [/dulce de|mermelada|\bmiel\b|azucar|edulcorante|membrillo/, "🍯"],
-  [/medialuna|factura|croissant|churro/, "🥐"], [/donut|dona/, "🍩"],
-  [/pizza|fugazza/, "🍕"], [/hamburgues|burger|patty/, "🍔"], [/pancho|salchicha|hot ?dog/, "🌭"],
-  [/empanada|canelon|raviol|sorrentino|capelet|tortelin/, "🥟"], [/sandwich|sanguche|tostado (de|jyq|jamon)|\bwrap\b|lomito|choripan/, "🥪"],
-  [/\btacos?\b|burrito|quesadilla|fajita|nacho/, "🌮"], [/sushi|\broll\b|sashimi/, "🍣"], [/ensalada/, "🥗"],
-  [/sopa|caldo|guiso|locro|puchero|estofado/, "🍲"], [/tarta|pascualina|quiche|torrej/, "🥧"],
-  [/whey|proteina en polvo|scoop|creatina|batido|shake|suplement|colageno/, "🥤"],
-  [/\bcafe\b|capuchino|cortado|espresso|latte|\bmate\b|\bte\b|infusion/, "☕"],
-  [/cerveza|birra/, "🍺"], [/\bvino\b|champagne|espumante|sidra|fernet|vermut|aperitivo|whisky|vodka|\bron\b|\bgin\b|tequila|licor/, "🍷"],
-  [/gaseosa|\bcoca\b|coca cola|pepsi|sprite|fanta|\bsoda\b|jugo|agua saborizada|bebida isotonica|gatorade|powerade|energizante|monster|speed/, "🥤"],
-  [/\bagua\b/, "💧"], [/\bleche\b/, "🥛"], [/yogur|actimel|danonino|kefir/, "🥣"], [/queso|ricota|requeson|mozzarella|muzzarella/, "🧀"],
-  [/manteca|margarina/, "🧈"], [/huevo|clara|yema|omelet/, "🥚"],
-  [/pollo|pechuga|pata muslo|suprema|pavo|ala de|alitas|nugget/, "🍗"], [/pescado|merluza|salmon|atun|trucha|abadejo|sardina|caballa|mariscos|camaron|langostino|calamar|mejillon|brotola|pejerrey|tilapia/, "🐟"],
-  [/jamon|salame|bondiola|mortadela|fiambre|panceta|bacon|leberwurst|chorizo|morcilla/, "🥓"],
-  [/carne|bife|asado|vacio|nalga|peceto|cuadril|lomo|entrana|matambre|milanesa|churrasco|picada|carne picada|costilla|cerdo|solomillo|bondiola|hamburguesa/, "🥩"],
-  [/arroz|risotto/, "🍚"], [/fideo|pasta|spaghetti|tallarin|mostachol|tirabuzon|noqui|lasagna|lasana/, "🍝"],
-  [/\bpan\b|tostada|galleta de arroz|grisin|bizcocho|chipa|baguette|facturas|bagel|pebete|miga/, "🍞"],
-  [/avena|granola|cereal|copos|muesli|quinoa|polenta|salvado|trigo|burgol|harina/, "🌾"],
-  [/\bpapas?\b|batata|mandioca|\bpure\b/, "🥔"], [/choclo|maiz/, "🌽"], [/palta|aguacate/, "🥑"], [/tomate/, "🍅"], [/zanahoria/, "🥕"],
-  [/lechuga|espinaca|acelga|rucula|kale|repollo|radicheta/, "🥬"], [/brocoli|coliflor|brote/, "🥦"], [/berenjena/, "🍆"],
-  [/pepino|zapallito|zucchini|calabacin/, "🥒"], [/morron|pimiento|aji|jalapeno/, "🫑"], [/cebolla|ajo|puerro|verdeo/, "🧅"],
-  [/zapallo|calabaza|anco/, "🎃"], [/hongo|champinon/, "🍄"], [/aceituna|aceite de oliva|oliva/, "🫒"],
-  [/lenteja|garbanzo|poroto|arveja|soja|tofu|edamame|hummus|habas/, "🫘"],
-  [/\bmani\b|almendra|nuez|nueces|castana|avellana|pistacho|semilla|chia|lino|girasol|sesamo|frutos secos|pasas/, "🥜"],
-  [/banana/, "🍌"], [/manzana/, "🍎"], [/\bperas?\b/, "🍐"], [/naranja|mandarina|pomelo/, "🍊"], [/\blimon\b/, "🍋"],
+  // Bebidas
+  [/licuado|batido|shake|smoothie/, "🥤"], [/submarino|chocolatada/, "🍫"],
+  [/\bmate\b|terere/, "🧉"], [/\bcafe\b|capuchino|cortado|espresso|latte|\bte\b|infusion/, "☕"],
+  [/gaseosa|\bcoca\b|pepsi|sprite|fanta|\bsoda\b|\bjugo\b|agua saborizada|agua tonica|isotonic|energizante|gatorade|powerade|limonada|kombucha/, "🥤"],
+  [/^ agua\b/, "💧"],
+  // Suplementos
+  [/omega|capsula|vitamina|multivitam/, "💊"], [/barra proteica|barrita/, "🍫"],
+  [/whey|proteina|scoop|creatina|colageno|caseina|glutamina|bcaa|pre-entreno|ganador de peso|maltodextrina|gel energetico/, "🥤"],
+  // Dulces y snacks
+  [/alfajor|galletit|galleta|oreo|cookie|chocolin|oblea|vainillas?\b/, "🍪"],
+  [/chupetin/, "🍭"], [/pochoclo|chizito|palitos salados|\bsnack\b|tutuca/, "🍿"],
+  [/chocolat|cacao|nutella|bon ?o ?bon|rhodesia|cofler|mantecol/, "🍫"],
+  [/caramelo|chicle|gomita|golosina|turron|garrapinada|malvavisco|confite|merengue/, "🍬"],
+  [/pasta de mani|mantequilla de mani|crema de mani/, "🥜"],
+  [/dulce de|mermelada|jalea|\bmiel\b|azucar|edulcorante|^ almibar|melaza/, "🍯"],
+  // Lácteos y huevos
+  [/\bleche\b|kefir/, "🥛"], [/yogur|actimel|danonino/, "🥣"],
+  [/queso|ricota|requeson|mozzarella|muzzarella|cheddar/, "🧀"],
+  // Carnes y pescados
+  [/\bpollo\b|pechuga|pata muslo|suprema|\bpavo\b|pavita|alitas|nugget|\bpato\b|codorniz/, "🍗"],
+  [/pescado|merluza|salmon|atun|trucha|abadejo|sardina|caballa|marisco|camaron|langostino|calamar|mejillon|brotola|pejerrey|tilapia|kani|rabas|pulpo|almeja|vieira|centolla|cornalito|anchoita|ceviche|paella/, "🐟"],
+  [/\bbife\b|asado|\bvacio\b|matambre|churrasco|albondiga|\btuco con carne/, "🥩"],
+  [/jamon|salame|salamin|bondiola|mortadela|fiambre|panceta|bacon|leberwurst|chorizo|morcilla|cantimpalo|pastron|longaniza|salchichon/, "🥓"],
+  [/carne|nalga|peceto|cuadril|\blomo\b|entrana|milanesa|picada|costilla|cerdo|solomillo|cordero|osobuco|higado|rinon|chinchulin|molleja|mondongo|\blengua\b/, "🥩"],
+  // Harinas y cereales
+  [/arroz|risotto/, "🍚"],
+  [/fideo|\bpasta\b|spaghetti|tallarin|mostachol|tirabuzon|noqui|hojaldre/, "🍝"],
+  [/\bpan\b|tostadas? de|galleta de arroz|grisin|bizcoch|chipa|baguette|bagel|pebete|\bmiga\b|tortita|criollita|scon|ciabatta|brioche|rapidita/, "🍞"],
+  [/avena|granola|cereal|copos|muesli|quinoa|polenta|salvado|trigo|burgol|harina|semolin|cous cous|mijo|cebada|amaranto|fecula|premezcla/, "🌾"],
+  // Verduras y frutas
+  [/tomate|filetto|\bsalsa (de tomate|pomarola|filetto)/, "🍅"],
+  [/\bpapas?\b|batata|mandioca|\bpure\b|croqueta/, "🥔"], [/huevo|clara|yema|omelet|tortilla|revuelto/, "🥚"],
+  [/choclo|\bmaiz\b/, "🌽"], [/palta|aguacate|guacamole/, "🥑"], [/zanahoria/, "🥕"],
+  [/lechuga|espinaca|acelga|rucula|kale|\brepollo\b|repollo|radicheta/, "🥬"], [/brocoli|coliflor|brote/, "🥦"], [/berenjena/, "🍆"],
+  [/pepino|pepinillo|zapallito|zucchini|calabacin/, "🥒"], [/morron|pimiento|\baji\b|jalapeno/, "🫑"], [/cebolla|\bajo\b|puerro|verdeo|echalote|alioli/, "🧅"],
+  [/zapallo|calabaza|\banco\b|cabutia/, "🎃"], [/hongo|champinon/, "🍄"], [/aceite de oliva|aceituna/, "🫒"],
+  [/lenteja|garbanzo|poroto|arveja|\bsoja\b|tofu|edamame|hummus|\bhabas\b|faina/, "🫘"],
+  [/\bmani\b|almendra|\bnuez\b|nueces|castana|avellana|pistacho|semilla|\bchia\b|\blino\b|girasol|sesamo|frutos secos|pinon|nucrem/, "🥜"],
+  [/pasas de uva/, "🍇"], [/banana/, "🍌"], [/manzana/, "🍎"], [/\bperas?\b|membrillo/, "🍐"], [/naranja|mandarina|pomelo/, "🍊"], [/\blimon\b|\blima\b/, "🍋"],
   [/frutilla|fresa/, "🍓"], [/\buvas?\b/, "🍇"], [/sandia/, "🍉"], [/melon/, "🍈"], [/anana|\bpina\b/, "🍍"],
-  [/durazno|damasco|pelon/, "🍑"], [/cereza/, "🍒"], [/kiwi/, "🥝"], [/mango/, "🥭"], [/arandano|frutos rojos|\bmoras?\b|frambuesa/, "🫐"],
-  [/\bcoco\b/, "🥥"], [/aceite|mayonesa|ketchup|mostaza|salsa|aderezo|vinagre/, "🫙"],
+  [/durazno|damasco|pelon|orejon/, "🍑"], [/cereza/, "🍒"], [/kiwi/, "🥝"], [/mango|papaya|mamon|maracuya/, "🥭"], [/arandano|frutos rojos|\bmoras?\b|frambuesa/, "🫐"],
+  [/\bcoco\b/, "🥥"], [/manteca|margarina|ghee/, "🧈"],
+  [/\baceite\b|\bgrasa\b|mayonesa|ketchup|mostaza|\bsalsa\b|aderezo|vinagre|aceto|chimichurri|provenzal/, "🫙"],
 ];
 
 const CAT = {
@@ -63,9 +94,9 @@ const memo = new Map();
 export function foodEmoji(name, cat) {
   const key = name + "|" + (cat || "");
   if (memo.has(key)) return memo.get(key);
-  const full = " " + norm(String(name || "")) + " ";
+  const full = " " + norm(String(name || "")).replace(/\bsin (azucar|tacc|alcohol|piel|sal)\b/g, "") + " ";
   // En "Avena con leche" o "Arroz con pollo" manda lo que va antes del "con".
-  const head = full.split(" con ")[0] + " ";
+  const head = full.split(/ \(?con /)[0] + " ";
   const match = n => { for (const [re, em] of RULES) if (re.test(n)) return em; return null; };
   let e = match(head) || match(full);
   if (!e) e = CAT[cat || catOf(name)] || "🍽️";
