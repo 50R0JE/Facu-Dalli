@@ -106,6 +106,88 @@ export async function signInWithGoogle(opts){
   }
 }
 
+// ---- Botón oficial de Google en la web (Google Identity Services) ----
+// En vez de ir a la página de Google y volver por Supabase (que muestra "Ir a
+// wegptuzhsrwppbknqstf.supabase.co"), en el navegador se usa el botón de Google: la ventana
+// dice "gize.ar", no se sale de la página y Google devuelve un ID token que se canjea con
+// signInWithIdToken. Si el script de Google no carga, queda el botón de siempre (redirect).
+// No se usa en las apps de las tiendas ni en la app instalada desde el navegador (en el
+// iPhone las ventanas emergentes no vuelven a la app): ahí sigue el flujo de siempre.
+// El nonce protege contra reusar un token robado: a Google va su SHA-256 y a Supabase el
+// original, que lo vuelve a hashear y lo compara con el que trae el token.
+// Requiere https://gize.ar en "Orígenes autorizados de JavaScript" del cliente web en Google Cloud.
+const GOOGLE_WEB_CLIENT_ID = "1016240784948-5a0pe2k2baf7n34aq15it3fokl73r5ga.apps.googleusercontent.com";
+let _gisLoad = null;
+function loadGis(){
+  if (window.google && google.accounts && google.accounts.id) return Promise.resolve();
+  if (_gisLoad) return _gisLoad;
+  _gisLoad = new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = "https://accounts.google.com/gsi/client"; sc.async = true;
+    sc.onload = () => (window.google && google.accounts && google.accounts.id) ? res() : rej(new Error("gis"));
+    sc.onerror = () => rej(new Error("gis"));
+    document.head.appendChild(sc);
+    setTimeout(() => rej(new Error("gis timeout")), 8000);
+  }).catch(e => { _gisLoad = null; throw e; });
+  return _gisLoad;
+}
+function useGisButton(){
+  if (IS_NATIVE_APP) return false;
+  try { if ((window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone) return false; } catch (e) {}
+  return !!(window.crypto && crypto.subtle && crypto.getRandomValues);
+}
+async function sha256Hex(txt){
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(d), b => b.toString(16).padStart(2, "0")).join("");
+}
+// Lo llama showLogin después de dibujar la pantalla: cambia el botón propio por el de Google.
+export async function mountGoogleButton(){
+  if (!useGisButton()) return;
+  const own = document.querySelector('[data-auth="google"]'); if (!own) return;
+  try { await loadGis(); } catch (e) { return; } // sin el script de Google queda el botón de siempre
+  if (!document.body.contains(own) || own.disabled) return; // la pantalla se volvió a dibujar
+  const rawNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
+  const isUp = !!document.getElementById("auRole");
+  try {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_WEB_CLIENT_ID,
+      nonce: await sha256Hex(rawNonce),
+      callback: r => onGoogleCredential(r, rawNonce),
+      ux_mode: "popup", context: isUp ? "signup" : "signin",
+      auto_select: false, itp_support: true, use_fedcm_for_button: true,
+    });
+    const slot = document.createElement("div");
+    slot.className = "auth-google-gis";
+    slot.style.animationDelay = own.style.animationDelay;
+    own.after(slot);
+    const w = Math.max(200, Math.min(400, Math.round(own.getBoundingClientRect().width) || 320));
+    google.accounts.id.renderButton(slot, {
+      type: "standard", theme: "filled_black", size: "large", shape: "pill",
+      text: isUp ? "signup_with" : "continue_with", logo_alignment: "center", width: w, locale: "es-419",
+    });
+    own.hidden = true; // queda en la página por si hace falta volver al flujo de siempre
+  } catch (e) { console.error("google button", e); }
+}
+async function onGoogleCredential(resp, rawNonce){
+  const isUp = !!document.getElementById("auRole");
+  const role = ((document.getElementById("auRole") || {}).value || "client").trim();
+  const code = ((document.getElementById("auCode") || {}).value || "").trim();
+  // Lo mismo que guarda signInWithGoogle antes de irse: afterLogin lo aplica (coach / código).
+  try { localStorage.setItem(GOOGLE_INTENT, JSON.stringify({ role: isUp && role === "coach" ? "coach" : "client", t: Date.now() })); } catch (e) {}
+  if (isUp && role === "client" && code) { try { localStorage.setItem("jfit_pending_code", code.toUpperCase()); } catch (e) {} }
+  if (window.coreReplay) window.coreReplay();
+  if (!State.sb) await ensureSb();
+  if (!State.sb) { if (window.coreCancel) window.coreCancel(); clearGoogleIntent(); showLogin("No se pudo conectar con el servidor. Revisá tu conexión a internet y volvé a intentar.", isUp ? "up" : "in"); return; }
+  let r;
+  try { r = await State.sb.auth.signInWithIdToken({ provider: "google", token: resp && resp.credential, nonce: rawNonce }); }
+  catch (e) { r = { error: e }; }
+  if (r.error || !r.data || !r.data.session) {
+    clearGoogleIntent(); if (window.coreCancel) window.coreCancel();
+    showLogin(GOOGLE_ERROR_MSG + authErrDetail(r.error && r.error.message), "in"); return;
+  }
+  try { await afterLogin(r.data.session.user); } finally { if (window.coreEnter) window.coreEnter(); }
+}
+
 // supabase-js NO lanza excepción cuando una query falla (RLS, red, columna inexistente):
 // devuelve {data:null, error}. Un try/catch a secas no atrapa nada, y el código seguía
 // como si se hubiera guardado. Envolvé cada escritura con sbOk() para que un error
