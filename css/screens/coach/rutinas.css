@@ -303,3 +303,11 @@
 
 /* Número de orden en la cabecera de la tarjeta abierta (sale de la posición, no se edita). */
 .co-exc-head .co-exc-ord { margin-right:0; flex-shrink:0; font-size:12px; padding:2px 7px; }
+
+/* Mover el día antes/después en el orden de la rutina. */
+.co-day-move-lbl { display:block; margin:12px 0 6px; }
+.co-day-move { display:grid; grid-template-columns:1fr 1fr auto; gap:8px; }
+.co-day-mv { display:flex; align-items:center; justify-content:center; gap:6px; min-height:40px; padding:0 10px; background:var(--card-2); border:1px solid var(--border); border-radius:4px; color:var(--txt); font-size:var(--text-meta); font-weight:700; white-space:nowrap; cursor:pointer; }
+.co-day-mv svg { width:var(--icon-md); height:var(--icon-md); flex-shrink:0; color:var(--blue-2); }
+.co-day-mv:disabled { opacity:.35; cursor:default; }
+.co-day-move .co-day-del { min-height:40px; }
