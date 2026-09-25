@@ -281,7 +281,7 @@
 .co-exc-act[disabled]:hover { color:var(--txt-2); border-color:var(--border); }
 
 /* Orden / RIR / Descanso: tres columnas con el título arriba (antes se partía en dos renglones). */
-.co-prow { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px; }
+.co-prow { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; margin-bottom:12px; }
 .co-pfield { display:flex; flex-direction:column; gap:6px; min-width:0; }
 .co-pfield .co-note-lbl { margin-bottom:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .co-pfield .co-pin { width:100%; padding:10px 6px; font-size:var(--text-body); }
@@ -300,3 +300,6 @@
 .co-seg { display:inline-flex; background:var(--card-2); border:1px solid var(--border); border-radius:999px; padding:3px; }
 .co-seg-opt { min-width:78px; min-height:36px; padding:0 14px; border:none; border-radius:999px; background:none; color:var(--txt-2); font-size:var(--text-meta); font-weight:700; cursor:pointer; }
 .co-seg-opt.on { background:var(--gize-blue); color:#04121F; }
+
+/* Número de orden en la cabecera de la tarjeta abierta (sale de la posición, no se edita). */
+.co-exc-head .co-exc-ord { margin-right:0; flex-shrink:0; font-size:12px; padding:2px 7px; }

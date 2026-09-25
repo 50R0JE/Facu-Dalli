@@ -271,7 +271,9 @@ function exerciseCard(d, day, ex, i, rt){
   const badge='<span class="co-exc-badge">'+nSets+' serie'+(nSets===1?'':'s')+(timed?' · por tiempo':'')+'</span>';
   const rirTxt=rirRestSummary(ex);
   const chevron='<span class="co-exc-chevron'+(open?' open':'')+'">'+chevronDownSvg+'</span>';
-  const ord=ex.o?'<span class="co-exc-ord">'+esc(ex.o)+'</span>':'';
+  // El número de orden sale solo de la posición en el día (1, 2, 3…): al subir, bajar o
+  // agregar ejercicios se reacomoda sin que el coach lo cargue a mano.
+  const ord='<span class="co-exc-ord">'+(i+1)+'</span>';
 
   if(!open){
     return '<div class="co-exc co-exc-collapsed" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
@@ -306,7 +308,7 @@ function exerciseCard(d, day, ex, i, rt){
   const field=(lbl, a, v, ph, cls)=>'<label class="co-pfield"><span class="co-note-lbl">'+lbl+'</span><input class="co-pin'+(cls||"")+'" data-coach="'+a+'" data-i="'+i+'" value="'+esc(v||"")+'" placeholder="'+ph+'"></label>';
   return '<div class="co-exc co-exc-open" data-id="'+esc(ex.id)+'">'+
       '<div class="co-exc-head" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
-        swatch+
+        swatch+ord+
         '<input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
         chevron+
       '</div>'+
@@ -317,7 +319,6 @@ function exerciseCard(d, day, ex, i, rt){
           '<button type="button" class="co-seg-opt'+(timed?' on':'')+'" role="radio" aria-checked="'+timed+'" data-coach="rt-timed" data-i="'+i+'" data-v="1">Tiempo</button>'+
         '</div></div>'+
         '<div class="co-prow">'+
-          field("Orden","rt-o",ex.o,"A1"," sm")+
           field("RIR","rt-rir",ex.rir,"2-0")+
           field("Descanso","rt-rest",ex.rest,"90 seg")+
         '</div>'+

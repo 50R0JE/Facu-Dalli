@@ -790,7 +790,7 @@ document.body.addEventListener("input", async e => {
   else if(a==="rt-targetkg"){ const ex=day.exercises[+el.dataset.i]; const st=ex&&ex.sets[+el.dataset.j]; if(st) st.targetKg=el.value; }
   else if(a==="rt-note"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const v=el.value.trim(); if(v) ex.note=v; else delete ex.note; } }
   else if(a==="day-note"){ const v=el.value.trim(); if(v) day.note=v; else delete day.note; }
-  else if(a==="rt-o"||a==="rt-rir"||a==="rt-rest"||a==="rt-goal"||a==="rt-video"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const k=(a==="rt-video")?"video":a.slice(3); let v=el.value.trim(); if(k==="video"&&v&&!/^https:\/\//i.test(v)) v="https://"+v.replace(/^[a-z][a-z0-9+.-]*:(\/\/)?/i,""); if(v) ex[k]=v; else delete ex[k]; } }
+  else if(a==="rt-rir"||a==="rt-rest"||a==="rt-goal"||a==="rt-video"){ const ex=day.exercises[+el.dataset.i]; if(ex){ const k=(a==="rt-video")?"video":a.slice(3); let v=el.value.trim(); if(k==="video"&&v&&!/^https:\/\//i.test(v)) v="https://"+v.replace(/^[a-z][a-z0-9+.-]*:(\/\/)?/i,""); if(v) ex[k]=v; else delete ex[k]; } }
   else if(a.indexOf("info-")===0){ CoachState.coachInfoForm = CoachState.coachInfoForm || Object.assign({}, CoachState.coachData.info||{}); CoachState.coachInfoForm[a.slice(5)] = el.value; return; }
   else if(a.indexOf("blk-")===0){ CoachState.coachBlockForm = CoachState.coachBlockForm || Object.assign({}, CoachState.coachData.block||{}); CoachState.coachBlockForm[a.slice(4)] = el.value; return; }
   else if(a==="plan-kcal"||a==="plan-protein"||a==="plan-carbs"||a==="plan-fat"||a==="plan-notes"){ CoachState.coachPlanForm = CoachState.coachPlanForm || Object.assign({}, CoachState.coachData.plan||{}); CoachState.coachPlanForm[a.slice(5)] = el.value; }

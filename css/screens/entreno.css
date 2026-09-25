@@ -19,6 +19,8 @@
 
 .ex-name { flex: 1; min-width: 0; background: transparent; border: none; color: var(--txt); font-size: 16px; font-weight: 600; padding: 2px 4px; border-radius: 4px; }
 
+.ex-num { flex-shrink: 0; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 4px; background: var(--blue); color: var(--gize-text); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+
 .ex-name:focus { outline: none; background: var(--card-2); }
 
 .ex-count { font-size: var(--text-meta); color: var(--txt-3); font-variant-numeric: tabular-nums; flex-shrink: 0; }
