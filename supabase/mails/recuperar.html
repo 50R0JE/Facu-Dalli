@@ -1,0 +1,138 @@
+<!doctype html>
+<!--
+  Mail de "olvidé mi contraseña" de GIZE (mismo diseño que confirmacion.html).
+  Dónde va: Supabase → Authentication → Emails → "Reset password".
+    · Subject: Elegí una contraseña nueva para GIZE
+    · Body (pestaña Source): este archivo entero.
+  Supabase reemplaza {{ .ConfirmationURL }} por el link que abre GIZE para elegir la nueva.
+
+  Por qué es claro y no negro: Gmail en el celular con modo oscuro invierte los colores de
+  los mails oscuros (el fondo negro queda claro, el texto blanco queda oscuro y el logo queda
+  como una caja). Un mail claro lo oscurece bien solo. En Apple Mail y Outlook, que respetan
+  el modo oscuro, pasa a la paleta de la app con @media (prefers-color-scheme: dark).
+  - El ícono es un PNG con fondo transparente fuera de las esquinas: se ve igual en claro y
+    en oscuro (Gmail no muestra SVG).
+  - El texto del botón es oscuro sobre el azul: si Gmail lo invierte queda claro sobre azul,
+    que también se lee (el blanco sobre azul quedaba oscuro sobre azul).
+  - Tablas y estilos en línea: es lo único que Gmail, Outlook y Apple Mail muestran igual.
+-->
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Contraseña nueva de GIZE</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;padding:0;}
+  a{color:#0072BB;}
+  @media (max-width:520px){
+    .card{border-radius:0 !important;border-left:0 !important;border-right:0 !important;}
+    .pad{padding-left:24px !important;padding-right:24px !important;}
+    .h1{font-size:26px !important;}
+  }
+  @media (prefers-color-scheme: dark){
+    .bg{background:#000000 !important;}
+    .card{background:#0B0D11 !important;border-color:#1C2029 !important;}
+    .t1{color:#FFFFFF !important;}
+    .t2{color:#D5DAE1 !important;}
+    .t3{color:#8F98A6 !important;}
+    .box{background:#12151B !important;border-color:#1C2029 !important;}
+    .lnk{color:#2FA0FF !important;}
+  }
+</style>
+</head>
+<body class="bg" style="margin:0;padding:0;background:#F2F4F7;">
+<!-- Texto de vista previa (lo que se ve en la bandeja al lado del asunto). -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Tocá el botón para elegir una contraseña nueva.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F2F4F7" style="background:#F2F4F7;">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+
+      <table role="presentation" class="card" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFFFFF"
+             style="max-width:480px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:20px;overflow:hidden;">
+        <!-- Filete RGB de la marca -->
+        <tr>
+          <td style="padding:0;font-size:0;line-height:0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td width="25%" height="5" bgcolor="#2FA0FF" style="background:#2FA0FF;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#A65CFF" style="background:#A65CFF;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#FF3DAE" style="background:#FF3DAE;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+              <td width="25%" height="5" bgcolor="#25E8C8" style="background:#25E8C8;height:5px;font-size:0;line-height:0;">&nbsp;</td>
+            </tr></table>
+          </td>
+        </tr>
+
+        <!-- Ícono -->
+        <tr>
+          <td class="pad" align="center" style="padding:40px 40px 0;">
+            <a href="https://gize.ar/" style="text-decoration:none;">
+              <img src="https://gize.ar/brand/mail/gize-icono.png" width="64" height="64" alt="GIZE"
+                   style="display:block;width:64px;height:64px;border:0;outline:none;border-radius:16px;">
+            </a>
+          </td>
+        </tr>
+
+        <!-- Título y texto -->
+        <tr>
+          <td class="pad" align="center" style="padding:24px 40px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;">
+            <h1 class="h1 t1" style="margin:0;color:#0B0D11;font-size:30px;line-height:1.2;font-weight:700;letter-spacing:-.01em;">
+              Elegí una contraseña nueva
+            </h1>
+            <p class="t2" style="margin:12px 0 0;color:#4A5260;font-size:16px;line-height:1.6;">
+              Pediste cambiar la contraseña de tu cuenta de GIZE.<br>Tocá el botón y elegí la nueva.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Botón (tabla para que se vea igual en Outlook) -->
+        <tr>
+          <td class="pad" align="center" style="padding:30px 40px 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td align="center" bgcolor="#2FA0FF" style="background:#2FA0FF;border-radius:999px;">
+                <a href="{{ .ConfirmationURL }}" target="_blank"
+                   style="display:inline-block;padding:16px 44px;font-family:'Outfit',Arial,Helvetica,sans-serif;font-size:17px;font-weight:700;color:#04121F;text-decoration:none;border-radius:999px;">
+                  Elegir contraseña nueva
+                </a>
+              </td>
+            </tr></table>
+          </td>
+        </tr>
+        <!-- Aviso -->
+        <tr>
+          <td class="pad" style="padding:26px 40px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;">
+            <table role="presentation" class="box" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F6F8FA"
+                   style="background:#F6F8FA;border:1px solid #E4E7EC;border-radius:14px;">
+              <tr><td class="t2" style="padding:16px 20px;font-size:14px;line-height:1.55;color:#4A5260;">
+                El link sirve una sola vez y vence en 1 hora. Si lo pediste desde la app, abrilo en el mismo celular.
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Link de respaldo -->
+        <tr>
+          <td class="pad t3" style="padding:26px 40px 36px;font-family:'Outfit',Arial,Helvetica,sans-serif;color:#8F98A6;font-size:12px;line-height:1.6;">
+            ¿El botón no funciona? Copiá este link en el navegador:<br>
+            <a class="lnk" href="{{ .ConfirmationURL }}" style="color:#0072BB;word-break:break-all;">{{ .ConfirmationURL }}</a>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Pie -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+        <tr>
+          <td class="t3" align="center" style="padding:20px 24px 0;font-family:'Outfit',Arial,Helvetica,sans-serif;color:#8F98A6;font-size:12px;line-height:1.6;">
+            Si no pediste cambiar la contraseña, ignorá este mail: tu cuenta sigue igual.<br>
+            <a class="t3" href="https://gize.ar/" style="color:#8F98A6;text-decoration:none;">gize.ar</a>&nbsp;·&nbsp;Rosario, Argentina
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>

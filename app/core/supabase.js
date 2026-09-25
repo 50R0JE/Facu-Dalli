@@ -36,6 +36,13 @@ export const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 // come el # apenas arranca y después ya no queda rastro.
 const BOOT_AUTH = new URLSearchParams((location.hash||"").replace(/^#/,"") + "&" + (location.search||"").replace(/^\?/,""));
 const CONFIRM_LANDING = BOOT_AUTH.get("type")==="signup";
+// Link del mail de "olvidé mi contraseña" en la web (#access_token=...&type=recovery): entra
+// con una sesión de recuperación y hay que pedir la contraseña nueva antes de abrir la app.
+const RECOVERY_LANDING = BOOT_AUTH.get("type")==="recovery";
+// En la app el link vuelve por gize://confirmado (el único que Android abre además del de
+// Google), así que se marca en el celular que se pidió recuperar la contraseña.
+export const RECOVERY_REQ = "gize_recovery_req";
+function recoveryRequested(){ try{ const t=+localStorage.getItem(RECOVERY_REQ)||0; return t>0 && Date.now()-t < 86400000; }catch(e){ return false; } }
 const CONFIRM_ERROR = !!(BOOT_AUTH.get("error_code") || BOOT_AUTH.get("error_description"));
 const CONFIRM_ERROR_MSG = "El link de confirmación venció o ya se usó. Probá ingresar con tu email y contraseña; si no te deja, registrate de nuevo para recibir otro mail.";
 
@@ -64,6 +71,12 @@ async function openAuthLink(url){
   if(!State.sb){ clearGoogleIntent(); showLogin(failMsg,"in"); return true; }
   const r=await State.sb.auth.exchangeCodeForSession(code);
   if(r.error||!r.data.session){ clearGoogleIntent(); showLogin(failMsg+authErrDetail(r.error && r.error.message),"in"); return true; }
+  if(!isGoogle && recoveryRequested()){
+    try{ localStorage.removeItem(RECOVERY_REQ); }catch(e){}
+    if(window.coreCancel) window.coreCancel();
+    showLogin("", "newpass");
+    return true;
+  }
   if(isGoogle){
     if(window.coreReplay) window.coreReplay();
     try{ await afterLogin(r.data.session.user); } finally { if(window.coreEnter) window.coreEnter(); }
@@ -998,7 +1011,11 @@ export async function cloudBoot(){
     let wiped=false;
     try{ if(!sess.data.session && localStorage.getItem(EPHEMERAL_KEY)==="1"){ localStorage.removeItem(EPHEMERAL_KEY); localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); wiped=true; } }catch(e){}
     if(wiped){ location.reload(); return; } // el estado en memoria se armó con los datos viejos
-    if(sess.data.session){
+    if(sess.data.session && RECOVERY_LANDING){
+      try{ history.replaceState(null,"",location.pathname); }catch(e){}
+      showLogin("", "newpass");
+    }
+    else if(sess.data.session){
       if(CONFIRM_LANDING) await showMailConfirmed(afterLogin(sess.data.session.user));
       else await afterLogin(sess.data.session.user);
     }

@@ -458,11 +458,14 @@
 .auth-switch:hover { color:var(--gize-blue); text-decoration:underline; text-underline-offset:3px; }
 
 .auth-switch:focus-visible { outline:2px solid var(--green-2); outline-offset:2px; }
+.auth-forgot { align-self:flex-end; margin:-4px 2px 0 auto; background:none; border:none; padding:4px 2px; color:var(--gize-text-2); font:600 13px var(--gize-font); cursor:pointer; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
+.auth-forgot:hover { color:var(--gize-blue); text-decoration:underline; text-underline-offset:3px; }
+.auth-forgot:focus-visible { outline:2px solid var(--gize-blue); outline-offset:2px; border-radius:4px; }
 .auth-install { display:block; margin:14px auto 0; background:none; border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:9px 18px; color:var(--gize-text-2); font:600 13px var(--gize-font); cursor:pointer; opacity:0; animation:authFadeUp var(--duration-rare) var(--ease-drawer) forwards; }
 .auth-install:hover { color:var(--gize-text); border-color:rgba(255,255,255,.34); }
 
 @media (prefers-reduced-motion: reduce) {
-    .auth-card, .auth-brand-ic, .auth-logo, .auth-sub, .auth-field, .auth-btn, .auth-remember, .auth-or, .auth-google, .auth-google-gis, .auth-switch, .auth-msg { animation:none !important; opacity:1 !important; transform:none !important; }
+    .auth-card, .auth-brand-ic, .auth-logo, .auth-sub, .auth-field, .auth-btn, .auth-remember, .auth-or, .auth-google, .auth-google-gis, .auth-switch, .auth-forgot, .auth-msg { animation:none !important; opacity:1 !important; transform:none !important; }
   }
 
 .logout-btn { display:block; width:100%; margin:24px auto 0; background:none; border:1px solid var(--border); color:var(--txt-2); font-size: var(--text-meta); padding:11px; border-radius:4px; cursor:pointer; }

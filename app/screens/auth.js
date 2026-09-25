@@ -11,6 +11,7 @@ const googleLogo = '<svg class="auth-google-ic" viewBox="0 0 48 48" aria-hidden=
 
 export function showLogin(msg, mode, vals){
   mode = mode || "in"; vals = vals || {};
+  if(mode==="forgot" || mode==="newpass") return showPasswordReset(msg, mode, vals);
   const isUp = mode==="up";
   const eq = v => esc(v==null?"":v);
   const host=document.getElementById("authHost"); if(!host) return;
@@ -46,6 +47,7 @@ export function showLogin(msg, mode, vals){
       (isUp?field("auName", auIcoUser, "", "Tu nombre y apellido", "text", "name", vals.name):"")+
       field("auEmail", auIcoMail, "", "Email (ej: nombre@gmail.com)", "email", "username", vals.email)+
       field("auPass", auIcoLock, "pass", "Contraseña (mínimo 6)", "password", isUp?"new-password":"current-password", "")+
+      (isUp?"":'<button type="button" class="auth-forgot" data-auth="to-forgot" style="animation-delay:'+nextDelay()+'">¿Olvidaste tu contraseña?</button>')+
       (isUp&&role==="client"?field("auCode", auIcoTicket, "", "Código de tu coach (opcional)", "text", "off", vals.code):"")+
       '<label class="auth-remember" style="animation-delay:'+nextDelay()+'">'+
         '<input id="auRemember" type="checkbox"'+(rememberSession()?" checked":"")+'>'+
@@ -61,6 +63,38 @@ export function showLogin(msg, mode, vals){
     '</div>';
   startAuthParticles(host.querySelector(".auth-particles"));
   mountGoogleButton().catch(()=>{});
+}
+
+// Recuperar la contraseña: "forgot" pide el mail para mandar el link; "newpass" aparece al
+// volver del link (ya con una sesión de recuperación) para elegir la contraseña nueva.
+function showPasswordReset(msg, mode, vals){
+  const host=document.getElementById("authHost"); if(!host) return;
+  host.style.display="flex";
+  hideSilkBg();
+  const isNew = mode==="newpass";
+  const isOk = !!msg && /^listo/i.test(String(msg).trim());
+  let stepIdx=-1;
+  const nextDelay=()=>{ stepIdx++; return (0.14+stepIdx*0.055).toFixed(3)+"s"; };
+  const field=(id, icon, extraClass, ph, type, autocomplete, value)=>
+    '<div class="auth-field'+(extraClass?(" "+extraClass):"")+'" style="animation-delay:'+nextDelay()+'">'+
+      '<span class="auth-ic" aria-hidden="true">'+icon+'</span>'+
+      '<input id="'+id+'" class="auth-in" type="'+type+'" placeholder="'+ph+'" autocomplete="'+autocomplete+'" aria-label="'+ph+'" value="'+esc(value||"")+'">'+
+      (id==="auPass" ? '<button type="button" class="auth-toggle-pass" data-toggle-pass aria-label="Mostrar contraseña">'+auIcoEye+'</button>' : '')+
+    '</div>';
+  host.innerHTML =
+    '<div class="gize-aurora auth-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>'+
+    '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
+    '<div class="auth-card" role="region" aria-label="'+(isNew?"Contraseña nueva":"Recuperar contraseña")+'">'+
+      '<div class="auth-brand-ic" aria-hidden="true"><img src="brand/logo/gize-monograma.svg" alt=""></div>'+
+      '<div class="auth-logo"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>'+
+      '<div class="auth-sub">'+(isNew?"Elegí tu contraseña nueva":"Te mandamos un link a tu mail para elegir una contraseña nueva")+'</div>'+
+      (isNew ? field("auPass", auIcoLock, "pass", "Contraseña nueva (mín. 6)", "password", "new-password", "")
+             : field("auEmail", auIcoMail, "", "Email de tu cuenta", "email", "username", vals.email))+
+      (msg?'<div class="auth-msg'+(isOk?" ok":"")+'" role="alert" style="animation-delay:'+nextDelay()+'">'+esc(msg)+'</div>':'')+
+      '<button class="gize-btn auth-btn" data-auth="'+(isNew?"do-newpass":"do-forgot")+'" style="animation-delay:'+nextDelay()+'">'+(isNew?"Guardar contraseña":"Mandarme el link")+'</button>'+
+      (isNew?"":'<div class="auth-switch" data-auth="to-login" role="button" tabindex="0" style="animation-delay:'+nextDelay()+'">Volver a ingresar</div>')+
+    '</div>';
+  startAuthParticles(host.querySelector(".auth-particles"));
 }
 
 export function hideLogin(){ const h=document.getElementById("authHost"); if(h){ h.style.display="none"; h.innerHTML=""; } stopAuthParticles(); }
