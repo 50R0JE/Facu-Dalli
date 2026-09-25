@@ -12,6 +12,8 @@ import { coachInitials } from './clientes.js';
 
 import { CoachState } from './state.js';
 
+import { pushOnHere } from '../../core/push.js';
+
 export function renderCoachSettings(){
   const host=document.getElementById("coachSheetHost"); if(!host) return;
   if(!CoachState.coachSettingsOpen){ host.innerHTML=""; return; }
@@ -37,6 +39,11 @@ export function renderCoachSettings(){
     '<div class="cs-field">'+
       '<label>Plan de GIZE</label>'+
       '<button class="cp-copt cs-q-btn" data-plan="open">Ver mi plan y cantidad de clientes</button>'+
+    '</div>'+
+    '<div class="cs-field">'+
+      '<label>Avisos en este dispositivo</label>'+
+      '<button class="cp-copt cs-q-btn cs-notif'+(pushOnHere()?' on':'')+'" data-coach="notif-toggle">'+(pushOnHere()?'Avisos activados \u2713 · tocá para apagarlos':'Activar avisos')+'</button>'+
+      '<div class="cs-hint">Te avisamos cuando un alumno manda su check-in semanal o lleva 4 días sin entrenar.</div>'+
     '</div>'+
     '<div class="cs-field">'+
       '<label>Preguntas para tus clientes</label>'+
