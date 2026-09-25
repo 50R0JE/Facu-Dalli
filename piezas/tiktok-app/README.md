@@ -14,3 +14,9 @@ python3 tiktok.py salida.mp4     # usa las grabaciones src/in.mp4 y src/in3.mp4
 
 ~17,8 s, escenas de 2,1 s, sin glitch: los titulares usan el alfabeto de
 `../triptico-energize/bigger.py` (G, I, Z, E del logotipo y el resto construido con sus medidas).
+
+## Versión 3 (`tiktok-v3.py`) — la que va
+
+~19,6 s. Igual que la frenética, más: escáner en primer plano del código (sin mano ni caja),
+dos escenas del video de técnica de cada ejercicio y cierre con las fechas de lanzamiento
+(iPhone 29.09, Android 10.10) con los logos.
