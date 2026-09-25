@@ -10,7 +10,7 @@ import { State, state } from './core/state.js';
 
 import { KEY, migrateNames, routineHash, save } from './core/storage.js';
 
-import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudEditSession, cloudSaveCheckin, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, clearAccountLeftovers, expectAuthLink, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, setPendingCode, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
+import { afterLogin, cloudBoot, cloudDeletePhoto, cloudDeleteSession, cloudEditSession, cloudSaveCheckin, cloudSaveFoods, cloudSaveDaily, cloudSessionFeedback, cloudUploadPhoto, ensureSb, flushOutbox, isOnline, loadCloud, mergeLocalProgress, newId, pendingCount, clearAccountLeftovers, expectAuthLink, localUnsynced, PROFILE_KEY, RECOVERY_REQ, sbOk, setPendingCode, syncRoutineNow, setRememberSession, signInWithGoogle } from './core/supabase.js';
 
 import { fmt, hkey, mkEx, mkSet, mondayOf, muscleOf, parseSecs, tabRipple, today, uid } from './core/utils.js';
 
@@ -59,7 +59,7 @@ import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
 
 import { productByCode, searchOFF } from './core/off.js';
 
-import { addDays, loadDay, retryDay } from './screens/comida-historial.js';
+import { addDays, dayItems, loadDay, retryDay, setDayItems } from './screens/comida-historial.js';
 import { EditState, cleanSessionEdit, openSessionEdit, removeSessionEditSet, renderSessionEdit, setSessionEditVal } from './ui/sessionedit.js';
 import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
 
@@ -98,6 +98,20 @@ export function renderApp(){
   const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="progreso" && EditState.se) ? renderSessionEdit() : "");
   if (State.view==="habitos" && HabitosState.pendingFocusHabit) { const i=document.getElementById("habitInput"); if(i) i.focus(); HabitosState.pendingFocusHabit=false; }
   if (State.view==="entreno" && HabitosState.pendingFocusDay) { const i=v.querySelector(".day-name"); if(i){ i.focus(); i.select(); } HabitosState.pendingFocusDay=false; }
+}
+
+// Comida: el día que se mira. Hoy usa state.diary (se sube con el resto del día); uno
+// anterior usa la lista que se trajo de la nube y se sube aparte (cloudSaveFoods).
+function viewDay(){ const td=today(), vd=ComidaState.viewDate; return (vd && vd<td) ? vd : null; }
+function curDiary(){ const d=viewDay(); return d ? (dayItems(d)||[]) : state.diary; }
+function commitDiary(){
+  const d=viewDay();
+  if(d){
+    const list=dayItems(d)||[];
+    const k=Math.round(list.reduce((a,e)=>a+(Number(e.kcal)||0),0));
+    state.kcalLog=Object.assign({}, state.kcalLog||{}); if(k>0) state.kcalLog[d]=k; else delete state.kcalLog[d];
+    save(); cloudSaveFoods(d, list);
+  } else save();
 }
 
 // Comida: cambiar el día que se mira (n = -1 anterior, 1 siguiente, 0 hoy). Los anteriores
@@ -332,19 +346,19 @@ document.body.addEventListener("click", async e => {
     // Con crudo/cocido se guardan los valores del estado elegido y queda en el nombre.
     const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
     rememberOffProduct(f0);
-    state.diary.push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
+    curDiary().push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
     ComidaState.meal=null;
-    save(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return;
+    commitDiary(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const e = ComidaState.editEntry; if(!e){ return; } const base=entryBase(e); const fc=g/100;
     if(ComidaState.sheetMeal) e.meal=ComidaState.sheetMeal;
     e.grams=Math.round(g); e.kcal=Math.round(base.kcal*fc); e.p=+(base.p*fc).toFixed(1); e.c=+(base.c*fc).toFixed(1); e.f=+(base.f*fc).toFixed(1); e.unit=base.unit||"g"; e.base=base;
-    save(); closeSheet(()=>{ ComidaState.editEntry=null; ComidaState.sheetMeal=null; renderApp(); }); return;
+    commitDiary(); closeSheet(()=>{ ComidaState.editEntry=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
-  if (a === "diary-edit") { SheetState.sheetGen++; ComidaState.editEntry = state.diary.find(x=>x.id===el.dataset.id)||null; ComidaState.selectedFood=null; renderApp(); return; }
-  if (a === "diary-remove") { state.diary = state.diary.filter(x=>x.id!==el.dataset.id); save(); renderApp(); return; }
+  if (a === "diary-edit") { SheetState.sheetGen++; ComidaState.editEntry = curDiary().find(x=>x.id===el.dataset.id)||null; ComidaState.selectedFood=null; renderApp(); return; }
+  if (a === "diary-remove") { const d=viewDay(), rest=curDiary().filter(x=>x.id!==el.dataset.id); if(d) setDayItems(d, rest); else state.diary=rest; commitDiary(); renderApp(); return; }
 
   // Pasos
   if (a === "steps-add") { state.steps = Math.max(0,(state.steps||0)+parseInt(el.dataset.n)); save(); renderApp(); return; }

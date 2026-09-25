@@ -1,9 +1,11 @@
 // Días anteriores en Comida: se navega en la misma pantalla (deslizando o con las flechas,
-// como en Fitia) y se ve ese día entero: calorías, macros y las 4 comidas. Es solo para ver.
+// como en Fitia) y se ve ese día entero: calorías, macros y las 4 comidas. También se puede
+// cargar, cambiar o borrar lo de ese día (se sube con cloudSaveFoods).
 // Los días anteriores están en la nube (food_entries); en el celular solo queda el total de
 // calorías de cada día (state.kcalLog). Lo que se trae queda en memoria mientras la app
 // está abierta.
 import { State, state } from '../core/state.js';
+import { pendingFoods } from '../core/supabase.js';
 import { fmtDate, today, ymd } from '../core/utils.js';
 
 const cache = new Map(); // fecha → { status: "loading" | "done" | "error", items, msg }
@@ -39,7 +41,9 @@ export async function loadDay(date, rerender) {
       id: x.id, meal: x.meal || undefined, name: x.name, grams: Number(x.grams) || 0, unit: x.unit || "g",
       kcal: Math.round(Number(x.kcal) || 0), p: Number(x.protein) || 0, c: Number(x.carbs) || 0, f: Number(x.fat) || 0,
     }));
-    cache.set(date, { status: "done", items });
+    // Lo cargado o borrado sin señal todavía no está en la nube: manda lo del celular.
+    const pend = pendingFoods(date);
+    cache.set(date, { status: "done", items: pend || items });
     // Si el total guardado en el celular no estaba (otro dispositivo), se completa.
     const tot = items.reduce((a, e) => a + e.kcal, 0);
     if (tot > 0 && !(state.kcalLog && state.kcalLog[date])) state.kcalLog = Object.assign({}, state.kcalLog || {}, { [date]: tot });
@@ -48,6 +52,10 @@ export async function loadDay(date, rerender) {
   }
   rerender();
 }
+
+// Lista editable del día (Comida permite cargar y borrar en días anteriores).
+export function dayItems(date) { const c = cache.get(date); return c && c.status === "done" ? c.items : null; }
+export function setDayItems(date, items) { const c = cache.get(date); if (c) c.items = items; }
 
 // Un día que dio error se vuelve a pedir la próxima vez que se lo mira.
 export function retryDay(date) { const c = cache.get(date); if (c && c.status === "error") cache.delete(date); }
