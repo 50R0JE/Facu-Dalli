@@ -243,7 +243,12 @@ export function renderEntreno(){
     console.error("renderEntreno: error al renderizar el ejercicio", safeId, safeName, err);
     return `<div class="card"><div class="card-head"><span class="ex-name" style="color:var(--red)">⚠ ${esc(safeName)} — no se pudo mostrar</span></div></div>`;
   } }).join("");
+  // Sin conexión con la cuenta: se avisa arriba, así nadie cierra sesión ni desinstala la app
+  // creyendo que lo cargado ya está guardado.
+  const syncWarn = (State.cloudUser && !State.cloudReady && !State.cloudLoading)
+    ? '<div class="sync-warn" role="status">Todavía no se guardó en tu cuenta: lo que cargues queda en este celular y se sube solo cuando vuelva la conexión. No cierres sesión ni desinstales la app.</div>' : '';
   return `
+    ${syncWarn}
     ${renderBlockBanner()}
     ${routineLocked()?'<div class="coach-banner">Rutina asignada por tu coach</div>':''}
     <div class="tabs">${tabs}</div>

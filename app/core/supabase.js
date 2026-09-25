@@ -393,9 +393,19 @@ export async function afterLogin(sessionUser){
   // red (lee la sesión guardada en el dispositivo), así que arrancamos con ESE y solo
   // lo reemplazamos por la versión fresca del servidor si getUser() llega a responder.
   State.cloudUser = sessionUser || State.cloudUser || null;
-  // Sesión sin "mantener iniciada": se anota para limpiar los datos locales la próxima vez
-  // que la app abra y la sesión ya no esté (ver cloudBoot).
-  try{ if(rememberSession()) localStorage.removeItem(EPHEMERAL_KEY); else localStorage.setItem(EPHEMERAL_KEY, "1"); }catch(e){}
+  // Los datos del celular son de quien los cargó (state.ownerUid). Si entra OTRA cuenta en
+  // este dispositivo se empieza de cero, para que no herede la rutina ni el diario ajenos.
+  // Antes eso se hacía borrando todo al perder la sesión, y se perdía lo que todavía no se
+  // había subido a la cuenta: ahora solo se borra cuando de verdad entra otra persona.
+  // Celulares con la versión anterior (sin ownerUid): el dueño es el del último perfil guardado.
+  let owner=state.ownerUid;
+  if(!owner){ try{ owner=(JSON.parse(localStorage.getItem(PROFILE_KEY)||"null")||{}).uid||null; }catch(e){} }
+  if(State.cloudUser && owner && owner!==State.cloudUser.id){
+    try{ localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); }catch(e){}
+    location.reload(); return;
+  }
+  if(State.cloudUser && state.ownerUid!==State.cloudUser.id){ state.ownerUid=State.cloudUser.id; try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+  try{ localStorage.removeItem(EPHEMERAL_KEY); }catch(e){}
   try { const r=await State.sb.auth.getUser(); if(r.data.user) State.cloudUser=r.data.user; } catch(e){}
   // Primero se envía lo que quedó pendiente de otra sesión (sin conexión, app cerrada):
   // loadCloud() reemplaza entrenos/registros locales por los de la nube.
@@ -785,8 +795,28 @@ function myPending(){ const u=State.cloudUser&&State.cloudUser.id; return u ? re
 
 export function pendingCount(){ return myPending().length; }
 
+// ¿Queda algo en el celular que la cuenta todavía no tiene? (cola de envío, o la rutina
+// propia cambiada sin subir). Para no borrar nada que no esté a salvo.
+export function localUnsynced(){
+  if(pendingCount()>0) return true;
+  const coach = State.cloudProfile && State.cloudProfile.role==="coach";
+  return !coach && !routineLocked() && state.routineHash!==routineHash(state.days);
+}
+
+// Sube la rutina ya (sin esperar la demora de cloudSyncCore). Devuelve true si quedó en la nube.
+export async function syncRoutineNow(){
+  if(!State.sb || !State.cloudUser || !State.cloudReady || routineLocked()) return false;
+  try{
+    const days=state.days, h=routineHash(days);
+    sbOk(await State.sb.from("routines").upsert({client_id:State.cloudUser.id, days:days, updated_at:new Date().toISOString(), updated_by:State.cloudUser.id},{onConflict:"client_id"}));
+    if(routineHash(state.days)===h) markRoutineSynced(state.days);
+    return true;
+  }catch(e){ return false; }
+}
+
 export function syncFootText(){
   if(!State.cloudUser) return "Se guarda solo en este dispositivo";
+  if(!State.cloudReady && !State.cloudLoading) return "Sin conexión con tu cuenta: lo que cargues queda en este celular y se sube solo cuando vuelva la conexión";
   const n=pendingCount();
   return n>0 ? (n+" pendiente"+(n>1?"s":"")+" de sincronizar · se envía solo cuando haya conexión") : "Sincronizado con tu cuenta";
 }
@@ -1005,12 +1035,10 @@ export async function cloudBoot(){
   if(!State.sb){ showLogin(offlineMsg,"in"); if(window.coreEnter) window.coreEnter(); return; }
   try{
     const sess=await State.sb.auth.getSession();
-    // La sesión anterior era sin "mantener iniciada" y ya se borró al cerrar: se limpian los
-    // datos locales como en el logout (main.js), para que otra persona que entre en este
-    // dispositivo no herede la rutina ni el diario. La cola de envío queda: va por usuario.
-    let wiped=false;
-    try{ if(!sess.data.session && localStorage.getItem(EPHEMERAL_KEY)==="1"){ localStorage.removeItem(EPHEMERAL_KEY); localStorage.removeItem(KEY); localStorage.removeItem(PROFILE_KEY); wiped=true; } }catch(e){}
-    if(wiped){ location.reload(); return; } // el estado en memoria se armó con los datos viejos
+    // Sesión sin "mantener iniciada" que ya se cerró: antes se borraban acá los datos del
+    // celular, y con eso lo que todavía no se había subido (un tester perdió su rutina así).
+    // Ahora quedan detrás del login: si vuelve a entrar la misma cuenta se suben, y si entra
+    // otra, afterLogin() arranca de cero (state.ownerUid).
     if(sess.data.session && RECOVERY_LANDING){
       try{ history.replaceState(null,"",location.pathname); }catch(e){}
       showLogin("", "newpass");

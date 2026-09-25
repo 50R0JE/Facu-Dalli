@@ -575,3 +575,6 @@
 .sd-x { color: var(--txt-3); text-align: center; }
 .sd-set small { font-size: 11px; font-weight: 500; color: var(--txt-3); margin-left: 3px; }
 @media (prefers-reduced-motion: reduce) { .sess-chev { transition: none; } }
+
+/* Aviso de datos todavía no guardados en la cuenta (sin conexión). */
+.sync-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; border: 1px solid color-mix(in srgb, #F5A524 55%, transparent); background: color-mix(in srgb, #F5A524 12%, transparent); color: var(--gize-text); font-size: var(--text-meta); line-height: 1.45; }
