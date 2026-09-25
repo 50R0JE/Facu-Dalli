@@ -255,3 +255,41 @@
 .co-note-lbl { display:block; font-size:10px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; font-weight:600; }
 
 .co-exc-btn[disabled] { opacity:.3; cursor:default; }
+
+/* ---- Editor de rutina en el celular (tarjeta de ejercicio) ---- */
+/* Cerrada: nombre completo en hasta 2 renglones y, abajo, series y RIR/descanso. */
+.co-exc-collapsed { align-items:center; gap:10px; min-height:56px; }
+.co-exc-collapsed .co-exc-swatch { align-self:stretch; height:auto; min-height:22px; }
+.co-exc-cmain { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+.co-exc-collapsed .co-exc-cname { white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.25; }
+.co-exc-cmeta { display:flex; align-items:center; gap:8px; min-width:0; }
+.co-exc-cmeta .co-exc-badge { align-self:flex-start; }
+.co-exc-ord { display:inline-block; margin-right:6px; padding:1px 6px; border-radius:4px; font-size:11px; font-weight:800; color:var(--blue-2); background:color-mix(in srgb, var(--gize-blue) 14%, transparent); vertical-align:1px; }
+.co-exc-collapsed .co-exc-icon-btn { width:40px; height:40px; }
+@media (max-width: 640px){ .co-exc-rirtxt { display:inline; } }
+
+/* Abierta: el nombre ocupa todo el ancho. */
+.co-exc-head .co-exc-name { font-size:var(--text-body); }
+
+/* Barra de acciones: botones grandes con texto, fáciles de tocar con el pulgar. */
+.co-exc-actions { display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; padding:0 12px 12px; }
+.co-exc-act { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:52px; padding:6px 2px; background:var(--card-2); border:1px solid var(--border); border-radius:8px; color:var(--txt-2); font-size:11px; font-weight:700; cursor:pointer; }
+.co-exc-act svg { width:18px; height:18px; }
+.co-exc-act:hover { color:var(--txt); border-color:var(--blue-2); }
+.co-exc-act.danger:hover { color:var(--red); border-color:var(--red); }
+.co-exc-act[disabled] { opacity:.35; cursor:default; }
+.co-exc-act[disabled]:hover { color:var(--txt-2); border-color:var(--border); }
+
+/* Orden / RIR / Descanso: tres columnas con el título arriba (antes se partía en dos renglones). */
+.co-prow { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px; }
+.co-pfield { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.co-pfield .co-note-lbl { margin-bottom:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.co-pfield .co-pin { width:100%; padding:10px 6px; font-size:var(--text-body); }
+.co-pfield .co-pin.sm { width:100%; }
+
+.co-note-area { resize:vertical; min-height:44px; line-height:1.4; font-family:inherit; }
+.co-set-row .co-set-rm { min-width:32px; min-height:36px; }
+
+/* Agregar ejercicio al final de la lista. */
+.co-rt-add-end { display:block; width:100%; margin:4px 0 16px; padding:14px; background:none; border:1px dashed var(--blue-2); border-radius:8px; color:var(--blue-2); font-size:var(--text-body); font-weight:700; cursor:pointer; }
+.co-rt-add-end:hover { background:color-mix(in srgb, var(--gize-blue) 10%, transparent); }
