@@ -397,6 +397,15 @@ document.body.addEventListener("click", e=>{
   showLogin("","up",{name:name, email:email, code:code, role:rb.dataset.authRole});
 });
 
+// Volver atrás desde Google (botón atrás, o la X de la app instalada) trae la página desde la
+// caché del navegador tal como quedó: el botón seguía en "Abriendo Google..." y deshabilitado,
+// y no respondía más hasta recargar. Se lo vuelve a habilitar sin borrar lo que se escribió.
+window.addEventListener("pageshow", e=>{
+  if(!e.persisted || State.cloudUser) return;
+  const g=document.querySelector('#authHost [data-auth="google"]');
+  if(g && g.disabled){ g.disabled=false; g.lastChild.textContent="Continuar con Google"; }
+});
+
 // Se guarda al tocarla (no al ingresar): así vale también para Google, que se va de la página.
 document.body.addEventListener("change", e=>{
   if(e.target && e.target.id==="auRemember") setRememberSession(e.target.checked);
