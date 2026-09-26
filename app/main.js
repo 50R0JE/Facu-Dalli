@@ -59,6 +59,7 @@ import { renderConfig } from './screens/config.js';
 import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
 
 import { productByCode, searchOFF } from './core/off.js';
+import { kcalMismatch, productByCodeShared, reportShared, saveShared, searchShared, useShared } from './core/productos.js';
 
 import { addDays, dayItems, loadDay, retryDay, setDayItems } from './screens/comida-historial.js';
 import { EditState, cleanSessionEdit, openSessionEdit, removeSessionEditSet, renderSessionEdit, setSessionEditVal } from './ui/sessionedit.js';
@@ -337,9 +338,25 @@ document.body.addEventListener("click", async e => {
   if (a === "food-create-cancel") { ComidaState.creatingFood=false; renderApp(); return; }
   if (a === "cf-unit") { ComidaState.foodForm.unit = el.dataset.val; renderApp(); return; }
   if (a === "food-create-save") {
-    if(!ComidaState.foodForm.name.trim() || !(+ComidaState.foodForm.kcal>=0) || ComidaState.foodForm.kcal===""){ alert("Poné al menos nombre y calorías."); return; }
-    state.foods.push({ name:ComidaState.foodForm.name.trim(), kcal:+ComidaState.foodForm.kcal||0, p:+ComidaState.foodForm.p||0, c:+ComidaState.foodForm.c||0, f:+ComidaState.foodForm.f||0, portion:100, unit:ComidaState.foodForm.unit||"g" });
-    ComidaState.creatingFood=false; ComidaState.foodQuery=ComidaState.foodForm.name.trim(); save(); renderApp(); return;
+    const ff=ComidaState.foodForm, num=v=>parseFloat(String(v==null?"":v).replace(",", "."))||0;
+    if(!ff.name.trim() || ff.kcal==="" || !(num(ff.kcal)>=0)){ alert("Poné al menos nombre y calorías."); return; }
+    const nf={ name:ff.name.trim()+(ff.brand&&ff.brand.trim()?" · "+ff.brand.trim():""), kcal:Math.round(num(ff.kcal)), p:num(ff.p), c:num(ff.c), f:num(ff.f), portion:100, unit:ff.unit||"g" };
+    if(nf.kcal>950 || nf.p>100 || nf.c>100 || nf.f>100 || nf.p+nf.c+nf.f>105){ alert("Revisá los valores: tienen que ser cada 100 "+(nf.unit==="ml"?"ml":"g")+" (como en la tabla del paquete)."); return; }
+    if(ff.code && kcalMismatch(nf.kcal, nf.p, nf.c, nf.f) && !confirm("Las calorías ("+nf.kcal+") no coinciden con los macros (darían unas "+Math.round(nf.p*4+nf.c*4+nf.f*9)+").\n\n¿Los copiaste bien de la etiqueta? Tocá Aceptar para guardar igual.")) return;
+    if(ff.code){ nf.code=ff.code; nf.src="GIZE"; }
+    state.foods.push(nf);
+    ComidaState.creatingFood=false; save();
+    if(ff.code){
+      saveShared(Object.assign({}, nf, { name: ff.name.trim(), brand: (ff.brand||"").trim() }), ff.code, "user").then(ok=>{ if(ok) alert("¡Gracias! "+ff.name.trim()+" ya quedó disponible para todos los usuarios de GIZE."); });
+      ComidaState.selectedFood=nf; ComidaState.cookState=null; ComidaState.sheetGrams=null; SheetState.sheetGen++;
+    } else ComidaState.foodQuery=nf.name;
+    renderApp(); return;
+  }
+  if (a === "prod-report") {
+    const f=ComidaState.selectedFood; if(!f || !f.gid) return;
+    const why=prompt("¿Qué dato está mal? (por ejemplo: las calorías, el nombre, la marca)"); if(why===null) return;
+    reportShared(f.gid, why).then(ok=>alert(ok?"Gracias, lo vamos a revisar.":"No se pudo enviar el reporte. Probá de nuevo más tarde."));
+    return;
   }
   if (a === "off-pick") { SheetState.sheetGen++; ComidaState.selectedFood = offResults[parseInt(el.dataset.idx)]; ComidaState.cookState = null; ComidaState.sheetGrams = null; renderApp(); return; }
   if (a === "scan-open") { openScanner(onScannedCode); return; }
@@ -396,6 +413,8 @@ document.body.addEventListener("click", async e => {
     // Con crudo/cocido se guardan los valores del estado elegido y queda en el nombre.
     const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
     rememberOffProduct(f0);
+    // Base compartida: sube en la búsqueda si ya estaba; si vino de Open Food Facts, queda guardado.
+    if(f0.src==="GIZE" && f0.gid) useShared(f0.gid); else if(f0.src==="OFF" && f0.code) saveShared(f0, f0.code, "off");
     curDiary().push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:roundG(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
     ComidaState.meal=null; ComidaState.searchOpen=false; ComidaState.foodQuery=""; ComidaState.off=null;
     commitDiary(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return;
@@ -1121,9 +1140,12 @@ function scheduleOffSearch(q){
   offTimer = setTimeout(async () => {
     const ctrl = offCtrl = new AbortController();
     try{
-      const items = await searchOFF(qq, ctrl.signal);
+      // Primero la base compartida de GIZE; después Open Food Facts sin repetir códigos.
+      const [shared, off] = await Promise.all([searchShared(qq).catch(()=>[]), searchOFF(qq, ctrl.signal).catch(e=>{ if(ctrl.signal.aborted) throw e; return null; })]);
       if(ctrl.signal.aborted || !ComidaState.off || ComidaState.off.q !== qq) return;
-      ComidaState.off = { q: qq, status: "done", items: items };
+      if(off===null && !shared.length) throw new Error("sin resultados");
+      const codes=new Set(shared.map(f=>f.code).filter(Boolean));
+      ComidaState.off = { q: qq, status: "done", items: shared.concat((off||[]).filter(f=>!f.code || !codes.has(f.code))) };
     }catch(e){
       if(ctrl.signal.aborted) return;
       ComidaState.off = { q: qq, status: "error", items: [] };
@@ -1135,7 +1157,7 @@ function scheduleOffSearch(q){
 // Producto de marca agregado al diario → queda guardado en el dispositivo para
 // encontrarlo al toque la próxima vez (máximo 150, el más reciente primero).
 function rememberOffProduct(f){
-  if(!f || f.src !== "OFF") return;
+  if(!f || (f.src !== "OFF" && f.src !== "GIZE")) return;
   state.offRecent = [f].concat((state.offRecent||[]).filter(x => !(x.code && x.code === f.code) && x.name !== f.name)).slice(0, 150);
 }
 
@@ -1143,12 +1165,17 @@ function rememberOffProduct(f){
 async function onScannedCode(code){
   const known = (state.offRecent||[]).find(f => f.code === code);
   if(known){ ComidaState.selectedFood = known; ComidaState.cookState = null; ComidaState.sheetGrams = null; SheetState.sheetGen++; renderApp(); return; }
+  // Primero la base compartida de GIZE, después Open Food Facts.
   let food = null;
-  try{ food = await productByCode(code); }
-  catch(e){ alert("No se pudo buscar el producto (¿sin conexión?). Probá de nuevo o cargalo a mano."); return; }
+  try{ food = await productByCodeShared(code); }catch(e){}
   if(!food){
-    if(confirm("No encontramos el código " + code + " en Open Food Facts.\n\n¿Querés crear el alimento a mano con los datos de la etiqueta?")){
-      ComidaState.foodForm = {name:"",kcal:"",p:"",c:"",f:"",unit:"g"}; ComidaState.creatingFood = true; renderApp();
+    try{ food = await productByCode(code); }
+    catch(e){ alert("No se pudo buscar el producto (¿sin conexión?). Probá de nuevo o cargalo a mano."); return; }
+    if(food) saveShared(food, code, "off");
+  }
+  if(!food){
+    if(confirm("Todavía nadie cargó el código " + code + ".\n\n¿Lo cargás vos con los datos de la etiqueta? Va a quedar disponible para todos los usuarios de GIZE.")){
+      ComidaState.searchOpen=false; ComidaState.foodForm = {name:"",brand:"",kcal:"",p:"",c:"",f:"",unit:"g",code:String(code).replace(/\D/g,"")}; ComidaState.creatingFood = true; renderApp();
     }
     return;
   }

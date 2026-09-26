@@ -172,7 +172,7 @@ export function renderResults(q){
 function foodRow(f, action, i){
   return `<div class="food-row" data-action="${action}" data-idx="${i}">
     <span class="food-emo" aria-hidden="true">${foodEmoji(f.name, f.cat)}</span>
-    <div class="food-name">${esc(shortName(f.name))}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}${f.src==="OFF"?'<span class="food-cook">marca</span>':''}</div>
+    <div class="food-name">${esc(shortName(f.name))}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}${f.src==="OFF"||f.src==="GIZE"?`<span class="food-cook${f.verified?' ok':''}">${f.verified?'✓ verificado':'marca'}</span>`:''}</div>
     <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}${f.cook?" "+f.cook.base:""}</span></div>
   </div>`;
 }
@@ -183,7 +183,7 @@ export let offResults = [];
 export function renderOffResults(){
   const o = ComidaState.off || {};
   if (!o.q || o.q.length < 3) return "";
-  const head = '<div class="off-head">Productos de marca <span>Open Food Facts</span></div>';
+  const head = '<div class="off-head">Productos de marca <span>GIZE y Open Food Facts</span></div>';
   if (o.status === "loading") return head + '<div class="cal-hint">Buscando productos de marca…</div>';
   if (o.status === "error") return head + '<div class="cal-hint">No se pudo buscar productos de marca (¿sin conexión?). La base propia sigue funcionando.</div>';
   const shown = new Set((state.offRecent||[]).map(f=>f.code));
@@ -260,7 +260,9 @@ export function renderFoodForm(){
   return `
     <div class="form-head"><button class="form-back" data-action="food-create-cancel">‹</button><div class="form-title">Crear alimento</div></div>
     <div class="form-sub">Cargá los valores por cada 100 ${(f.unit||"g")==="ml"?"ml":"g"}.</div>
-    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" value="${esc(f.name)}" data-action="cf-field" data-field="name"></div>
+    ${f.code ? `<div class="cf-code">Código de barras <b>${esc(f.code)}</b><span>Cuando lo guardes va a quedar disponible para todos los usuarios de GIZE. Copiá los valores de la tabla del paquete, cada 100 ${(f.unit||"g")==="ml"?"ml":"g"}.</span></div>` : ''}
+    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" value="${esc(f.name)}" data-action="cf-field" data-field="name" placeholder="${f.code?'Ej: Yogur firme frutilla':''}"></div>
+    ${f.code ? `<div class="form-group"><label class="form-label">Marca</label><input class="form-input" type="text" value="${esc(f.brand||"")}" data-action="cf-field" data-field="brand" placeholder="Ej: La Serenísima"></div>` : ''}
     <div class="form-group"><label class="form-label">Se mide en</label><div class="seg">${ub("g","Gramos (sólido)")}${ub("ml","Mililitros (líquido)")}</div></div>
     <div class="form-group"><label class="form-label">Calorías (kcal)</label><input class="form-input" type="text" inputmode="numeric" value="${esc(f.kcal)}" data-action="cf-field" data-field="kcal"></div>
     <div class="form-row2">
