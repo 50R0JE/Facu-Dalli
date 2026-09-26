@@ -1,6 +1,7 @@
 import { esc } from '../core/utils.js';
 
-import { ComidaState, cookPortion, entryBase, mealChips, mealNow, previewStr, selectedFoodValues } from '../screens/comida.js';
+import { ComidaState, cookPortion, entryBase, entryCookState, foodByName, mealChips, mealNow, previewStr, selectedFoodValues } from '../screens/comida.js';
+import { foodUnit, unitText } from '../core/foodunits.js';
 
 export const SheetState = {
 
@@ -15,7 +16,8 @@ export function renderSheet(){
   else if (ComidaState.editEntry){ title=ComidaState.editEntry.name; grams=ComidaState.editEntry.grams; base=entryBase(ComidaState.editEntry); isEdit=true; }
   else return "";
   // Tamaño de 1 unidad/porción (1 banana = 120 g): para sumar de a unidades con − / +.
-  const unitG = sf ? cookPortion(sf, ComidaState.cookState) : 0;
+  const uf = sheetUnitFood();
+  const unitG = uf ? cookPortion(uf.food, uf.cook) : 0;
   return `
     <div class="sheet-bg" data-action="portion-cancel"></div>
     <div class="sheet">
@@ -29,9 +31,9 @@ export function renderSheet(){
         <input id="portionGrams" class="sheet-input" type="text" inputmode="decimal" enterkeyhint="done" value="${grams}" data-action="portion-grams" data-enter="${isEdit?'portion-save':'portion-add'}">
         <span class="sheet-unit">${base.unit==="ml"?"ml":"gramos"}</span>
       </div>
-      ${sf && unitG>0 ? `<div class="sheet-units">
+      ${unitG>0 ? `<div class="sheet-units">
         <button class="sheet-step" data-action="portion-step" data-d="-1" aria-label="Una unidad menos">−</button>
-        <span class="sheet-units-txt" id="portionUnits">${unitsLabel(grams, unitG, base.unit)}</span>
+        <span class="sheet-units-txt" id="portionUnits">${unitsLabel(grams, unitG, base.unit, uf.food)}</span>
         <button class="sheet-step" data-action="portion-step" data-d="1" aria-label="Una unidad más">+</button>
       </div>` : ""}
       <div class="sheet-preview" id="portionPreview">${previewStr(base, grams)}</div>
@@ -44,7 +46,17 @@ export function renderSheet(){
 
 // "2 unidades de 120 g" según los gramos escritos (si no es un número exacto de unidades,
 // muestra cuántas son aproximadamente).
-export function unitsLabel(grams, unitG, unit){
+// Alimento (y estado crudo/cocido) cuyas unidades usa la hoja: el elegido o, al editar, el
+// de la base con el mismo nombre.
+export function sheetUnitFood(){
+  if (ComidaState.selectedFood) return { food: ComidaState.selectedFood, cook: ComidaState.cookState };
+  const e = ComidaState.editEntry; if (!e) return null;
+  const f = foodByName(e.name);
+  return f ? { food: f, cook: entryCookState(e.name) } : null;
+}
+
+export function unitsLabel(grams, unitG, unit, food){
+  if (food) { const u = foodUnit(food); return unitText(grams, { one: u.one, many: u.many, g: unitG }, unit); }
   const g = parseFloat(String(grams).replace(",",".")) || 0;
   const u = unit === "ml" ? "ml" : "g";
   const n = g / unitG;

@@ -26,7 +26,8 @@
   let lifted = null;
   function searchToTop() {
     const el = document.activeElement;
-    if (!el || el.id !== "foodSearch" || lifted === el) return;
+    // En la ventana de búsqueda no hace falta (y movería la pantalla de atrás).
+    if (!el || el.id !== "foodSearch" || lifted === el || el.closest(".sheet")) return;
     lifted = el;
     root.classList.add("kb-search");
     setTimeout(() => {

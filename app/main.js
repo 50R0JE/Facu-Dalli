@@ -35,7 +35,7 @@ import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, render
 
 import { CoachState } from './screens/coach/state.js';
 
-import { ComidaState, mealNow, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
+import { ComidaState, mealNow, renderSearchSheet, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
 
 import { EntrenoState, REST_DEFAULT, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, effectiveRest, restKey, restLabel, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
@@ -51,7 +51,7 @@ import { parseRest, renderRestBar, resumeRest, startRest, stopRest } from './ui/
 
 import { initScrollReveal, setupExerciseFocus } from './ui/scrollfocus.js';
 
-import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet, unitsLabel } from './ui/sheet.js';
+import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet, sheetUnitFood, unitsLabel } from './ui/sheet.js';
 import { clientQuestions, questionSnapshot } from './core/questions.js';
 import { renderConfig } from './screens/config.js';
 
@@ -95,10 +95,13 @@ export function renderApp(){
   initScrollReveal();
   setupExerciseFocus();
   renderRestBar();
-  const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="progreso" && EditState.se) ? renderSessionEdit() : "");
+  const _sh=document.getElementById("sheetHost"); if(_sh) _sh.innerHTML = EntrenoState.exPicker ? renderExSheet() : ((State.view==="comida" && (ComidaState.selectedFood||ComidaState.editEntry)) ? renderSheet() : (State.view==="comida" && ComidaState.searchOpen) ? renderSearchSheet() : (State.view==="progreso" && EditState.se) ? renderSessionEdit() : "");
   if (State.view==="habitos" && HabitosState.pendingFocusHabit) { const i=document.getElementById("habitInput"); if(i) i.focus(); HabitosState.pendingFocusHabit=false; }
   if (State.view==="entreno" && HabitosState.pendingFocusDay) { const i=v.querySelector(".day-name"); if(i){ i.focus(); i.select(); } HabitosState.pendingFocusDay=false; }
 }
+
+// Gramos anotados: enteros, salvo lo que pesa menos de 10 g (un disparo de aceite, 0,3 g).
+const roundG = g => g < 10 ? Math.round(g*10)/10 : Math.round(g);
 
 // Comida: el día que se mira. Hoy usa state.diary (se sube con el resto del día); uno
 // anterior usa la lista que se trajo de la nube y se sube aparte (cloudSaveFoods).
@@ -176,7 +179,7 @@ document.body.addEventListener("input", async e => {
   }
   if (a === "food-search") { ComidaState.foodQuery = t.value; scheduleOffSearch(t.value); const r=document.getElementById("foodResults"); if(r) r.innerHTML = renderResults(ComidaState.foodQuery); return; }
   if (a === "ex-search") { EntrenoState.exQuery = t.value; const l=document.getElementById("exList"); if(l) l.innerHTML = renderExList(); return; }
-  if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); const pu=document.getElementById("portionUnits"); if(pu && ComidaState.selectedFood) pu.textContent = unitsLabel(t.value, cookPortion(ComidaState.selectedFood, ComidaState.cookState), base.unit); } ComidaState.sheetGrams = t.value; return; }
+  if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); const pu=document.getElementById("portionUnits"); const uf=sheetUnitFood(); if(pu && uf) pu.textContent = unitsLabel(t.value, cookPortion(uf.food, uf.cook), base.unit, uf.food); } ComidaState.sheetGrams = t.value; return; }
   if (a === "cf-field") { ComidaState.foodForm[t.dataset.field] = t.value; return; }
   if (a === "cal-field") { ComidaState.calForm[t.dataset.field] = t.value; return; }
   if (a === "wkg-field") { ProgresoState.weightForm.kg = t.value; return; }
@@ -284,7 +287,7 @@ document.body.addEventListener("click", async e => {
     state.calProfile = Object.assign({}, ComidaState.calForm); state.calTarget = calcTarget(ComidaState.calForm); ComidaState.calEditing=false; save(); renderApp(); return;
   }
   if (a === "cal-manual") { const m=parseInt((document.getElementById("calManual")||{}).value); if(m>0){ state.calTarget=m; ComidaState.calEditing=false; save(); renderApp(); } else alert("Ingresá un número de calorías válido."); return; }
-  if (a === "food-create-open") { ComidaState.foodForm={name:"",kcal:"",p:"",c:"",f:"",unit:"g"}; ComidaState.creatingFood=true; renderApp(); return; }
+  if (a === "food-create-open") { ComidaState.searchOpen=false; ComidaState.foodForm={name:"",kcal:"",p:"",c:"",f:"",unit:"g"}; ComidaState.creatingFood=true; renderApp(); return; }
   if (a === "food-create-cancel") { ComidaState.creatingFood=false; renderApp(); return; }
   if (a === "cf-unit") { ComidaState.foodForm.unit = el.dataset.val; renderApp(); return; }
   if (a === "food-create-save") {
@@ -309,36 +312,37 @@ document.body.addEventListener("click", async e => {
   }
   // Unidades: − / + suman o restan una porción (1 banana, 1 feta, 1 scoop…).
   if (a === "portion-step") {
-    const f = ComidaState.selectedFood; if(!f) return;
-    const unit = cookPortion(f, ComidaState.cookState); if(!(unit>0)) return;
+    const uf = sheetUnitFood(); if(!uf) return;
+    const unit = cookPortion(uf.food, uf.cook); if(!(unit>0)) return;
     const inp = document.getElementById("portionGrams");
     const cur = parseFloat(String(inp ? inp.value : "").replace(",",".")) || 0;
     const n = Math.max(1, Math.round(cur/unit) + parseInt(el.dataset.d));
     // Sin renderApp(): redibujar todo volvía a animar la hoja como si se abriera de nuevo en
     // cada toque. Se cambia el número y el mismo aviso de "input" actualiza kcal y unidades.
-    if (inp) { inp.value = String(Math.round(n*unit)); inp.dispatchEvent(new Event("input", { bubbles: true })); }
-    else { ComidaState.sheetGrams = String(Math.round(n*unit)); renderApp(); }
+    const g = Math.round(n*unit*10)/10;
+    if (inp) { inp.value = String(g); inp.dispatchEvent(new Event("input", { bubbles: true })); }
+    else { ComidaState.sheetGrams = String(g); renderApp(); }
     return;
   }
   if (a === "day-prev") { goDay(-1); return; }
   if (a === "day-next") { goDay(1); return; }
   if (a === "day-today") { goDay(0); return; }
   if (a === "portion-cancel") { closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return; }
-  // Comida elegida: se marca el botón en el lugar, sin redibujar (no se pierde lo escrito en
-  // el buscador ni se vuelve a animar la hoja del alimento).
-  if (a === "meal-pick" || a === "sheet-meal") {
-    if (a === "meal-pick") ComidaState.meal = el.dataset.meal; else ComidaState.sheetMeal = el.dataset.meal;
+  // Comida elegida en la búsqueda o en la hoja: se marca el botón en el lugar, sin redibujar
+  // (no se pierde lo escrito en el buscador ni se vuelve a animar la hoja).
+  if (a === "search-meal" || a === "sheet-meal") {
+    if (a === "search-meal") ComidaState.meal = el.dataset.meal; else ComidaState.sheetMeal = el.dataset.meal;
     el.parentElement.querySelectorAll(".meal-chip").forEach(b=>{ const on=b===el; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
     return;
   }
-  // "+" de una comida: queda elegida y se va al buscador.
-  if (a === "meal-add") {
-    ComidaState.meal = el.dataset.meal;
-    document.querySelectorAll('[data-action="meal-pick"]').forEach(b=>{ const on=b.dataset.meal===el.dataset.meal; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); });
-    const inp=document.getElementById("foodSearch");
-    if(inp){ inp.scrollIntoView({block:"center", behavior:"smooth"}); inp.focus({preventScroll:true}); }
+  // "Buscar alimento" o el "+" de una comida: abre la ventana de búsqueda con esa comida.
+  if (a === "search-open" || a === "meal-add") {
+    if (a === "meal-add") ComidaState.meal = el.dataset.meal;
+    ComidaState.searchOpen = true; SheetState.sheetGen++; renderApp();
+    setTimeout(()=>{ const inp=document.getElementById("foodSearch"); if(inp){ inp.focus(); try{ inp.setSelectionRange(inp.value.length, inp.value.length); }catch(e){} } }, 60);
     return;
   }
+  if (a === "search-close") { closeSheet(()=>{ ComidaState.searchOpen=false; ComidaState.meal=null; renderApp(); }); return; }
   if (a === "water-toggle") { ComidaState.waterOpen=!ComidaState.waterOpen; renderApp(); return; }
   if (a === "portion-add") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
@@ -346,15 +350,15 @@ document.body.addEventListener("click", async e => {
     // Con crudo/cocido se guardan los valores del estado elegido y queda en el nombre.
     const f = selectedFoodValues(); if(f0.cook) rememberCookState(f0, ComidaState.cookState);
     rememberOffProduct(f0);
-    curDiary().push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:Math.round(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
-    ComidaState.meal=null;
+    curDiary().push({ id:newId(), meal:ComidaState.sheetMeal||ComidaState.meal||mealNow(), name:f0.name+(f0.cook?" ("+ComidaState.cookState+")":""), grams:roundG(g), kcal:Math.round(f.kcal*fc), p:+(f.p*fc).toFixed(1), c:+(f.c*fc).toFixed(1), f:+(f.f*fc).toFixed(1), unit:f.unit||"g", base:{kcal:f.kcal,p:f.p,c:f.c,f:f.f,unit:f.unit||"g"} });
+    ComidaState.meal=null; ComidaState.searchOpen=false; ComidaState.foodQuery=""; ComidaState.off=null;
     commitDiary(); closeSheet(()=>{ ComidaState.selectedFood=null; ComidaState.sheetGrams=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
   if (a === "portion-save") {
     const g = parseFloat((document.getElementById("portionGrams")||{}).value); if(!(g>0)){ return; }
     const e = ComidaState.editEntry; if(!e){ return; } const base=entryBase(e); const fc=g/100;
     if(ComidaState.sheetMeal) e.meal=ComidaState.sheetMeal;
-    e.grams=Math.round(g); e.kcal=Math.round(base.kcal*fc); e.p=+(base.p*fc).toFixed(1); e.c=+(base.c*fc).toFixed(1); e.f=+(base.f*fc).toFixed(1); e.unit=base.unit||"g"; e.base=base;
+    e.grams=roundG(g); e.kcal=Math.round(base.kcal*fc); e.p=+(base.p*fc).toFixed(1); e.c=+(base.c*fc).toFixed(1); e.f=+(base.f*fc).toFixed(1); e.unit=base.unit||"g"; e.base=base;
     commitDiary(); closeSheet(()=>{ ComidaState.editEntry=null; ComidaState.sheetMeal=null; renderApp(); }); return;
   }
   if (a === "diary-edit") { SheetState.sheetGen++; ComidaState.editEntry = curDiary().find(x=>x.id===el.dataset.id)||null; ComidaState.selectedFood=null; renderApp(); return; }
