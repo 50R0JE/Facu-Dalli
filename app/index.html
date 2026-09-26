@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<!-- CSP: solo corren scripts de este sitio (nada inline; ver app/lite.js y app/splash.js) y el botón de Google.
+     Por <meta> porque GitHub Pages no deja poner headers. Si sumás un servicio externo, agregalo acá. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://wegptuzhsrwppbknqstf.supabase.co; connect-src 'self' https://gize.ar https://wegptuzhsrwppbknqstf.supabase.co wss://wegptuzhsrwppbknqstf.supabase.co https://world.openfoodfacts.org https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; object-src 'none'; base-uri 'self'; form-action 'self'">
 <!-- La app vive en /app/ pero sus archivos (app/, css/, brand/, sw.js…) están en la raíz del sitio. -->
 <base href="../">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
@@ -11,20 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="GIZE">
 <meta name="theme-color" content="#000000">
 <title>GIZE</title>
-<script>
-// Modo liviano: en celulares/compus de gama baja se apagan los efectos caros (partículas,
-// aurora animada, desenfoques, borde que gira). Va acá arriba, antes del CSS, para que la
-// primera pintada ya salga liviana. "gize_lite" = elección manual en Ajustes ("1"/"0");
-// "gize_lite_auto" lo deja app/ui/background.js si midió que el fondo iba a tirones.
-(function () {
-  try {
-    var o = localStorage.getItem("gize_lite"), n = navigator, c = n.connection || {};
-    var weak = (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 2) ||
-      c.saveData === true || localStorage.getItem("gize_lite_auto") === "1";
-    if (o === "1" || (o !== "0" && weak)) document.documentElement.classList.add("lite");
-  } catch (e) {}
-})();
-</script>
+<script src="app/lite.js"></script>
   <meta name="theme-color" content="#000000">
   <link rel="manifest" href="manifest.json">
   <!-- Instalar GIZE sin tiendas (botones [data-install] y aviso para quien usa el navegador). -->
@@ -127,61 +117,7 @@
   <div id="scanHost"></div>
   <div id="restBar"></div>
 
-<script>
-(function () {
-  var TOTAL_MS = 2600; // duración completa: barra de 2,1 s + salida
-  var MAX_MS = 8000;   // techo de seguridad si la app nunca avisa que está lista
-  var tpl = document.getElementById('splashTpl');
-  var host = document.getElementById('splashHost');
-  var current = null; // splash en pantalla ahora mismo, si hay uno
-
-  function reduced() { return matchMedia('(prefers-reduced-motion: reduce)').matches; }
-
-  // El splash arranca dentro de un <template> (inerte, sin animar) y se clona
-  // cada vez que hace falta mostrarlo, así las animaciones CSS (que corren una
-  // sola vez) se pueden repetir en cada login sin tener que reconstruirlas a mano.
-  function mount() {
-    host.innerHTML = '';
-    var el = tpl.content.firstElementChild.cloneNode(true);
-    host.appendChild(el);
-    document.body.classList.add('is-booting');
-    var state = { el: el, startTs: Date.now(), done: false, safety: null };
-    state.safety = setTimeout(function () { finish(state); }, reduced() ? 1600 : MAX_MS);
-    current = state;
-    return state;
-  }
-
-  function finish(state) {
-    if (!state || state.done) return;
-    state.done = true;
-    clearTimeout(state.safety);
-    state.el.remove();
-    if (current === state) { document.body.classList.remove('is-booting'); current = null; }
-  }
-
-  // La app llama a esto cuando ya armó la pantalla real (login, app de cliente
-  // o panel de coach) que corresponde al splash activo. No corta la animación
-  // antes de que termine sola: el panel de coach hace varios viajes a Supabase
-  // antes de estar listo y puede tardar más que los 2.6s de la animación.
-  window.coreEnter = function () {
-    var state = current; if (!state) return;
-    if (reduced()) { finish(state); return; }
-    var wait = Math.max(0, TOTAL_MS - (Date.now() - state.startTs));
-    setTimeout(function () { finish(state); }, wait);
-  };
-
-  // Corta el splash activo ya mismo, sin esperar a que termine la animación
-  // (para cuando la "carga" en realidad falló, ej. login incorrecto).
-  window.coreCancel = function () { if (current) finish(current); };
-
-  // Vuelve a mostrar el splash desde cero — se usa en cada login/registro,
-  // no solo en la carga inicial de la página, porque entrar al panel de coach
-  // desde el formulario de login es su propia espera de red.
-  window.coreReplay = function () { if (!current || current.done) mount(); };
-
-  mount(); // splash de arranque de la página
-})();
-</script>
+<script src="app/splash.js"></script>
 <!-- supabase-js fijo (vendor/README.md): antes venía del CDN sin versión fija, y un cambio ahí corría en todas las sesiones. -->
 <script src="vendor/supabase-2.117.1.js"></script>
 <script type="module" src="app/main.js"></script>
