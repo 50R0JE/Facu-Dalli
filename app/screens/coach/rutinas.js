@@ -1,3 +1,4 @@
+import { ssGroupOf, ssGroups, ssName } from '../../core/superserie.js';
 import { libVideo } from '../../core/videos.js';
 
 import { EX_CATS, EX_DB } from '../../core/data.js';
@@ -305,10 +306,13 @@ function exerciseCard(d, day, ex, i, rt){
   const chevron='<span class="co-exc-chevron'+(open?' open':'')+'">'+chevronDownSvg+'</span>';
   // El número de orden sale solo de la posición en el día (1, 2, 3…): al subir, bajar o
   // agregar ejercicios se reacomoda sin que el coach lo cargue a mano.
-  const ord='<span class="co-exc-ord">'+(i+1)+'</span>';
+  // En superserie lleva la letra y la posición (A1, A2…) y un filete de color al costado.
+  const g=ssGroupOf(day.exercises||[], i), tag=g ? g.letter+(i-g.start+1) : '';
+  const ord='<span class="co-exc-ord'+(g?' ss':'')+'">'+(tag||(i+1))+'</span>';
+  const ssCls=g ? ' co-ss'+(i===g.start?' co-ss-first':'')+(i===g.end?' co-ss-last':'') : '';
 
   if(!open){
-    return '<div class="co-exc co-exc-collapsed" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
+    return '<div class="co-exc co-exc-collapsed'+ssCls+'" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
         swatch+
         '<div class="co-exc-cmain">'+
           '<span class="co-exc-cname">'+ord+esc(ex.name||"Sin nombre")+'</span>'+
@@ -338,7 +342,7 @@ function exerciseCard(d, day, ex, i, rt){
   const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>'+(timed?'Tiempo objetivo':'Reps objetivo')+'</span><span>'+(timed?'Peso (opcional)':'Peso objetivo')+'</span><span></span></div>'+sets : '';
   const prog=exSummary(d, day.name, ex.name);
   const field=(lbl, a, v, ph, cls)=>'<label class="co-pfield"><span class="co-note-lbl">'+lbl+'</span><input class="co-pin'+(cls||"")+'" data-coach="'+a+'" data-i="'+i+'" value="'+esc(v||"")+'" placeholder="'+ph+'"></label>';
-  return '<div class="co-exc co-exc-open" data-id="'+esc(ex.id)+'">'+
+  return '<div class="co-exc co-exc-open'+ssCls+'" data-id="'+esc(ex.id)+'">'+
       '<div class="co-exc-head" data-coach="rt-toggle" data-i="'+i+'" data-id="'+esc(ex.id)+'">'+
         swatch+ord+
         '<input class="co-exc-name" data-coach="rt-name" data-i="'+i+'" value="'+esc(ex.name||"")+'" list="exList" placeholder="Nombre del ejercicio">'+
@@ -364,6 +368,8 @@ function exerciseCard(d, day, ex, i, rt){
     '</div>';
 }
 
+const linkSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+
 export function renderCoachRoutine(d){
   const rt=d.routine||[];
   if(!rt.length) return '<div class="co-sec">Rutina y progreso</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';
@@ -372,10 +378,16 @@ export function renderCoachRoutine(d){
   const day=rt[CoachState.coachEditDay];
   const totalSets=(day.exercises||[]).reduce((n,x)=>n+((x.sets||[]).length),0);
   const totalEx=(day.exercises||[]).length;
-  const cards=(day.exercises||[]).map((ex,i)=>
-    '<button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+
-    exerciseCard(d, day, ex, i, rt)
-  ).join("");
+  // Entre dos ejercicios: + para insertar y el botón para unirlos en superserie (o separarlos).
+  const exs=day.exercises||[], groups=ssGroups(exs);
+  const cards=exs.map((ex,i)=>{
+    const prevSS=i>0 && !!exs[i-1].ss;
+    const link=i>0 ? '<button class="co-ss-link'+(prevSS?' on':'')+'" data-coach="rt-ss" data-i="'+(i-1)+'" aria-pressed="'+prevSS+'">'+linkSvg+'<span>'+(prevSS?'Separar':'Unir en superserie')+'</span></button>' : '';
+    const g=groups.find(x=>x.start===i);
+    const head=g ? '<div class="co-ss-head">'+linkSvg+ssName(g)+' '+g.letter+'<span>una serie de cada uno, sin descanso entre medio</span></div>' : '';
+    return '<div class="co-gap"><button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+link+'</div>'+head+
+      exerciseCard(d, day, ex, i, rt);
+  }).join("");
   return '<div class="co-sec">Rutina y progreso</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+
     '<div class="co-day-card">'+

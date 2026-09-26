@@ -315,3 +315,18 @@
 /* Aviso del video de la biblioteca debajo del link de video. */
 .co-vid-lib { margin-top:6px; font-size:var(--text-meta); line-height:1.45; color:var(--txt-3); }
 .co-vid-lib a { color:var(--blue-2); font-weight:700; text-decoration:none; }
+
+/* Superseries en el editor: botón para unir entre dos ejercicios, cabecera del grupo y
+   filete de color a la izquierda de los ejercicios unidos (app/core/superserie.js). */
+.co-gap { display:flex; gap:6px; align-items:stretch; }
+.co-gap .co-rt-ins { flex:1; }
+.co-ss-link { flex:none; display:inline-flex; align-items:center; gap:5px; height:20px; margin:0 0 6px; padding:0 10px; border-radius:999px; background:none;
+  border:1px dashed var(--border); color:var(--txt-3); font:600 11px var(--gize-font); cursor:pointer; opacity:.7; }
+.co-ss-link svg { width:12px; height:12px; }
+.co-ss-link:hover { opacity:1; border-color:var(--blue); color:var(--blue); }
+.co-ss-link.on { border-style:solid; border-color:color-mix(in srgb, var(--gize-r2) 55%, transparent); color:var(--gize-text); opacity:1; }
+.co-ss-head { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:2px 0 6px; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--gize-text); }
+.co-ss-head svg { width:13px; height:13px; color:var(--gize-r2); }
+.co-ss-head span { text-transform:none; letter-spacing:0; font-weight:500; color:var(--txt-2); }
+.co-exc.co-ss { border-left:3px solid var(--gize-r2); box-shadow:-4px 0 12px -6px color-mix(in srgb, var(--gize-r2) 60%, transparent); }
+.co-exc-ord.ss { color:var(--gize-text); background:linear-gradient(135deg, var(--gize-r1), var(--gize-r2)); }

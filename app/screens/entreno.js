@@ -1,3 +1,4 @@
+import { ssGroups, ssName } from '../core/superserie.js';
 import { exVideo } from '../core/videos.js';
 
 import { EX_CATS, EX_DB, RC } from '../core/data.js';
@@ -155,6 +156,20 @@ export function renderDayNotes(d){
     (d.note?'<div class="dn-general">'+esc(d.note)+'</div>':'')+items+'</div>';
 }
 
+// Superserie: los ejercicios unidos van dentro de un recuadro con su letra y la indicación.
+const linkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+function ssWrap(exs, groups, i, html){
+  const g = groups.find(x => i >= x.start && i <= x.end);
+  if (!g) return html;
+  let out = html;
+  if (i === g.start){
+    const n = g.end - g.start + 1;
+    out = out.replace(/^(<div class="ex-gap">[\s\S]*?<\/div>)?/, m => (m || '') + `<div class="ss-group"><div class="ss-head"><span class="ss-badge">${linkSvg}${ssName(g)} ${g.letter}</span><span class="ss-hint">Hacé una serie de cada uno, sin descanso entre medio. Descansá al terminar la vuelta.</span></div>`);
+  }
+  if (i === g.end) out += '</div>';
+  return out;
+}
+
 export function renderEntreno(){
   const d = day();
   const total = d.exercises.reduce((a,e)=>a+e.sets.length,0);
@@ -169,8 +184,13 @@ export function renderEntreno(){
   // .kg/.reps sobre bestSetOf()===null, ya arreglado arriba, pero esto es la red de
   // seguridad para lo que no prevemos). Cada ejercicio se renderiza en su propio try/catch:
   // si uno falla, muestra una card de error puntual y el resto del día se ve normal.
-  const cards = d.exercises.map((ex, exIdx) => { try {
-    const insertBtn = routineLocked()?'':`<button class="ins-ex" data-action="ex-insert" data-i="${exIdx}" title="Insertar ejercicio acá">+</button>`;
+  const groups = ssGroups(d.exercises);
+  const cards = d.exercises.map((ex, exIdx) => ssWrap(d.exercises, groups, exIdx, (() => { try {
+    // Entre ejercicios (rutina propia): insertar uno acá y unir/separar con el de arriba.
+    const g = groups.find(x => exIdx >= x.start && exIdx <= x.end) || null;
+    const tag = g ? g.letter + (exIdx - g.start + 1) : "";
+    const linkBtn = exIdx > 0 ? `<button class="ss-link${d.exercises[exIdx-1].ss?' on':''}" data-action="ss-toggle" data-i="${exIdx-1}" aria-pressed="${!!d.exercises[exIdx-1].ss}">${linkSvg}<span>${d.exercises[exIdx-1].ss?'Separar':'Superserie'}</span></button>` : '';
+    const insertBtn = routineLocked()?'':`<div class="ex-gap"><button class="ins-ex" data-action="ex-insert" data-i="${exIdx}" title="Insertar ejercicio acá">+</button>${linkBtn}</div>`;
     const done = allSetsDone(ex);
     // Ejercicio completo y no reabierto a mano -> fila compacta, no la card entera.
     if(done && !expandedOverride.has(ex.id)){
@@ -186,7 +206,7 @@ export function renderEntreno(){
         : best ? ((+best.kg||0)+' kg × '+(parseInt(best.reps)||0)) : (bestReps>0 ? bestReps+' reps' : 'Completado'); // números: kg y reps pueden venir de la rutina que escribe el coach
       return `${insertBtn}<div class="ex-collapsed" data-action="ex-expand" data-ex="${esc(ex.id)}">
         <span class="ex-collapsed-badge">${isPR?trophySvg:checkSvg}</span>
-        <span class="ex-collapsed-name">${esc(ex.name)}</span>
+        <span class="ex-collapsed-name">${tag?`<span class="ss-tag">${tag}</span>`:''}${esc(ex.name)}</span>
         <span class="ex-collapsed-best${bestStr!=='Completado'?'':' is-done'}">${bestStr}</span>
       </div>`;
     }
@@ -217,7 +237,7 @@ export function renderEntreno(){
       </div>`).join("");
     return `${insertBtn}<div class="card${exIdx===0?' ex-focused':''}" data-ex-id="${esc(ex.id)}">
       <div class="card-head">
-        <span class="ex-num" aria-label="Ejercicio ${exIdx+1}">${exIdx+1}</span>
+        <span class="ex-num${tag?' ss':''}" aria-label="Ejercicio ${tag||exIdx+1}">${tag||exIdx+1}</span>
         <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${esc(ex.id)}" ${routineLocked()?'readonly':''}>
         ${done?`<button class="icon-mini" data-action="ex-collapse" data-ex="${esc(ex.id)}" title="Colapsar">${chevronDownSvg}</button>`:''}
         ${routineLocked()?'':`<button class="icon-mini" data-action="ex-swap" data-ex="${esc(ex.id)}" title="Cambiar ejercicio">${swapSvg}</button>
@@ -232,7 +252,7 @@ export function renderEntreno(){
       ${sets}
       ${ex.note?`<div class="ex-note"><span class="ex-note-t">Nota de tu coach</span>${esc(ex.note)}</div>`:''}
       ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${esc(ex.id)}">+ Serie</button>`}
-      ${restRow(ex)}
+      ${g && exIdx < g.end ? '' : restRow(ex)}
     </div>`;
   } catch(err) {
     // Ojo acá: si lo que reventó fue justo leer una propiedad de ex (ex.name, ex.id),
@@ -243,7 +263,7 @@ export function renderEntreno(){
     try { safeId = ex && ex.id ? String(ex.id) : safeId; } catch(e2) {}
     console.error("renderEntreno: error al renderizar el ejercicio", safeId, safeName, err);
     return `<div class="card"><div class="card-head"><span class="ex-name" style="color:var(--red)">⚠ ${esc(safeName)} — no se pudo mostrar</span></div></div>`;
-  } }).join("");
+  } })())).join("");
   // Sin conexión con la cuenta: se avisa arriba, así nadie cierra sesión ni desinstala la app
   // creyendo que lo cargado ya está guardado.
   const syncWarn = (State.cloudUser && !State.cloudReady && !State.cloudLoading)
