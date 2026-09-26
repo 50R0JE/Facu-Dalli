@@ -18,7 +18,7 @@ import { runningSetId, startTimer, stopTimer } from './ui/settimer.js';
 
 import { showLogin } from './screens/auth.js';
 
-import { CardioState, renderCardio } from './screens/cardio.js';
+import { CardioState, renderCardio, setRing, swFrac } from './screens/cardio.js';
 
 import { CheckinState, renderFeedback, saveSession } from './screens/checkin.js';
 
@@ -162,9 +162,9 @@ export function tick(){
   if (CardioState.tmRunning){
     const rem = CardioState.tmEndTs - now;
     if (rem <= 0){ CardioState.tmRunning=false; CardioState.tmRemainingMs=0; CardioState.tmFinished=true; beep(); if(State.view==="cardio") renderApp(); }
-    else { CardioState.tmRemainingMs = rem; if(State.view==="cardio" && CardioState.cardioMode==="timer"){ const el=document.getElementById("tmTime"); if(el) el.textContent=fmt(rem,true); } }
+    else { CardioState.tmRemainingMs = rem; if(State.view==="cardio" && CardioState.cardioMode==="timer") setRing(rem / CardioState.tmTarget, fmt(rem,true)); }
   }
-  if (CardioState.swRunning && State.view==="cardio" && CardioState.cardioMode==="stopwatch"){ const el=document.getElementById("swTime"); if(el) el.textContent=fmt(CardioState.swAccum+(now-CardioState.swStartTs)); }
+  if (CardioState.swRunning && State.view==="cardio" && CardioState.cardioMode==="stopwatch"){ const ms=CardioState.swAccum+(now-CardioState.swStartTs); setRing(swFrac(ms), fmt(ms)); }
 }
 
 setInterval(tick, 100);
@@ -172,12 +172,6 @@ setInterval(tick, 100);
 document.body.addEventListener("input", async e => {
   const t = e.target, a = t.dataset.action; if(!a) return;
   if (a === "se-val") { setSessionEditVal(t); return; }
-  if (a === "tm-min" || a === "tm-sec") {
-    const mEl=document.getElementById("tmMin"), sEl=document.getElementById("tmSec");
-    const mm=parseInt(mEl&&mEl.value)||0, ss=parseInt(sEl&&sEl.value)||0;
-    CardioState.tmTarget = Math.min(3600000, Math.max(1000, (mm*60+ss)*1000)); CardioState.tmRemainingMs = CardioState.tmTarget;
-    const disp=document.getElementById("tmTime"); if(disp) disp.textContent = fmt(CardioState.tmTarget); return;
-  }
   if (a === "food-search") { ComidaState.foodQuery = t.value; scheduleOffSearch(t.value); const r=document.getElementById("foodResults"); if(r) r.innerHTML = renderResults(ComidaState.foodQuery); return; }
   if (a === "ex-search") { EntrenoState.exQuery = t.value; const l=document.getElementById("exList"); if(l) l.innerHTML = renderExList(); return; }
   if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); const pu=document.getElementById("portionUnits"); const uf=sheetUnitFood(); if(pu && uf) pu.textContent = unitsLabel(t.value, cookPortion(uf.food, uf.cook), base.unit, uf.food); } ComidaState.sheetGrams = t.value; return; }
@@ -273,6 +267,7 @@ document.body.addEventListener("click", async e => {
   if (a === "sw-toggle") { if(CardioState.swRunning){ CardioState.swAccum+=Date.now()-CardioState.swStartTs; CardioState.swRunning=false; } else { CardioState.swStartTs=Date.now(); CardioState.swRunning=true; } renderApp(); return; }
   if (a === "sw-lap") { CardioState.swLaps.push(CardioState.swAccum+(Date.now()-CardioState.swStartTs)); renderApp(); return; }
   if (a === "sw-reset") { CardioState.swRunning=false; CardioState.swAccum=0; CardioState.swStartTs=0; CardioState.swLaps=[]; renderApp(); return; }
+  if (a === "tm-step") { const t=Math.min(3600000, Math.max(15000, CardioState.tmTarget + parseInt(el.dataset.d,10)*1000)); CardioState.tmTarget=t; CardioState.tmRemainingMs=t; CardioState.tmFinished=false; renderApp(); return; }
   if (a === "tm-preset") { CardioState.tmTarget=parseInt(el.dataset.sec)*1000; CardioState.tmRemainingMs=CardioState.tmTarget; CardioState.tmFinished=false; renderApp(); return; }
   if (a === "tm-toggle") { if(CardioState.tmRunning){ CardioState.tmRemainingMs=Math.max(0,CardioState.tmEndTs-Date.now()); CardioState.tmRunning=false; } else { initAudio(); CardioState.tmEndTs=Date.now()+CardioState.tmRemainingMs; CardioState.tmRunning=true; CardioState.tmFinished=false; } renderApp(); return; }
   if (a === "tm-reset") { CardioState.tmRunning=false; CardioState.tmFinished=false; CardioState.tmRemainingMs=CardioState.tmTarget; renderApp(); return; }
