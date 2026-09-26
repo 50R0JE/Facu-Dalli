@@ -32,6 +32,8 @@ export const CoachState = {
   coachView: "clients",
 
   coachClientTab: "ficha",
+  // Sección abierta de la ficha del alumno (null = menú de tarjetas).
+  coachSec: null,
 
   coachTpls: [],
 

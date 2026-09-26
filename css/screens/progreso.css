@@ -123,3 +123,8 @@
 .psec > .hb-head:first-child { display: none; }
 .w-more { display: block; width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; background: none; border: 1px dashed var(--border);
   color: var(--gize-blue); font: 600 var(--text-body) var(--gize-font); cursor: pointer; }
+
+/* Ficha del alumno en el panel del coach: el mismo menú de tarjetas que Progreso. */
+.co-ptiles { margin: 6px 0 16px; }
+.co-sec-head { margin: 4px 0 10px; }
+.co-sec-body .nt-panel > .co-sec:first-child { display: none; }
