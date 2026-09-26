@@ -519,7 +519,9 @@ export async function loadCloud(){
     const uid=State.cloudUser.id, sb=State.sb;
     const [pr0, rt0, ws, ss, dl, ck, ci, bl, np, fe, cp, cq, fw] = await Promise.all([
       sb.from("profiles").select("*").eq("id",uid).maybeSingle(),
-      sb.from("routines").select("days, updated_at").eq("client_id",uid).maybeSingle(),
+      // Si el coach dejó programada una rutina que ya empezó, se aplica antes de leerla
+      // (ver supabase/rutina-programada.sql). Si la función no existe todavía, sigue igual.
+      sb.rpc("apply_due_routines").then(()=>0, ()=>0).then(()=>sb.from("routines").select("days, updated_at").eq("client_id",uid).maybeSingle()),
       // Las tablas que crecen con el uso van con fetchAll() (sin eso, más de 1000 filas se
       // cortaban). Orden único: fecha (única por cliente) o created_at + id.
       fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",uid).order("measured_on")),

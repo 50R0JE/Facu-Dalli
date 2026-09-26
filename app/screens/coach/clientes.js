@@ -130,18 +130,20 @@ export async function openClient(id){
   try{
     // Todas las lecturas del cliente salen juntas (antes iban de a una).
     const sb=State.sb;
-    const [ws, ss, rt, dl, ck, ci, bl, np, ph] = await Promise.all([
+    const [ws, ss, rt, dl, ck, ci, bl, np, ph, sc] = await Promise.all([
       // Las que crecen con el uso, paginadas (ver fetchAll en core/supabase.js).
       fetchAll(()=>sb.from("body_weights").select("*").eq("client_id",id).order("measured_on")),
       // "*" y no una lista de columnas: trae rpe/pump/joint_pain si existen sin romper la consulta si no.
       fetchAll(()=>sb.from("sessions").select("*, session_entries(exercise_name,set_order,kg,reps,secs)").eq("client_id",id).order("created_at").order("id")),
-      sb.from("routines").select("days").eq("client_id",id).maybeSingle(),
+      sb.rpc("apply_due_routines",{p_client:id}).then(()=>0, ()=>0).then(()=>sb.from("routines").select("days").eq("client_id",id).maybeSingle()),
       fetchAll(()=>sb.from("daily_logs").select("*").eq("client_id",id).order("log_date",{ascending:false})),
       fetchAll(()=>sb.from("checkins").select("*").eq("client_id",id).order("week_start",{ascending:false})),
       sb.from("client_info").select("*").eq("client_id",id).maybeSingle(),
       sb.from("blocks").select("*").eq("client_id",id).eq("active",true).order("start_date",{ascending:false}).limit(1),
       sb.from("nutrition").select("*").eq("client_id",id).maybeSingle(),
-      sb.from("checkin_photos").select("*").eq("client_id",id).order("created_at",{ascending:false})
+      sb.from("checkin_photos").select("*").eq("client_id",id).order("created_at",{ascending:false}),
+      // Rutinas programadas que todavía no empezaron (ver supabase/rutina-programada.sql).
+      sb.from("routine_schedule").select("id, starts_on, name, days").eq("client_id",id).is("applied_at",null).order("starts_on")
     ]);
     const weights=(ws.data||[]).map(w=>({date:w.measured_on, kg:Number(w.kg)}));
     const sessions=(ss.data||[]).map(sessionFromRow);
@@ -151,7 +153,7 @@ export async function openClient(id){
     const urls=await signedUrls(phRows.map(p=>p.path));
     const photos=phRows.map(p=>({id:p.id, taken_on:p.taken_on, url:urls[p.path]||""}));
     const c=CoachState.coachClients.find(x=>x.id===id);
-    CoachState.coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", avatar:(c&&c.avatar_path)||null, weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos};
+    CoachState.coachData={id:id, info:(ci.data||{}), block:((bl.data&&bl.data[0])||null), name:(c&&c.full_name)||"Cliente", avatar:(c&&c.avatar_path)||null, weights:weights, sessions:sessions, routine:routine, loadEx:null, daily:(dl.data||[]), checkins:(ck.data||[]), plan:(np.data||null), photos:photos, schedule:(sc&&!sc.error&&sc.data)||[]};
     CoachState.coachPlanForm=null; CoachState.coachInfoForm=null; CoachState.coachBlockForm=null;
     // Notificaciones: si el cliente las tiene activadas y los últimos mensajes. Aparte,
     // para no demorar la ficha; se redibuja cuando llega.

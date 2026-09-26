@@ -873,6 +873,42 @@ document.body.addEventListener("click", async e => {
   }
   if(a==="tpl-new"){ CoachState.coachTplEdit={id:null, name:"", days:[]}; CoachState.coachEditDay=0; renderCoach(); return; }
   if(a==="tpl-open"){ const t=CoachState.coachTpls.find(x=>x.id===b.dataset.id); if(t){ CoachState.coachTplEdit=JSON.parse(JSON.stringify(t)); CoachState.coachEditDay=0; renderCoach(); } return; }
+  // Rutina programada (ver supabase/rutina-programada.sql): usa el mismo editor que las rutinas
+  // guardadas, con la fecha de inicio. Al volver o guardar se queda en la pestaña Rutina del alumno.
+  if(a==="sched-new"){
+    if(!CoachState.coachData) return;
+    CoachState.coachTplEdit={sched:true, id:null, name:"", starts_on:addDays(today(), 28), days:JSON.parse(JSON.stringify(CoachState.coachData.routine||[]))};
+    CoachState.coachEditDay=0; renderCoach(); window.scrollTo(0,0); return;
+  }
+  if(a==="sched-open"){
+    const s=((CoachState.coachData&&CoachState.coachData.schedule)||[]).find(x=>x.id===b.dataset.id); if(!s) return;
+    CoachState.coachTplEdit={sched:true, id:s.id, name:s.name||"", starts_on:s.starts_on, days:JSON.parse(JSON.stringify(s.days||[]))};
+    CoachState.coachEditDay=0; renderCoach(); window.scrollTo(0,0); return;
+  }
+  if(a==="tpl-back" && CoachState.coachTplEdit && CoachState.coachTplEdit.sched){ CoachState.coachTplEdit=null; CoachState.coachEditDay=0; renderCoach(); return; }
+  if(a==="tpl-save" && CoachState.coachTplEdit && CoachState.coachTplEdit.sched){
+    const e=CoachState.coachTplEdit, cid=CoachState.coachSel;
+    if(!e.starts_on || e.starts_on<today()){ alert("Elegí desde qué día empieza (hoy o más adelante)."); return; }
+    if(!(e.days||[]).length){ alert("La rutina programada no tiene días."); return; }
+    b.textContent="Guardando...";
+    try{
+      const row={client_id:cid, starts_on:e.starts_on, name:(e.name||"").trim().slice(0,80)||null, days:e.days};
+      const r = e.id ? await State.sb.from("routine_schedule").update(row).eq("id",e.id) : await State.sb.from("routine_schedule").insert(row);
+      if(r.error){ if(r.error.code==="23505") throw new Error("Ya hay otra rutina programada para ese día."); throw r.error; }
+      CoachState.coachTplEdit=null; CoachState.coachEditDay=0;
+      // Si empieza hoy, se aplica ya; openClient vuelve a leer todo.
+      alert(e.starts_on===today() ? "Rutina aplicada desde hoy \u2713" : "Rutina programada \u2713 Empieza sola ese día.");
+      await openClient(cid); return;
+    }catch(err){ alert("No se pudo: "+((err&&err.message)||err)); b.textContent="Guardar rutina programada"; return; }
+  }
+  if(a==="tpl-del" && CoachState.coachTplEdit && CoachState.coachTplEdit.sched){
+    const e=CoachState.coachTplEdit;
+    if(e.id){
+      if(!confirm("¿Borrar esta rutina programada? El alumno sigue con la de ahora.")) return;
+      try{ sbOk(await State.sb.from("routine_schedule").delete().eq("id",e.id)); }catch(err){ alert("No se pudo: "+((err&&err.message)||err)); return; }
+    }
+    CoachState.coachTplEdit=null; CoachState.coachEditDay=0; await openClient(CoachState.coachSel); return;
+  }
   if(a==="tpl-back"){ CoachState.coachTplEdit=null; CoachState.coachView="tpls"; renderCoach(); return; }
   if(a==="tpl-save"){
     if(!CoachState.coachTplEdit) return;
@@ -1077,6 +1113,7 @@ document.body.addEventListener("input", async e => {
   const el=e.target.closest("[data-coach]"); if(!el) return;
   const a0=el.dataset.coach;
   if(a0==="tpl-name"){ if(CoachState.coachTplEdit) CoachState.coachTplEdit.name=el.value; return; }
+  if(a0==="sched-date"){ if(CoachState.coachTplEdit) CoachState.coachTplEdit.starts_on=el.value; return; }
   // A propósito NO llama a renderCoachSettings() acá: el input de "tpl-name" de arriba
   // tampoco re-renderiza en cada tecla, por la misma razón que el buscador de clientes
   // sí la tenía re-renderizar y hubo que arreglar (ver "coach-search" abajo) — reescribir

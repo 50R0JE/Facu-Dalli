@@ -388,6 +388,17 @@ const linkSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 // El motivo de la sugerencia está escrito para el cliente; en el editor se lee en tercera persona.
 const coachWhy=w=>String(w).replace(/^Llegaste/,"Llegó").replace(/^La vez pasada hiciste/,"La vez pasada hizo").replace(/^La vez pasada aguantaste/,"La vez pasada aguantó").replace(/^Completá/,"Le falta completar").replace(/^Mismo peso que la vez pasada, una rep más\./,"Mismo peso, una rep más.").replace(/: subí el peso\./,": subir el peso.").replace(/: sumá una más\./,": una más.").replace(/: sumá 5 segundos\./,": 5 segundos más.").replace(/ antes de subir\.$/," antes de subir.");
 const fmtShort=dt=>{ const p=String(dt||"").split("-"); return p.length===3 ? (+p[2])+"/"+(+p[1]) : dt; };
+// Rutinas programadas: rutinas que el coach deja listas para que empiecen solas en una fecha
+// (ver supabase/rutina-programada.sql). Arriba de la rutina vigente del alumno.
+const fmtDia = iso => { const [y, m, dd] = String(iso).split("-").map(Number); return new Date(y, m - 1, dd).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" }); };
+export function renderCoachSchedule(d){
+  const list=d.schedule||[];
+  return '<div class="co-panel co-sched"><div class="co-sec">Rutinas programadas</div>'+
+    '<div class="co-sched-sub">Dejá lista la próxima rutina y elegí desde qué día empieza: ese día le cambia sola, sin tocar la de ahora.</div>'+
+    (list.length ? list.map(s=>'<div class="co-sched-row"><div class="co-sched-info"><b>Desde el '+esc(fmtDia(s.starts_on))+'</b><span>'+esc(s.name||"Rutina programada")+' · '+(s.days||[]).length+' día'+((s.days||[]).length===1?'':'s')+'</span></div><button class="co-copy-btn" data-coach="sched-open" data-id="'+esc(s.id)+'">Editar</button></div>').join("") : '')+
+    '<button class="co-copy-btn co-sched-new" data-coach="sched-new">+ Programar una rutina nueva</button></div>';
+}
+
 export function renderCoachRoutine(d){
   const rt=d.routine||[];
   if(!rt.length) return '<div class="co-sec">Rutina y progreso</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';

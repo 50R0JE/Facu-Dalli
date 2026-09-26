@@ -1,10 +1,10 @@
 import { copySvg, downloadSvg, gearSvg, resetSvg } from '../../core/icons.js';
 
-import { esc, fmtDate } from '../../core/utils.js';
+import { esc, fmtDate, today } from '../../core/utils.js';
 
 import { coachActivity, coachInitials, renderCoachInfo } from './clientes.js';
 
-import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine, renderCopyPicker } from './rutinas.js';
+import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine, renderCoachSchedule, renderCopyPicker } from './rutinas.js';
 
 import { picker, renderCoachCheckins, renderCoachDaily, renderCoachWeekly } from './seguimiento.js';
 
@@ -93,12 +93,16 @@ export function renderCoach(){
     let ed="";
     if(!rt.length){ ed='<div class="cal-hint">Esta rutina no tiene días todavía.</div><button class="co-add-day" data-coach="day-add">+ Agregar día</button>'; }
     else { ed=renderCoachRoutine({routine:rt, sessions:[]}); }
+    const sch=!!CoachState.coachTplEdit.sched;
     host.innerHTML='<div class="co-wrap">'+
       '<div class="co-head"><button class="co-back" data-coach="tpl-back">‹ Volver</button>'+
-      '<button class="co-logout" data-coach="tpl-del">Borrar rutina</button></div>'+
-      '<div class="ci-f" style="margin-bottom:14px"><label>Nombre de la rutina</label><input class="co-note" data-coach="tpl-name" value="'+esc(CoachState.coachTplEdit.name||"")+'"></div>'+
+      '<button class="co-logout" data-coach="tpl-del">'+(sch?'Borrar programación':'Borrar rutina')+'</button></div>'+
+      (sch ? '<div class="co-sched-edit-t">Rutina programada para '+esc((CoachState.coachData&&CoachState.coachData.name)||"el alumno")+'</div>'+
+        '<div class="co-sched-sub">Hasta esa fecha el alumno sigue con su rutina de ahora. Ese día le cambia sola por esta.</div>'+
+        '<div class="ci-f" style="margin-bottom:10px"><label>Empieza el</label><input class="co-note" type="date" data-coach="sched-date" min="'+esc(today())+'" value="'+esc(CoachState.coachTplEdit.starts_on||"")+'"></div>' : '')+
+      '<div class="ci-f" style="margin-bottom:14px"><label>Nombre de la rutina'+(sch?' (opcional)':'')+'</label><input class="co-note" data-coach="tpl-name" value="'+esc(CoachState.coachTplEdit.name||"")+'"></div>'+
       ed+
-      '<button class="co-save-rt" data-coach="tpl-save">Guardar rutina</button>'+
+      '<button class="co-save-rt" data-coach="tpl-save">'+(sch?'Guardar rutina programada':'Guardar rutina')+'</button>'+
     '</div>';
   } else {
     const d=CoachState.coachData; let body="";
@@ -124,7 +128,7 @@ export function renderCoach(){
       '</div>';
       let panel;
       if(tab==="rutina"){
-        panel=renderCoachRoutine(d);
+        panel=renderCoachSchedule(d)+renderCoachRoutine(d);
       } else if(tab==="plan"){
         panel=renderCoachPlan(d);
       } else {
