@@ -8,7 +8,7 @@
 import { esc } from '../core/utils.js';
 
 const W = 1080, H = 1920;
-const R1 = "#2FA0FF", R2 = "#A65CFF", R3 = "#FF3DAE", R4 = "#25E8C8", GOLD = "#FFC940";
+const R1 = "#2FA0FF", R2 = "#A65CFF", R3 = "#FF3DAE", R4 = "#25E8C8";
 const FONT = "Outfit, system-ui, -apple-system, sans-serif";
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
@@ -23,25 +23,25 @@ function bestOf(sets){
 }
 function fit(ctx, txt, max){ let t = String(txt); if (ctx.measureText(t).width <= max) return t; while (t.length > 1 && ctx.measureText(t + "…").width > max) t = t.slice(0, -1); return t + "…"; }
 function loadImg(src){ return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
-function blob(ctx, x, y, r, color, a){ const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, color + a); g.addColorStop(1, color + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
 
-// Grano fino encima de todo (como una foto impresa): le saca lo "digital plano" al degradé.
-function grain(ctx){
-  const g = document.createElement("canvas"); g.width = 360; g.height = 640;
-  const gx = g.getContext("2d"), im = gx.createImageData(360, 640), d = im.data;
-  for (let i = 0; i < d.length; i += 4){ const v = Math.random() * 255; d[i] = d[i+1] = d[i+2] = v; d[i+3] = 14; }
-  gx.putImageData(im, 0, 0);
-  ctx.save(); ctx.globalCompositeOperation = "overlay"; ctx.imageSmoothingEnabled = false; ctx.drawImage(g, 0, 0, W, H); ctx.restore();
-}
 function conic(ctx, cx, cy, from){
   try { const g = ctx.createConicGradient(from, cx, cy); [R1, R2, R3, R4, R1].forEach((c, i) => g.addColorStop(i / 4, c)); return g; }
   catch (e) { const g = ctx.createLinearGradient(cx - 300, cy - 300, cx + 300, cy + 300); g.addColorStop(0, R1); g.addColorStop(.5, R3); g.addColorStop(1, R4); return g; }
 }
+function lin(ctx, x0, y0, x1, y1){ const g = ctx.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, R1); g.addColorStop(.35, R2); g.addColorStop(.7, R3); g.addColorStop(1, R4); return g; }
 function rrect(ctx, x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
 function caps(ctx, txt, x, y, size, color, spacing, align){
   ctx.font = "700 " + size + "px " + FONT; ctx.fillStyle = color; ctx.textAlign = align || "left";
   try { ctx.letterSpacing = (spacing || 6) + "px"; } catch (e) {}
   ctx.fillText(txt, x, y); try { ctx.letterSpacing = "0px"; } catch (e) {}
+}
+// Trazo de neón: halo ancho difuminado, el tubo de color y un núcleo claro finito.
+function neon(ctx, path, paint, w, glowColor, glow){
+  ctx.save(); ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.strokeStyle = paint; ctx.shadowColor = glowColor || R2; ctx.shadowBlur = glow || 40; ctx.lineWidth = w; path(); ctx.stroke();
+  ctx.shadowBlur = (glow || 40) * .4; ctx.stroke();
+  ctx.shadowBlur = 0; ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = Math.max(1.5, w * .3); path(); ctx.stroke();
+  ctx.restore();
 }
 
 // data: { day, date (AAAA-MM-DD), dur (s), sets, exs, exercises:[{name,sets}], prs:[{name,kg,reps,prev}] }
@@ -49,95 +49,84 @@ export async function drawShareCard(data){
   try { await Promise.all(["800 300px", "700 100px", "600 40px", "500 40px"].map(f => document.fonts.load(f + " Outfit"))); } catch (e) {}
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const ctx = c.getContext("2d");
-  const M = 88; // margen
+  const M = 100; // margen de los contenidos
 
-  // Fondo: negro profundo con una malla de luces de la gama (azul arriba, magenta al costado,
-  // verde agua abajo) muy difuminadas.
-  ctx.fillStyle = "#040507"; ctx.fillRect(0, 0, W, H);
-  blob(ctx, 60, 120, 900, R1, "66"); blob(ctx, 1150, 760, 820, R3, "4a"); blob(ctx, 980, 330, 520, R2, "40");
-  blob(ctx, -40, 1480, 820, R4, "3a"); blob(ctx, 1080, 1960, 700, R2, "44");
-  const vign = ctx.createRadialGradient(W / 2, H * .45, 300, W / 2, H * .45, 1250); vign.addColorStop(0, "rgba(0,0,0,0)"); vign.addColorStop(1, "rgba(0,0,0,.55)");
-  ctx.fillStyle = vign; ctx.fillRect(0, 0, W, H);
+  // Fondo negro puro; la luz la ponen solo los neones de la marca.
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+
+  // Marco de neón alrededor de toda la pieza
+  neon(ctx, () => rrect(ctx, 38, 38, W - 76, H - 76, 64), conic(ctx, W / 2, H / 2, -Math.PI / 2), 5, R2, 46);
 
   // Encabezado: firma y fecha
   const logo = await loadImg("brand/logo/gize-firma-horizontal.svg");
-  if (logo) ctx.drawImage(logo, M, 104, 269.4 * .92, 92);
+  if (logo) ctx.drawImage(logo, M, 118, 269.4 * .88, 88);
   const d = new Date((data.date || "") + "T12:00:00");
-  if (!isNaN(d)) caps(ctx, (DIAS[d.getDay()].slice(0, 3) + " " + d.getDate() + " " + MESES[d.getMonth()].slice(0, 3)).toUpperCase(), W - M, 164, 30, "rgba(255,255,255,.7)", 5, "right");
+  if (!isNaN(d)) caps(ctx, (DIAS[d.getDay()].slice(0, 3) + " " + d.getDate() + " " + MESES[d.getMonth()].slice(0, 3)).toUpperCase(), W - M, 176, 30, "rgba(255,255,255,.75)", 5, "right");
 
-  // Título
-  caps(ctx, "ENTRENO COMPLETADO", M, 330, 30, "rgba(255,255,255,.62)", 7);
-  const line = ctx.createLinearGradient(M, 0, M + 260, 0); line.addColorStop(0, R1); line.addColorStop(.5, R3); line.addColorStop(1, R4);
-  ctx.fillStyle = line; rrect(ctx, M, 350, 180, 5, 3); ctx.fill();
+  // Título con subrayado de neón
+  caps(ctx, "ENTRENO COMPLETADO", M, 330, 30, "rgba(255,255,255,.7)", 7);
   ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = "800 104px " + FONT;
-  const title = fit(ctx, data.day || "Entreno", W - M * 2);
-  ctx.fillText(title, M, 470);
+  ctx.fillText(fit(ctx, data.day || "Entreno", W - M * 2), M, 448);
+  neon(ctx, () => { ctx.beginPath(); ctx.moveTo(M, 492); ctx.lineTo(M + 230, 492); }, lin(ctx, M, 0, M + 230, 0), 6, R3, 26);
 
-  // Héroe: anillo de neón con el tiempo adentro
-  const cx = W / 2, cy = 870, rr = 300;
-  ctx.save(); ctx.lineCap = "round";
-  ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.lineWidth = 22; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
-  const ring = conic(ctx, cx, cy, -Math.PI / 2);
-  ctx.strokeStyle = ring; ctx.shadowColor = R2; ctx.shadowBlur = 90; ctx.lineWidth = 12;
-  ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
-  ctx.shadowBlur = 30; ctx.shadowColor = R1; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
-  ctx.restore();
-  // Número en blanco con un leve degradé hacia abajo
+  // Protagonista: el tiempo dentro de un doble anillo de neón
+  const cx = W / 2, cy = 860, rr = 290;
+  neon(ctx, () => { ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); }, conic(ctx, cx, cy, -Math.PI / 2), 12, R2, 70);
+  neon(ctx, () => { ctx.beginPath(); ctx.arc(cx, cy, rr - 34, -Math.PI * .85, -Math.PI * .15); }, conic(ctx, cx, cy, Math.PI / 2), 4, R1, 24);
+  neon(ctx, () => { ctx.beginPath(); ctx.arc(cx, cy, rr - 34, Math.PI * .15, Math.PI * .85); }, conic(ctx, cx, cy, -Math.PI / 2), 4, R4, 24);
   let big = "", unit = "";
   if (data.dur > 0){ const s = Math.round(data.dur), h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60); if (h){ big = h + ":" + String(m).padStart(2, "0"); unit = "HORAS"; } else { big = String(Math.max(1, m)); unit = "MINUTOS"; } }
   else { big = String(data.sets || 0); unit = "SERIES"; }
-  const size = big.length >= 4 ? 190 : big.length === 3 ? 230 : 280;
-  const tg = ctx.createLinearGradient(0, cy - size * .7, 0, cy + size * .3); tg.addColorStop(0, "#ffffff"); tg.addColorStop(1, "#cfd8ff");
-  ctx.textAlign = "center"; ctx.fillStyle = tg; ctx.font = "800 " + size + "px " + FONT;
+  const size = big.length >= 4 ? 180 : big.length === 3 ? 220 : 270;
+  ctx.save(); ctx.textAlign = "center"; ctx.font = "800 " + size + "px " + FONT; ctx.fillStyle = "#fff"; ctx.shadowColor = R1; ctx.shadowBlur = 36;
   try { ctx.letterSpacing = "-6px"; } catch (e) {}
-  ctx.fillText(big, cx, cy + size * .3); try { ctx.letterSpacing = "0px"; } catch (e) {}
-  caps(ctx, unit, cx, cy + size * .3 + 78, 34, "rgba(255,255,255,.72)", 10, "center");
+  ctx.fillText(big, cx, cy + size * .3); try { ctx.letterSpacing = "0px"; } catch (e) {} ctx.restore();
+  caps(ctx, unit, cx, cy + size * .3 + 74, 32, "rgba(255,255,255,.8)", 10, "center");
 
-  // Números: tres columnas con divisores finos
+  // Tres números, cada uno en su caja de neón
   const prs = data.prs || [];
-  const stats = [[data.sets || 0, "SERIES"], [data.exs || 0, "EJERCICIOS"], [prs.length, prs.length === 1 ? "RÉCORD" : "RÉCORDS"]];
-  const sy = 1290, colW = (W - M * 2) / 3;
-  stats.forEach(([v, l], i) => {
-    const x = M + colW * i + colW / 2;
-    ctx.textAlign = "center"; ctx.font = "800 96px " + FONT; ctx.fillStyle = i === 2 && v > 0 ? GOLD : "#fff"; ctx.fillText(String(v), x, sy);
-    caps(ctx, l, x, sy + 52, 26, "rgba(255,255,255,.6)", 5, "center");
-    if (i) { ctx.fillStyle = "rgba(255,255,255,.14)"; ctx.fillRect(M + colW * i, sy - 80, 2, 140); }
+  const stats = [[data.sets || 0, "SERIES", R1], [data.exs || 0, "EJERCICIOS", R2], [prs.length, prs.length === 1 ? "RÉCORD" : "RÉCORDS", R3]];
+  const gap = 28, bw = (W - M * 2 - gap * 2) / 3, by = 1215, bh = 190;
+  stats.forEach(([v, l, col], i) => {
+    const x = M + i * (bw + gap);
+    neon(ctx, () => rrect(ctx, x, by, bw, bh, 30), col, 3.5, col, 30);
+    ctx.save(); ctx.textAlign = "center"; ctx.font = "800 92px " + FONT; ctx.fillStyle = "#fff"; ctx.shadowColor = col; ctx.shadowBlur = 24;
+    ctx.fillText(String(v), x + bw / 2, by + 108); ctx.restore();
+    caps(ctx, l, x + bw / 2, by + 156, 24, "rgba(255,255,255,.75)", 4, "center");
   });
 
-  // Panel de vidrio con lo que hiciste (récords primero, con su marca dorada)
+  // Lo que hiciste: panel con borde de neón, récords primero con su pastilla
   const prNames = new Set(prs.map(p => p.name));
   const rows = prs.slice(0, 4).map(p => [true, p.name, kgTxt(p.kg) + " kg × " + p.reps])
     .concat((data.exercises || []).filter(e => !prNames.has(e.name)).map(e => [false, e.name, bestOf(e.sets)]).filter(r => r[2]))
     .slice(0, 4);
   if (rows.length){
-    const px = M, py = 1430, pw = W - M * 2, rowH = 86, ph = 34 + rows.length * rowH + 14;
-    ctx.save(); rrect(ctx, px, py, pw, ph, 36); ctx.fillStyle = "rgba(255,255,255,.055)"; ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    const px = M, py = 1455, pw = W - M * 2, rowH = 84, ph = 30 + rows.length * rowH + 10;
+    neon(ctx, () => rrect(ctx, px, py, pw, ph, 34), lin(ctx, px, 0, px + pw, 0), 3.5, R2, 34);
     rows.forEach(([pr, name, val], i) => {
-      const y = py + 34 + i * rowH + 52;
-      if (i) { ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(px + 36, y - 60, pw - 72, 2); }
-      ctx.textAlign = "right"; ctx.font = "700 40px " + FONT; ctx.fillStyle = pr ? GOLD : "#fff"; ctx.fillText(val, px + pw - 40, y);
-      const vw = ctx.measureText(val).width;
-      let nx = px + 40;
-      if (pr){ // pastilla «RÉCORD»
+      const y = py + 30 + i * rowH + 50;
+      if (i){ const g = ctx.createLinearGradient(px + 30, 0, px + pw - 30, 0); g.addColorStop(0, "rgba(166,92,255,0)"); g.addColorStop(.5, "rgba(166,92,255,.45)"); g.addColorStop(1, "rgba(166,92,255,0)"); ctx.fillStyle = g; ctx.fillRect(px + 30, y - 58, pw - 60, 2); }
+      ctx.save(); ctx.textAlign = "right"; ctx.font = "700 40px " + FONT; ctx.fillStyle = "#fff"; ctx.shadowColor = pr ? R3 : R1; ctx.shadowBlur = 18;
+      ctx.fillText(val, px + pw - 38, y); ctx.restore();
+      ctx.font = "700 40px " + FONT; const vw = ctx.measureText(val).width;
+      let nx = px + 38;
+      if (pr){
         ctx.font = "800 22px " + FONT; try { ctx.letterSpacing = "3px"; } catch (e) {}
-        const tw = ctx.measureText("RÉCORD").width + 30; rrect(ctx, nx, y - 34, tw, 42, 21); ctx.fillStyle = "rgba(255,201,64,.16)"; ctx.fill();
-        ctx.strokeStyle = "rgba(255,201,64,.55)"; ctx.lineWidth = 2; ctx.stroke();
-        ctx.textAlign = "left"; ctx.fillStyle = GOLD; ctx.fillText("RÉCORD", nx + 15, y - 5); try { ctx.letterSpacing = "0px"; } catch (e) {}
+        const tw = ctx.measureText("RÉCORD").width + 30;
+        neon(ctx, () => rrect(ctx, nx, y - 34, tw, 42, 21), R3, 2.5, R3, 18);
+        ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.fillText("RÉCORD", nx + 15, y - 5); try { ctx.letterSpacing = "0px"; } catch (e) {}
         nx += tw + 18;
       }
       ctx.textAlign = "left"; ctx.font = "600 38px " + FONT; ctx.fillStyle = "rgba(255,255,255,.92)";
-      ctx.fillText(fit(ctx, name, px + pw - 40 - vw - 28 - nx), nx, y);
+      ctx.fillText(fit(ctx, name, px + pw - 38 - vw - 28 - nx), nx, y);
     });
   }
 
-  // Pie
-  ctx.textAlign = "left"; ctx.font = "500 30px " + FONT; ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.fillText("Entrenado con GIZE", M, H - 92);
-  ctx.font = "700 30px " + FONT; const url = "gize.ar", uw = ctx.measureText(url).width + 44;
-  rrect(ctx, W - M - uw, H - 132, uw, 58, 29); ctx.fillStyle = "rgba(255,255,255,.1)"; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 2; ctx.stroke();
-  ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(url, W - M - uw / 2, H - 92);
-
-  grain(ctx);
+  // Pie: «Entrenado con GIZE» y la dirección en una pastilla de neón
+  ctx.textAlign = "left"; ctx.font = "500 30px " + FONT; ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.fillText("Entrenado con GIZE", M, H - 108);
+  ctx.font = "700 30px " + FONT; const url = "gize.ar", uw = ctx.measureText(url).width + 48;
+  neon(ctx, () => rrect(ctx, W - M - uw, H - 150, uw, 60, 30), R4, 3, R4, 24);
+  ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(url, W - M - uw / 2, H - 108);
   return c;
 }
 
