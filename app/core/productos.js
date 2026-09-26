@@ -40,7 +40,8 @@ export async function productByCodeShared(code){
 }
 
 // Guarda un producto con código de barras para todos (si el código ya estaba, no pisa nada).
-export async function saveShared(food, code, source){
+// Lo que carga un usuario a mano va con la foto de la tabla (photoPath, ver uploadLabelPhoto).
+export async function saveShared(food, code, source, photoPath){
   if (!ready()) return false;
   const c = String(code || "").replace(/\D/g, "");
   if (c.length < 6 || c.length > 14) return false;
@@ -49,7 +50,7 @@ export async function saveShared(food, code, source){
     kcal: Math.min(950, Math.max(0, Math.round(+food.kcal || 0))), protein: Math.min(100, Math.max(0, +food.p || 0)),
     carbs: Math.min(100, Math.max(0, +food.c || 0)), fat: Math.min(100, Math.max(0, +food.f || 0)),
     unit: food.unit === "ml" ? "ml" : "g", portion: +food.portion > 0 && +food.portion <= 2000 ? Math.round(+food.portion) : null,
-    source: source === "off" ? "off" : "user" };
+    source: source === "off" ? "off" : "user", photo_path: source === "off" ? null : (photoPath || null) };
   if (row.protein + row.carbs + row.fat > 105) return false;
   try { const r = await State.sb.from("products").upsert(row, { onConflict: "code", ignoreDuplicates: true }); return !r.error; }
   catch (e) { return false; }
@@ -67,4 +68,25 @@ export function kcalMismatch(kcal, p, c, f){
   const calc = (+p || 0) * 4 + (+c || 0) * 4 + (+f || 0) * 9, k = +kcal || 0;
   if (calc < 5 && k < 5) return false;
   return Math.abs(k - calc) > Math.max(30, calc * 0.25);
+}
+
+// Foto de la tabla nutricional: se achica (lado mayor 1600 px, JPEG) y se sube a la carpeta
+// del usuario en el bucket privado «productos». Solo la ven los administradores.
+async function labelJpeg(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("No se pudo leer la foto")); i.src = url; });
+    const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement("canvas"); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+    cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+    return await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error("No se pudo procesar la foto")), "image/jpeg", 0.8));
+  } finally { URL.revokeObjectURL(url); }
+}
+export async function uploadLabelPhoto(file, code){
+  if (!ready()) throw new Error("Tenés que iniciar sesión.");
+  const blob = await labelJpeg(file);
+  const path = State.cloudUser.id + "/" + String(code || "x").replace(/\D/g, "").slice(0, 14) + "-" + Date.now() + ".jpg";
+  const r = await State.sb.storage.from("productos").upload(path, blob, { contentType: "image/jpeg", upsert: false });
+  if (r.error) throw r.error;
+  return path;
 }

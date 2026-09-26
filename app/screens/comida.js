@@ -262,6 +262,9 @@ export function renderFoodForm(){
     <div class="form-sub">Cargá los valores por cada 100 ${(f.unit||"g")==="ml"?"ml":"g"}.</div>
     ${f.code ? `<div class="cf-code">Código de barras <b>${esc(f.code)}</b><span>Cuando lo guardes va a quedar disponible para todos los usuarios de GIZE. Copiá los valores de la tabla del paquete, cada 100 ${(f.unit||"g")==="ml"?"ml":"g"}.</span></div>` : ''}
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" type="text" value="${esc(f.name)}" data-action="cf-field" data-field="name" placeholder="${f.code?'Ej: Yogur firme frutilla':''}"></div>
+    ${f.code ? `<div class="form-group"><label class="form-label">Foto de la tabla nutricional</label>
+      <label class="cf-photo${f.photoUrl?' has':''}">${f.photoUrl ? `<img src="${esc(f.photoUrl)}" alt="Foto de la tabla nutricional">` : ''}<span>${f.photoUrl ? 'Cambiar foto' : '📷 Sacar foto de la tabla'}</span><input type="file" accept="image/*" capture="environment" data-action="cf-photo" hidden></label>
+      <div class="cf-photo-h">Es obligatoria: sirve para revisar que los datos estén bien.</div></div>` : ''}
     ${f.code ? `<div class="form-group"><label class="form-label">Marca</label><input class="form-input" type="text" value="${esc(f.brand||"")}" data-action="cf-field" data-field="brand" placeholder="Ej: La Serenísima"></div>` : ''}
     <div class="form-group"><label class="form-label">Se mide en</label><div class="seg">${ub("g","Gramos (sólido)")}${ub("ml","Mililitros (líquido)")}</div></div>
     <div class="form-group"><label class="form-label">Calorías (kcal)</label><input class="form-input" type="text" inputmode="numeric" value="${esc(f.kcal)}" data-action="cf-field" data-field="kcal"></div>

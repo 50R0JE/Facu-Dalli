@@ -14,9 +14,12 @@ import { CoachState } from './state.js';
 
 import { pushOnHere } from '../../core/push.js';
 
+import { adminEntry, checkAdmin } from '../admin-productos.js';
+
 export function renderCoachSettings(){
   const host=document.getElementById("coachSheetHost"); if(!host) return;
   if(!CoachState.coachSettingsOpen){ host.innerHTML=""; return; }
+  checkAdmin(renderCoachSettings);
   const name=(State.cloudProfile&&State.cloudProfile.full_name)||(State.cloudUser&&State.cloudUser.email)||"";
   const draft=CoachState.coachNameForm!=null?CoachState.coachNameForm:name;
   const id=(State.cloudUser&&State.cloudUser.id)||"";
@@ -45,6 +48,7 @@ export function renderCoachSettings(){
       '<button class="cp-copt cs-q-btn cs-notif'+(pushOnHere()?' on':'')+'" data-coach="notif-toggle">'+(pushOnHere()?'Avisos activados \u2713 · tocá para apagarlos':'Activar avisos')+'</button>'+
       '<div class="cs-hint">Te avisamos cuando un alumno manda su check-in semanal o lleva 4 días sin entrenar.</div>'+
     '</div>'+
+    (adminEntry() ? '<div class="cs-field"><label>Administración de GIZE</label>'+adminEntry()+'</div>' : '')+
     '<div class="cs-field">'+
       '<label>Preguntas para tus clientes</label>'+
       '<button class="cp-copt cs-q-btn" data-coach="q-open">Editar preguntas del registro diario y del check-in</button>'+
