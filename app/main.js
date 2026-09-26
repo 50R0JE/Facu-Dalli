@@ -18,6 +18,7 @@ import { runningSetId, startTimer, stopTimer } from './ui/settimer.js';
 
 import { showLogin } from './screens/auth.js';
 
+import { ssGroupOf, ssNext } from './core/superserie.js';
 import { CardioState, openTimePicker, renderCardio, setRing, swFrac } from './screens/cardio.js';
 
 import { CheckinState, renderFeedback, saveSession } from './screens/checkin.js';
@@ -155,6 +156,25 @@ function paintSessionEdit(){
   if(!card){ renderApp(); return; }
   const tmp=document.createElement("div"); tmp.innerHTML=renderSessionEdit();
   const fresh=tmp.querySelector(".se-sheet"); if(fresh) card.innerHTML=fresh.innerHTML;
+}
+
+// Serie tildada: arranca el descanso del ejercicio (se puede saltear con la X), salvo que se
+// haya terminado el día. En una superserie no se descansa entre ejercicios: se pasa a la
+// misma serie del siguiente y el descanso (el del último del grupo) va al cerrar la vuelta.
+function afterSetDone(d, ex, s){
+  const dayDone=d.exercises.every(x=>allSetsDone(x));
+  const idx=d.exercises.indexOf(ex), g=ssGroupOf(d.exercises, idx);
+  if(!g){ if(!dayDone) startRest(effectiveRest(ex).sec); return; }
+  const nx=ssNext(d.exercises, idx, ex.sets.indexOf(s));
+  if(nx.rest && !dayDone) startRest(effectiveRest(d.exercises[g.end]).sec);
+  if(nx.target) setTimeout(()=>goToSet(nx.target), 420);
+}
+// Lleva la pantalla a la serie que sigue y la marca un momento.
+function goToSet(t){
+  const inp=document.querySelector('[data-ex="'+CSS.escape(t.ex)+'"][data-set="'+CSS.escape(t.set)+'"]');
+  const row=inp && inp.closest(".set"); if(!row) return;
+  row.scrollIntoView({block:"center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+  row.classList.remove("ss-next"); void row.offsetWidth; row.classList.add("ss-next");
 }
 
 export function tick(){
@@ -384,6 +404,7 @@ document.body.addEventListener("click", async e => {
   // Ejercicios (picker)
   if (a === "ex-add-open") { SheetState.sheetGen++; EntrenoState.exPicker={mode:"add"}; EntrenoState.exCat="pecho"; EntrenoState.exQuery=""; renderApp(); return; }
   if (a === "ex-swap") { SheetState.sheetGen++; EntrenoState.exPicker={mode:"swap", exId:el.dataset.ex}; EntrenoState.exCat="pecho"; EntrenoState.exQuery=""; renderApp(); return; }
+  if (a === "ss-toggle") { if(routineLocked()) return; const exs=day().exercises, i=+el.dataset.i; const e=exs[i]; if(e && i<exs.length-1){ if(e.ss) delete e.ss; else e.ss=true; save(); renderApp(); } return; }
   if (a === "ex-insert") { SheetState.sheetGen++; EntrenoState.exPicker={mode:"insert", idx:(+el.dataset.i||0)}; EntrenoState.exCat="pecho"; EntrenoState.exQuery=""; renderApp(); return; }
   if (a === "ex-cat") {
     EntrenoState.exCat=el.dataset.cat; EntrenoState.exQuery="";
@@ -487,7 +508,7 @@ document.body.addEventListener("click", async e => {
     const nowDone=allSetsDone(ex);
     // Al marcar una serie arranca solo el descanso de ese ejercicio (se puede saltear con
     // la X). No arranca si con esta serie se terminó todo el entrenamiento del día.
-    if(s.done){ const dayDone=d.exercises.every(x=>allSetsDone(x)); if(!dayDone) startRest(effectiveRest(ex).sec); }
+    if(s.done) afterSetDone(d, ex, s);
     // Se acaba de completar recién ahora (no estaba reabierto a mano) -> animar el
     // colapso. Si ya estaba todo tildado y esto es una corrección (reabierto), o si
     // se destildó, el render es inmediato como siempre.
@@ -518,11 +539,7 @@ document.body.addEventListener("click", async e => {
     const target=parseSecs(s.target)||parseSecs(s.secs)||0;
     startTimer(s.id, target, secs=>{
       s.secs=String(secs);
-      if(!s.done){
-        s.done=true;
-        const dayDone=d.exercises.every(x=>allSetsDone(x));
-        if(!dayDone) startRest(effectiveRest(ex).sec);
-      }
+      if(!s.done){ s.done=true; afterSetDone(d, ex, s); }
       save(); renderApp();
     });
     renderApp(); return;
@@ -903,6 +920,7 @@ document.body.addEventListener("click", async e => {
   if(a==="day-del"){ const D=rtDays(); if(D&&D.length>1){ D.splice(CoachState.coachEditDay,1); CoachState.coachEditDay=0; renderCoach(); } return; }
   if(a==="rt-setadd"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex) ex.sets.push(mkSet()); renderCoach(); return; }
   if(a==="rt-setdel"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex && ex.sets.length>1) ex.sets.splice(+b.dataset.j,1); renderCoach(); return; }
+  if(a==="rt-ss"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; const e=day&&day.exercises[i]; if(e && i<day.exercises.length-1){ if(e.ss) delete e.ss; else e.ss=true; renderCoach(); } return; }
   if(a==="rt-up"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i>0){ const arr=day.exercises; [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; CoachState.coachExMenu=null; renderCoach(); } return; }
   if(a==="rt-down"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i<day.exercises.length-1){ const arr=day.exercises; [arr[i+1],arr[i]]=[arr[i],arr[i+1]]; CoachState.coachExMenu=null; renderCoach(); } return; }
   if(a==="rt-del"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex){ CoachState.coachExpandedEx.delete(ex.id); if(CoachState.coachExMenu===ex.id) CoachState.coachExMenu=null; } day.exercises.splice(+b.dataset.i,1); renderCoach(); return; }

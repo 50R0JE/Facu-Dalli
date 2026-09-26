@@ -185,3 +185,30 @@
   pointer-events: none; animation: pr-spark .55s cubic-bezier(.15,.7,.3,1) forwards; }
 @keyframes pr-spark { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.4); } }
 @media (prefers-reduced-motion: reduce) { .pr-chip { animation: none; } }
+
+/* Superseries (app/core/superserie.js): los ejercicios unidos van en un recuadro con un
+   filete RGB a la izquierda, la letra (A1, A2…) en vez del número y la indicación arriba. */
+.ss-group { position: relative; margin: 0 0 var(--space-12); padding: 12px 0 2px 14px; }
+.ss-group::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 14px; width: 3px; border-radius: 3px;
+  background: linear-gradient(180deg, var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4)); box-shadow: 0 0 10px color-mix(in srgb, var(--gize-r2) 45%, transparent); }
+.ss-head { display: flex; flex-direction: column; gap: 4px; margin: -4px 0 10px; }
+.ss-badge { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: var(--text-meta); font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--gize-text); background: color-mix(in srgb, var(--gize-r2) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gize-r2) 45%, transparent); padding: 4px 10px; border-radius: var(--gize-radius-pill); }
+.ss-badge svg { width: 13px; height: 13px; }
+.ss-hint { font-size: var(--text-meta); color: var(--txt-2); line-height: 1.4; }
+.ss-group .card:last-child, .ss-group .ex-collapsed:last-child { margin-bottom: 0; }
+.ex-num.ss { background: linear-gradient(135deg, var(--gize-r1), var(--gize-r2)); min-width: 26px; }
+.ss-tag { display: inline-block; margin-right: 6px; font-size: 11px; font-weight: 800; color: var(--gize-r2); }
+/* Entre ejercicios (rutina propia): + para insertar y el botón para unir o separar. */
+.ex-gap { display: flex; gap: 6px; align-items: stretch; }
+.ex-gap .ins-ex { flex: 1; }
+.ss-link { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 22px; margin: 0 0 6px; padding: 0 9px; border-radius: var(--gize-radius-pill);
+  background: none; border: 1px dashed var(--border); color: var(--txt-3); font: 600 11px var(--gize-font); cursor: pointer; opacity: .6; }
+.ss-link svg { width: 12px; height: 12px; }
+.ss-link.on { border-style: solid; border-color: color-mix(in srgb, var(--gize-r2) 55%, transparent); color: var(--gize-text); opacity: 1; }
+.ss-link:active { opacity: 1; border-color: var(--blue); color: var(--blue); }
+/* La serie que sigue en la superserie se marca un momento al llegar. */
+.set.ss-next { animation: ssNext 1.2s ease-out; border-radius: 8px; }
+@keyframes ssNext { 0%, 30% { background: color-mix(in srgb, var(--gize-blue) 22%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gize-blue) 60%, transparent); } 100% { background: transparent; box-shadow: none; } }
+@media (prefers-reduced-motion: reduce) { .set.ss-next { animation: none; } }
