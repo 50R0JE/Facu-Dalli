@@ -261,4 +261,5 @@ body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; 
 .wk-finish { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--gize-success);
   background: color-mix(in srgb, var(--gize-success) 12%, transparent); color: var(--gize-text); font-size: var(--text-meta); font-weight: 700; cursor: pointer; }
 .wk-finish svg { width: 16px; height: 16px; color: var(--gize-success); }
-.wk-cancel { padding: 6px 12px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--txt-2); font-size: var(--text-meta); cursor: pointer; }
+.wk-cancel { padding: 6px 12px; border-radius: 4px; border: 1px solid var(--gize-danger); background: color-mix(in srgb, var(--gize-danger) 12%, transparent); color: var(--gize-danger); font-size: var(--text-meta); font-weight: 700; cursor: pointer; }
+.wk-cancel:active { background: color-mix(in srgb, var(--gize-danger) 24%, transparent); }
