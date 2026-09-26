@@ -16,7 +16,7 @@ import { esc, fmt, fmtSecs, isTimedEx, norm, parseSecs, setText, today } from '.
 import { renderApp } from '../main.js';
 
 import { allSetsDone, bestKgBefore, bestSetOf, lastSessionFor, renderLastSession } from './progreso.js';
-import { suggest } from '../core/progresion.js';
+import { kgText, suggest } from '../core/progresion.js';
 import { prSets } from '../ui/festejo.js';
 
 import { parseRest } from '../ui/restbar.js';
@@ -183,6 +183,16 @@ export function wkElapsedText(){ return fmt(wkElapsedMs()); }
 const upSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>';
 function renderSuggestion(ex, timed){
   if (allSetsDone(ex)) return "";
+  // Propuesta del coach: el peso que cargó por serie en su editor. Manda sobre la automática.
+  const kgs = ex.sets.map(s => parseFloat(String(s.targetKg||"").replace(",", ".")) || 0);
+  if (kgs.some(k => k > 0)){
+    const set = kgs.filter(k => k > 0), same = set.every(k => k === set[0]);
+    const reps = ex.sets.find(s => s.target) ? ex.sets.find(s => s.target).target : "";
+    const txt = same ? kgText(set[0]) + " kg" + (reps && !timed ? " × " + reps : "") : kgs.map(k => k > 0 ? kgText(k) : "–").join(" · ") + " kg";
+    const canUse = ex.sets.some((s, i) => !s.done && kgs[i] > 0 && String(s.kg||"") !== String(kgs[i]));
+    return `<div class="prog-sug coach"><span class="ps-ic">${upSvg}</span><div class="ps-txt"><span class="ps-lbl">Tu coach propone</span> <b>${esc(txt)}</b>${same?'':'<span class="ps-why">Peso de cada serie.</span>'}</div>${canUse?`<button class="ps-use" data-action="sug-use" data-ex="${esc(ex.id)}" data-coach="1">Usar</button>`:''}</div>`;
+  }
+  if (ex.noSug) return "";
   const prev = lastSessionFor(ex.name); if (!prev) return "";
   const sg = suggest(ex, prev.sets, timed); if (!sg) return "";
   const canUse = sg.kg != null && ex.sets.some(s => !s.done && String(s.kg||"") !== String(sg.kg));

@@ -549,7 +549,12 @@ document.body.addEventListener("click", async e => {
     renderApp(); return;
   }
   // Sugerencia de progresión: pone ese peso en las series que faltan (las reps las anota uno).
-  if (a === "sug-use") { const kg=parseFloat(el.dataset.kg); if(ex && kg>0){ ex.sets.forEach(s=>{ if(!s.done){ s.kg=String(kg); autoKg.delete(s.id); } }); save(); renderApp(); } return; }
+  if (a === "sug-use") {
+    if(!ex) return;
+    if(el.dataset.coach){ ex.sets.forEach(s=>{ const k=parseFloat(String(s.targetKg||"").replace(",", "."))||0; if(!s.done && k>0){ s.kg=String(k); autoKg.delete(s.id); } }); }
+    else { const kg=parseFloat(el.dataset.kg); if(kg>0) ex.sets.forEach(s=>{ if(!s.done){ s.kg=String(kg); autoKg.delete(s.id); } }); }
+    save(); renderApp(); return;
+  }
   if (a === "ex-expand") { expandedOverride.add(ex.id); renderApp(); return; }
   if (a === "ex-collapse") { collapseExerciseAnimated(ex.id, ()=>{ expandedOverride.delete(ex.id); renderApp(); }); return; }
   // Descanso por ejercicio. Sin coach se guarda en el ejercicio (viaja con la rutina);
@@ -926,6 +931,7 @@ document.body.addEventListener("click", async e => {
   if(a==="day-del"){ const D=rtDays(); if(D&&D.length>1){ D.splice(CoachState.coachEditDay,1); CoachState.coachEditDay=0; renderCoach(); } return; }
   if(a==="rt-setadd"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex) ex.sets.push(mkSet()); renderCoach(); return; }
   if(a==="rt-setdel"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex && ex.sets.length>1) ex.sets.splice(+b.dataset.j,1); renderCoach(); return; }
+  if(a==="rt-nosug"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const e=day&&day.exercises[+b.dataset.i]; if(e){ if(e.noSug) delete e.noSug; else e.noSug=true; renderCoach(); } return; }
   if(a==="rt-ss-split"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const g=day && ssGroupOf(day.exercises, +b.dataset.i); if(g){ for(let k=g.start;k<=g.end;k++) delete day.exercises[k].ss; renderCoach(); } return; }
   if(a==="rt-ss"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; const e=day&&day.exercises[i]; if(e && i<day.exercises.length-1){ if(e.ss) delete e.ss; else e.ss=true; renderCoach(); } return; }
   if(a==="rt-up"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i>0){ const arr=day.exercises; [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; CoachState.coachExMenu=null; renderCoach(); } return; }

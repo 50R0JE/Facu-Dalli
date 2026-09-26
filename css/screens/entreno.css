@@ -243,3 +243,6 @@ body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; 
 .ps-use { flex: none; padding: 7px 14px; border-radius: var(--gize-radius-pill); border: 1px solid color-mix(in srgb, var(--gize-success) 55%, transparent);
   background: none; color: var(--gize-success); font: 700 var(--text-meta) var(--gize-font); cursor: pointer; }
 .ps-use:active { background: color-mix(in srgb, var(--gize-success) 15%, transparent); }
+.prog-sug.coach { background: color-mix(in srgb, var(--gize-blue) 9%, transparent); border-color: color-mix(in srgb, var(--gize-blue) 40%, transparent); }
+.prog-sug.coach .ps-ic { color: var(--gize-blue); background: color-mix(in srgb, var(--gize-blue) 15%, transparent); }
+.prog-sug.coach .ps-use { color: var(--gize-blue); border-color: color-mix(in srgb, var(--gize-blue) 55%, transparent); }

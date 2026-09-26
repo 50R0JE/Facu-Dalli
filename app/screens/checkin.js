@@ -42,14 +42,11 @@ export function sessionVolume(exs){ return (exs||[]).reduce((a,e)=>a+(e.sets||[]
 const durText = s => { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60; return h ? h+" h "+String(m).padStart(2,"0")+" min" : m ? m+" min"+(m<10&&ss?" "+ss+" s":"") : ss+" s"; };
 function renderSummary(){
   const sm=CheckinState.summary; if(!sm) return "";
-  const n=v=>Math.round(v).toLocaleString("es-AR");
-  let cmp="";
-  if(sm.prevVol>0 && sm.vol>0){ const pc=Math.round((sm.vol-sm.prevVol)/sm.prevVol*100); cmp='<div class="sum-cmp'+(pc>0?' up':pc<0?' down':'')+'">'+(pc>0?'▲ '+pc+'% más':pc<0?'▼ '+(-pc)+'% menos':'Igual')+' volumen que la vez anterior</div>'; }
   const cell=(v,l,big)=>'<div class="sum-cell'+(big?' big':'')+'"><b>'+v+'</b><span>'+l+'</span></div>';
   return '<div class="sum-box"><div class="sum-grid">'+
     (sm.dur>0 ? cell(durText(sm.dur),"Tiempo total",true) : '')+
-    cell(sm.sets,"Series")+cell(sm.exs,"Ejercicios")+cell(sm.vol>0?n(sm.vol)+' kg':'—',"Volumen")+
-    '</div>'+cmp+'</div>';
+    cell(sm.sets,"Series")+cell(sm.exs,"Ejercicios")+
+    '</div></div>';
 }
 export function saveSession(){
   const d=day(); const exs=[];
