@@ -14,6 +14,8 @@ import { addDays, dayLabel, dayShort, pastDay } from './comida-historial.js';
 
 import { foodEmoji } from '../core/foodemoji.js';
 
+import { foodUnit } from '../core/foodunits.js';
+
 import { renderClientPlan } from './checkin.js';
 
 // Las 4 comidas del día (como Fitia). Lo anotado antes de que existieran queda en "otras".
@@ -33,7 +35,10 @@ export const ComidaState = {
   // Comida a la que se agregan los alimentos (null = la de la hora, ver mealNow).
   meal: null,
 
-  // Día que se está mirando (null = hoy). Los anteriores son solo para ver.
+  // Ventana de búsqueda abierta (desde "Buscar alimento" o el "+" de una comida).
+  searchOpen: false,
+
+  // Día que se está mirando (null = hoy). En uno anterior también se carga y se borra.
   viewDate: null,
 
   // Hidratación con todas sus opciones a la vista.
@@ -216,6 +221,33 @@ export function renderFoodForm(){
     <button class="form-save" data-action="food-create-save">Guardar alimento</button>`;
 }
 
+// Barra de arriba: abre la ventana de búsqueda (no se escribe acá). El escáner, al lado.
+function searchBar(vd){
+  return `<div class="food-search-row">
+      <button class="cal-search search-wrap search-open" data-action="search-open"><span class="search-ic">${searchSvg}</span><span class="search-ph">${vd===today() ? "Buscar alimento o marca…" : "Agregar a "+esc(dayLabel(vd).toLowerCase())+"…"}</span></button>
+      <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
+    </div>`;
+}
+
+// Ventana de búsqueda (como Fitia): comida elegida arriba, buscador con el teclado listo,
+// resultados que se desplazan y "Crear alimento propio". Tocar un resultado abre la hoja
+// del alimento; al cancelarla se vuelve acá con lo buscado.
+export function renderSearchSheet(){
+  const vd = (ComidaState.viewDate && ComidaState.viewDate < today()) ? ComidaState.viewDate : today();
+  return `
+    <div class="sheet-bg" data-action="search-close"></div>
+    <div class="sheet search-sheet" role="dialog" aria-label="Buscar alimento">
+      <div class="ss-head"><span class="sheet-title">Agregar${vd===today() ? "" : " a "+esc(dayLabel(vd).toLowerCase())}</span><button class="ss-x" data-action="search-close" aria-label="Cerrar">${xSvg}</button></div>
+      ${mealChips(ComidaState.meal || mealNow(), "search-meal")}
+      <div class="food-search-row">
+        <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Buscar alimento o marca…" value="${esc(ComidaState.foodQuery)}" data-action="food-search" autocomplete="off" enterkeyhint="search"></div>
+        <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
+      </div>
+      <div id="foodResults" class="ss-results">${renderResults(ComidaState.foodQuery)}</div>
+      <button class="cal-create" data-action="food-create-open">+ Crear alimento propio</button>
+    </div>`;
+}
+
 export function renderComida(){
   if (ComidaState.calEditing) return renderCalForm();
   if (ComidaState.creatingFood) return renderFoodForm();
@@ -294,21 +326,12 @@ export function renderComida(){
       ${mbar("Grasas", tot.f, mt.f)}
     </div>
     ${past ? (pd.status!=="done" ? `<div class="meals">${sections}</div>` : `
-    <div class="food-search-row">
-      <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Agregar a ${esc(dayLabel(vd).toLowerCase())}…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
-      <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
-    </div>
-    <div id="foodResults">${renderResults(ComidaState.foodQuery)}</div>
+    ${searchBar(vd)}
     <div class="meals">${sections}</div>`)+`
     <button class="ctrl day-today" data-action="day-today">Volver a hoy</button>
     </div>` : `
     <button class="cal-edit" data-action="cal-open">Editar meta</button>
-    <div class="food-search-row">
-      <div class="cal-search search-wrap"><span class="search-ic">${searchSvg}</span><input id="foodSearch" type="text" placeholder="Buscar alimento o marca…" value="${esc(ComidaState.foodQuery)}" data-action="food-search"></div>
-      <button class="scan-btn" data-action="scan-open" title="Escanear código de barras" aria-label="Escanear código de barras">${barcodeSvg}</button>
-    </div>
-    <div id="foodResults">${renderResults(ComidaState.foodQuery)}</div>
-    <button class="cal-create" data-action="food-create-open">+ Crear alimento propio</button>
+    ${searchBar(vd)}
     <div class="meals">${sections}</div>
     <div class="water-mini${ComidaState.waterOpen?' open':''}">
       <div class="wm-row">
@@ -348,10 +371,22 @@ export function rememberCookState(food, st){
 }
 
 // Porción sugerida en ese estado: 80 g de arroz crudo ≈ 210 g cocido.
+// Peso de 1 unidad del alimento (1 banana, 1 feta, 1 bife…, ver core/foodunits.js) en el
+// estado elegido: 1 bife de 200 g crudo pesa 144 g cocido.
 export function cookPortion(food, st){
-  if(!food || !food.cook || !st || st === food.cook.base) return food ? food.portion : 0;
-  return Math.round(st === "cocido" ? food.portion * food.cook.factor : food.portion / food.cook.factor);
+  if(!food) return 0;
+  const g = foodUnit(food).g;
+  if(!food.cook || !st || st === food.cook.base) return g;
+  return Math.round(st === "cocido" ? g * food.cook.factor : g / food.cook.factor);
 }
+
+// Alimento de la base que corresponde a lo anotado (para editar con sus unidades).
+let _byName = null;
+export function foodByName(name){
+  if(!_byName){ _byName = new Map(); (state.foods||[]).concat(state.offRecent||[], FOODS).forEach(f=>{ if(f && f.name && !_byName.has(f.name)) _byName.set(f.name, f); }); }
+  return _byName.get(String(name||"").replace(/ \((crudo|cocido)\)$/, "")) || null;
+}
+export function entryCookState(name){ const m = String(name||"").match(/ \((crudo|cocido)\)$/); return m ? m[1] : null; }
 
 // El alimento elegido con los valores del estado en que lo pesó el cliente.
 export function selectedFoodValues(){
