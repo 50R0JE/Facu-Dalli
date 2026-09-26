@@ -35,7 +35,7 @@ import { coachPlanObj, cpApply, loadTpls, planDefault, renderApplyPicker, render
 
 import { CoachState } from './screens/coach/state.js';
 
-import { ComidaState, mealNow, renderSearchSheet, animateCalRing, calcTarget, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
+import { ComidaState, mealNow, renderSearchSheet, animateCalRing, calcTarget, macroKcal, macroSumText, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
 
 import { EntrenoState, REST_DEFAULT, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, effectiveRest, restKey, restLabel, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
@@ -176,6 +176,7 @@ document.body.addEventListener("input", async e => {
   if (a === "ex-search") { EntrenoState.exQuery = t.value; const l=document.getElementById("exList"); if(l) l.innerHTML = renderExList(); return; }
   if (a === "portion-grams") { const base = ComidaState.selectedFood ? selectedFoodValues() : (ComidaState.editEntry ? entryBase(ComidaState.editEntry) : null); if(base){ const pv=document.getElementById("portionPreview"); if(pv) pv.textContent = previewStr(base, t.value); const pu=document.getElementById("portionUnits"); const uf=sheetUnitFood(); if(pu && uf) pu.textContent = unitsLabel(t.value, cookPortion(uf.food, uf.cook), base.unit, uf.food); } ComidaState.sheetGrams = t.value; return; }
   if (a === "cf-field") { ComidaState.foodForm[t.dataset.field] = t.value; return; }
+  if (a === "macro-field") { const g=k=>parseFloat(String((document.getElementById("macro_"+k)||{}).value||"").replace(",", "."))||0; const el2=document.getElementById("macroSum"); if(el2) el2.innerHTML=macroSumText({p:g("p"),c:g("c"),f:g("f")}); return; }
   if (a === "cal-field") { ComidaState.calForm[t.dataset.field] = t.value; return; }
   if (a === "wkg-field") { ProgresoState.weightForm.kg = t.value; return; }
   const d = day();
@@ -280,9 +281,23 @@ document.body.addEventListener("click", async e => {
   if (a === "cal-goal") { ComidaState.calForm.goal = el.dataset.val; renderApp(); return; }
   if (a === "cal-calc") {
     if(!(+ComidaState.calForm.age>0) || !(+ComidaState.calForm.height>0) || !(+ComidaState.calForm.weight>0)){ alert("Completá edad, altura y peso."); return; }
-    state.calProfile = Object.assign({}, ComidaState.calForm); state.calTarget = calcTarget(ComidaState.calForm); ComidaState.calEditing=false; save(); renderApp(); return;
+    // Recalcular deja los macros en automático otra vez.
+    state.calProfile = Object.assign({}, ComidaState.calForm); delete state.calProfile.macros; state.calTarget = calcTarget(ComidaState.calForm); ComidaState.calEditing=false; save(); renderApp(); return;
   }
-  if (a === "cal-manual") { const m=parseInt((document.getElementById("calManual")||{}).value); if(m>0){ state.calTarget=m; ComidaState.calEditing=false; save(); renderApp(); } else alert("Ingresá un número de calorías válido."); return; }
+  if (a === "macro-save") {
+    const g = k => Math.round(parseFloat(String((document.getElementById("macro_"+k)||{}).value||"").replace(",", "."))||0);
+    const mm = { p: g("p"), c: g("c"), f: g("f") };
+    if (!(mm.p>0 || mm.c>0 || mm.f>0) || mm.p>600 || mm.c>1500 || mm.f>400) { alert("Revisá los gramos de proteína, carbos y grasas."); return; }
+    state.calProfile = Object.assign({}, state.calProfile||{}, { macros: mm });
+    state.calTarget = macroKcal(mm); ComidaState.calEditing=false; save(); renderApp(); return;
+  }
+  if (a === "macro-auto") {
+    if(state.calProfile){ state.calProfile = Object.assign({}, state.calProfile); delete state.calProfile.macros;
+      // Con los datos del cuerpo cargados, las calorías vuelven a las calculadas.
+      if(+state.calProfile.age>0 && +state.calProfile.height>0 && +state.calProfile.weight>0) state.calTarget = calcTarget(state.calProfile); }
+    ComidaState.calEditing=false; save(); renderApp(); return;
+  }
+  if (a === "cal-manual") { const m=parseInt((document.getElementById("calManual")||{}).value); if(m>0){ state.calTarget=m; if(state.calProfile && state.calProfile.macros){ state.calProfile=Object.assign({}, state.calProfile); delete state.calProfile.macros; } ComidaState.calEditing=false; save(); renderApp(); } else alert("Ingresá un número de calorías válido."); return; }
   if (a === "food-create-open") { ComidaState.searchOpen=false; ComidaState.foodForm={name:"",kcal:"",p:"",c:"",f:"",unit:"g"}; ComidaState.creatingFood=true; renderApp(); return; }
   if (a === "food-create-cancel") { ComidaState.creatingFood=false; renderApp(); return; }
   if (a === "cf-unit") { ComidaState.foodForm.unit = el.dataset.val; renderApp(); return; }
