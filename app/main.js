@@ -161,7 +161,9 @@ function paintSessionEdit(){
 
 function afterSetDone(d, ex, s){
   // La primera serie tildada del día marca el comienzo del entreno (para el tiempo total).
-  if(!state.wkStart || state.wkStart.date!==today() || state.wkStart.day!==d.id){ state.wkStart={date:today(), day:d.id, ts:Date.now()}; save(); }
+  // Si no se tocó «Iniciar entrenamiento», arranca acá (y vuelve a arrancar si se había destildado todo).
+  const w=state.wkStart, others=d.exercises.some(x=>x.sets.some(t=>t.done && t!==s));
+  if(!w || w.date!==today() || w.day!==d.id || (!w.manual && !others)){ state.wkStart={date:today(), day:d.id, ts:Date.now()}; save(); }
   // El descanso ya no arranca solo al tildar: se inicia con «Iniciar descanso». En una
   // superserie la pantalla igual pasa a la serie que sigue.
   const idx=d.exercises.indexOf(ex);
@@ -618,6 +620,8 @@ document.body.addEventListener("click", async e => {
   if (a === "addset") { ex.sets.push(mkSet()); }
   else if (a === "removeset") { ex.sets = ex.sets.filter(x=>x.id!==el.dataset.set); }
   else if (a === "removeex") { d.exercises = d.exercises.filter(x=>x.id!==el.dataset.ex); }
+  else if (a === "wk-start") { state.wkStart={date:today(), day:d.id, ts:Date.now(), manual:true}; }
+  else if (a === "wk-cancel") { if(!confirm("¿Cancelar el entrenamiento? El reloj vuelve a cero (las series tildadas quedan).")) return; delete state.wkStart; }
   else if (a === "clear") { d.exercises.forEach(x=>x.sets.forEach(s=>s.done=false)); delete state.wkStart; }
   else return;
   save(); renderApp();
