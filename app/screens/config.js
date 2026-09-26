@@ -11,6 +11,7 @@ import { avatarHtml, avatarUrl } from '../core/avatar.js';
 import { showLogin } from './auth.js';
 import { pushOnHere, enablePush, disablePush, isIOS, isStandalone } from '../core/push.js';
 import { renderApp } from '../main.js';
+import { adminEntry, checkAdmin } from './admin-productos.js';
 import { isLite, setLite } from '../ui/background.js';
 import { bellSvg, fileTextSvg, instagramSvg, globeSvg, auIcoMail, whatsappSvg, chevronRightSvg, pencilSvg, checkSvg } from '../core/icons.js';
 
@@ -155,8 +156,9 @@ export function renderConfig() {
 
   const about = '<div class="cfg-about"><img src="brand/logo/gize-logotipo.svg" alt="GIZE"></div>';
 
+  checkAdmin(renderApp); // solo las cuentas administradoras ven «Revisar productos»
   return '<div class="hb-head"><div class="hb-title">Configuración</div><div class="title-accent"></div></div>' +
-    account + coachSection + notifSection + liteSection + legalSection + contactSection + dangerSection + about;
+    account + adminEntry() + coachSection + notifSection + liteSection + legalSection + contactSection + dangerSection + about;
 }
 
 document.body.addEventListener("keydown", function (e) {

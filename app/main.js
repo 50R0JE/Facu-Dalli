@@ -59,7 +59,7 @@ import { renderConfig } from './screens/config.js';
 import { removeMyAvatar, uploadMyAvatar } from './core/avatar.js';
 
 import { productByCode, searchOFF } from './core/off.js';
-import { kcalMismatch, productByCodeShared, reportShared, saveShared, searchShared, useShared } from './core/productos.js';
+import { kcalMismatch, productByCodeShared, reportShared, saveShared, searchShared, uploadLabelPhoto, useShared } from './core/productos.js';
 
 import { addDays, dayItems, loadDay, retryDay, setDayItems } from './screens/comida-historial.js';
 import { EditState, cleanSessionEdit, openSessionEdit, removeSessionEditSet, renderSessionEdit, setSessionEditVal } from './ui/sessionedit.js';
@@ -267,6 +267,7 @@ document.body.addEventListener("change", async e => {
     if(State.cloudProfile && State.cloudProfile.role==="coach") renderCoach();
     return;
   }
+  if (a === "cf-photo") { const file=t.files&&t.files[0]; if(file){ const ff=ComidaState.foodForm; if(ff.photoUrl) URL.revokeObjectURL(ff.photoUrl); ff.photo=file; ff.photoUrl=URL.createObjectURL(file); renderApp(); } return; }
   if (a === "photo-pick") { const file=t.files&&t.files[0]; if(file){ try{ await cloudUploadPhoto(file); }catch(err){ alert("No se pudo subir la foto: "+((err&&err.message)||err)); } } t.value=""; return; }
 });
 
@@ -343,11 +344,17 @@ document.body.addEventListener("click", async e => {
     const nf={ name:ff.name.trim()+(ff.brand&&ff.brand.trim()?" · "+ff.brand.trim():""), kcal:Math.round(num(ff.kcal)), p:num(ff.p), c:num(ff.c), f:num(ff.f), portion:100, unit:ff.unit||"g" };
     if(nf.kcal>950 || nf.p>100 || nf.c>100 || nf.f>100 || nf.p+nf.c+nf.f>105){ alert("Revisá los valores: tienen que ser cada 100 "+(nf.unit==="ml"?"ml":"g")+" (como en la tabla del paquete)."); return; }
     if(ff.code && kcalMismatch(nf.kcal, nf.p, nf.c, nf.f) && !confirm("Las calorías ("+nf.kcal+") no coinciden con los macros (darían unas "+Math.round(nf.p*4+nf.c*4+nf.f*9)+").\n\n¿Los copiaste bien de la etiqueta? Tocá Aceptar para guardar igual.")) return;
+    if(ff.code && !ff.photo){ alert("Falta la foto de la tabla nutricional del paquete."); return; }
     if(ff.code){ nf.code=ff.code; nf.src="GIZE"; }
     state.foods.push(nf);
     ComidaState.creatingFood=false; save();
     if(ff.code){
-      saveShared(Object.assign({}, nf, { name: ff.name.trim(), brand: (ff.brand||"").trim() }), ff.code, "user").then(ok=>{ if(ok) alert("¡Gracias! "+ff.name.trim()+" ya quedó disponible para todos los usuarios de GIZE."); });
+      // La foto se sube primero; el producto queda para todos recién cuando la foto está arriba.
+      const shared=Object.assign({}, nf, { name: ff.name.trim(), brand: (ff.brand||"").trim() });
+      uploadLabelPhoto(ff.photo, ff.code).then(path=>saveShared(shared, ff.code, "user", path))
+        .then(ok=>alert(ok ? "¡Gracias! "+ff.name.trim()+" ya quedó disponible para todos los usuarios de GIZE." : "Lo guardamos en tu cuenta, pero no se pudo compartir con la comunidad. Probá de nuevo más tarde."))
+        .catch(()=>alert("Lo guardamos en tu cuenta, pero no se pudo subir la foto para compartirlo. Revisá tu conexión."))
+        .finally(()=>{ if(ff.photoUrl) URL.revokeObjectURL(ff.photoUrl); });
       ComidaState.selectedFood=nf; ComidaState.cookState=null; ComidaState.sheetGrams=null; SheetState.sheetGen++;
     } else ComidaState.foodQuery=nf.name;
     renderApp(); return;
