@@ -121,12 +121,19 @@ export let silkInited = false;
 
 export function silkReducedMotion(){ return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); }
 
+// Fondo dentro de la app: más sutil que el del login para que no compita con el contenido.
+// La mitad de partículas, más chicas, más transparentes y tres veces más lentas; mientras se
+// hace scroll o se toca la pantalla se atenúan todavía más (silkDim) y vuelven al quedar quieta.
+const SILK_ALPHA = 0.3, SILK_SPEED = 0.18, SILK_DIM = 0.35, SILK_IDLE_MS = 700;
+let silkDim = 1, silkBusyUntil = 0;
+function silkBusy(){ silkBusyUntil = Date.now() + SILK_IDLE_MS; }
+
 export function silkMakeParticles(w, h){
-  const count = w<560 ? 90 : (w<1000 ? 170 : 260); // misma escala adaptativa que el login
+  const count = w<560 ? 40 : (w<1000 ? 80 : 120);
   silkGamut = gizeGamut();
   return Array.from({length:count}, (_,i) => ({ c: i%4,
     x: Math.random()*w, y: Math.random()*h,
-    size: Math.random()*1.6+0.6, life: Math.random()*100, maxLife: 140+Math.random()*90
+    size: Math.random()*1.0+0.4, life: Math.random()*100, maxLife: 140+Math.random()*90
   }));
 }
 
@@ -138,6 +145,9 @@ export function initSilk(){
   silkNoise = auCreateNoise();
   silkResize();
   window.addEventListener("resize", silkResize);
+  window.addEventListener("scroll", silkBusy, { passive: true });
+  window.addEventListener("touchstart", silkBusy, { passive: true });
+  window.addEventListener("pointerdown", silkBusy, { passive: true });
   document.addEventListener("visibilitychange", silkOnVisibilityChange);
   silkLoop();
 }
@@ -168,15 +178,16 @@ export function silkLoop(){
   const reduced = silkReducedMotion(); // reduced motion: se dibuja un solo cuadro y queda quieto
   silkCtx.clearRect(0, 0, w, h);
   const z = Date.now()*0.00008;
+  silkDim += ((Date.now() < silkBusyUntil ? SILK_DIM : 1) - silkDim) * 0.08; // transición suave
   for(const p of silkParticles){
-    p.life += 1;
+    p.life += reduced ? 1 : 0.5;
     if(p.life>p.maxLife){ p.life=0; p.x=Math.random()*w; p.y=Math.random()*h; }
     const op = Math.sin((p.life/p.maxLife)*Math.PI)*0.55;
     const n = silkNoise.simplex3(p.x*0.0025, p.y*0.0025, z);
     const angle = n*Math.PI*4;
-    if(!reduced){ p.x += Math.cos(angle)*0.55; p.y += Math.sin(angle)*0.55; }
+    if(!reduced){ p.x += Math.cos(angle)*SILK_SPEED; p.y += Math.sin(angle)*SILK_SPEED; }
     if(p.x<0) p.x=w; if(p.x>w) p.x=0; if(p.y<0) p.y=h; if(p.y>h) p.y=0;
-    silkCtx.globalAlpha = Math.max(0,op*PARTICLE_ALPHA); silkCtx.fillStyle = silkGamut[p.c];
+    silkCtx.globalAlpha = Math.max(0,op*SILK_ALPHA*silkDim); silkCtx.fillStyle = silkGamut[p.c];
     silkCtx.beginPath(); silkCtx.arc(p.x,p.y,p.size,0,Math.PI*2); silkCtx.fill();
   }
   silkCtx.globalAlpha = 1;
