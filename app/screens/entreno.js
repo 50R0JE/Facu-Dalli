@@ -162,7 +162,13 @@ function ssWrap(exs, groups, i, html){
 
 // Tiempo del entreno: desde la primera serie tildada del día (state.wkStart, lo marca
 // afterSetDone en main.js) hasta Guardar entreno de hoy.
-export function wkStarted(d){ const w=state.wkStart; return !!(w && w.date===today() && (!d || w.day===d.id)); }
+// Si arrancó solo (al tildar) y después se destildó todo, no cuenta: así no queda un reloj
+// corriendo horas con 0 series. Con «Iniciar entrenamiento» (manual) corre igual.
+export function wkStarted(d){
+  const w=state.wkStart;
+  if(!(w && w.date===today() && (!d || w.day===d.id))) return false;
+  return !!(w.manual || !d || d.exercises.some(x=>x.sets.some(s=>s.done)));
+}
 export function wkElapsedMs(){ const w=state.wkStart; return w && w.date===today() ? Math.max(0, Date.now()-w.ts) : 0; }
 export function wkElapsedText(){ return fmt(wkElapsedMs()); }
 
@@ -297,7 +303,8 @@ export function renderEntreno(){
         <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname" ${routineLocked()?'readonly':''}>
         ${routineLocked()?'':`<button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>`}
       </div>
-      ${wkStarted(d) ? `<div class="wk-live"><span class="wk-dot"></span>Entrenando hace <b id="wkTime">${wkElapsedText()}</b></div>` : ''}
+      ${wkStarted(d) ? `<div class="wk-live"><span class="wk-dot"></span>Entrenando hace <b id="wkTime">${wkElapsedText()}</b><button class="wk-cancel" data-action="wk-cancel">Cancelar</button></div>`
+        : d.exercises.length ? `<button class="wk-start" data-action="wk-start">${playSvg} Iniciar entrenamiento</button>` : ''}
       <div class="progress-row">
         <div class="bar"><div style="width:${pct}%"></div></div>
         <span class="count">${done}/${total} series</span>
