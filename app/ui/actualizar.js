@@ -3,7 +3,7 @@
 // quien no actualiza desde la tienda se queda con la versión vieja.
 // La app lee https://gize.ar/app/version.json (en vivo, no el que viaja dentro de la app)
 // y compara con su número de compilación (versionCode en Android):
-//   · menor que "ultima"  → cartel abajo con "Actualizar" y "Después" (vuelve a los 3 días).
+//   · menor que "ultima"  → cartel abajo con "Actualizar" y la cruz (vuelve a los 3 días).
 //   · menor que "minima"  → pantalla que no se puede cerrar (para un arreglo obligatorio).
 // "ultima" se sube a mano recién cuando la versión ya está publicada en la tienda: si no,
 // el cartel mandaría a actualizar a algo que todavía no está.
@@ -33,33 +33,49 @@ export async function checkUpdate(force){
     const cfg = (await r.json())[cap.getPlatform()];
     if (!cfg || !cfg.tienda || !/^https:\/\//i.test(cfg.tienda)) return;
     const ultima = +cfg.ultima || 0, minima = +cfg.minima || 0;
-    if (build < minima) return show(cfg.tienda, true);
+    if (build < minima) return show(cfg.tienda, true, ultima, cfg.version);
     if (build >= ultima) return hide();
     let skip = null; try { skip = JSON.parse(localStorage.getItem(SKIP_KEY) || "null"); } catch (e) {}
     if (skip && skip.v === ultima && Date.now() - skip.t < VOLVER_MS) return;
-    show(cfg.tienda, false, ultima);
+    show(cfg.tienda, false, ultima, cfg.version);
   } catch (e) { /* sin señal o sin tienda: no se muestra nada */ }
 }
 
 function hide(){ const el = document.getElementById("updBox"); if (el) el.remove(); }
 
-function show(tienda, obligatoria, ultima){
+const G = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M81.53,62.74 A34,34 0 1 1 67,20.55" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round"/><circle cx="60.5" cy="50" r="9.5" fill="#2FA0FF"/></svg>';
+const X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const FLECHA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function show(tienda, obligatoria, ultima, version){
   hide();
   const el = document.createElement("div");
   el.id = "updBox";
   el.className = obligatoria ? "upd upd-forzada" : "upd";
-  el.setAttribute("role", "dialog");
-  el.innerHTML = `<div class="upd-card">
-    <div class="upd-txt"><b>${obligatoria ? "Tenés que actualizar GIZE" : "Hay una versión nueva de GIZE"}</b>
-      <span>${obligatoria ? "Esta versión ya no funciona bien. Actualizala para seguir usando la app." : "Trae arreglos y cosas nuevas. Tarda un minuto."}</span></div>
-    <div class="upd-btns">
-      ${obligatoria ? "" : '<button type="button" class="upd-later">Después</button>'}
-      <a class="upd-go" href="${esc(tienda)}" target="_blank" rel="noopener">Actualizar</a>
-    </div></div>`;
+  el.setAttribute("role", obligatoria ? "alertdialog" : "dialog");
+  el.setAttribute("aria-labelledby", "updTitle");
+  const chip = version ? `<span class="upd-ver">v${esc(version)}</span>` : "";
+  el.innerHTML = obligatoria
+    ? `<div class="upd-card">
+        <div class="upd-logo">${G}</div>
+        <b id="updTitle" class="upd-title">Actualizá GIZE para seguir</b>${chip}
+        <p class="upd-sub">Esta versión quedó vieja y puede perder lo que cargues. La nueva tarda un minuto.</p>
+        <a class="upd-go gize-btn" href="${esc(tienda)}" target="_blank" rel="noopener">${FLECHA}Actualizar ahora</a>
+      </div>`
+    : `<div class="upd-card upd-row">
+        <div class="upd-logo">${G}</div>
+        <div class="upd-txt">
+          <b id="updTitle" class="upd-title">Nueva versión de GIZE</b>
+          <span class="upd-sub">${chip}Arreglos y mejoras</span>
+        </div>
+        <button type="button" class="upd-later" aria-label="Después">${X}</button>
+        <a class="upd-go" href="${esc(tienda)}" target="_blank" rel="noopener">${FLECHA}Actualizar</a>
+      </div>`;
   const later = el.querySelector(".upd-later");
   if (later) later.addEventListener("click", () => {
     try { localStorage.setItem(SKIP_KEY, JSON.stringify({ v: ultima, t: Date.now() })); } catch (e) {}
-    hide();
+    el.classList.add("upd-out");
+    setTimeout(hide, 200);
   });
   document.body.appendChild(el);
 }
