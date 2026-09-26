@@ -44,6 +44,9 @@ function feedbackChips(se){
   return chips.length ? '<div class="sd-fb">' + chips.join("") + '</div>' : "";
 }
 
+// Duración guardada al terminar (segundos desde la primera serie tildada): "47 min", "1 h 05".
+const durShort = s => { s = Math.round(+s || 0); const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60); return h ? h + " h " + String(m).padStart(2, "0") : Math.max(1, m) + " min"; };
+
 // opts.removeBtn: HTML del botón de borrar (solo el cliente borra sus entrenos).
 // opts.open: arranca desplegado (el coach lo muestra así al elegirlo en el selector).
 export function renderSessionItem(se, opts){
@@ -55,7 +58,8 @@ export function renderSessionItem(se, opts){
   const totals = '<div class="sd-tot">' +
     '<div><b>' + exs.length + '</b><span>ejercicio' + (exs.length === 1 ? "" : "s") + '</span></div>' +
     '<div><b>' + nSets + '</b><span>serie' + (nSets === 1 ? "" : "s") + '</span></div>' +
-    '<div><b>' + fmtKg(Math.round(vol)) + '</b><span>kg de volumen</span></div></div>';
+    '<div><b>' + fmtKg(Math.round(vol)) + '</b><span>kg de volumen</span></div>' +
+    (se.dur > 0 ? '<div><b>' + durShort(se.dur) + '</b><span>de entreno</span></div>' : '') + '</div>';
   const rm = opts.removeBtn || "";
   return '<div class="sess-item sess-det-wrap">' +
     '<details class="sess-det"' + (opts.open ? ' open' : '') + '><summary class="sess-sum"><div class="sess-main">' +

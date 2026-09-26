@@ -223,3 +223,10 @@ body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; 
   border: 1px solid var(--border); color: var(--txt-2); font: 600 var(--text-meta) var(--gize-font); cursor: pointer; }
 .ss-split svg { width: 13px; height: 13px; }
 .ss-split:active { border-color: var(--blue); color: var(--gize-text); }
+
+/* Entreno en curso: tiempo desde la primera serie tildada */
+.wk-live { display: flex; align-items: center; gap: 8px; margin: 2px 0 8px; font-size: var(--text-meta); color: var(--txt-2); }
+.wk-live b { color: var(--gize-text); font-weight: 700; font-variant-numeric: tabular-nums; font-size: var(--text-body); }
+.wk-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gize-success); box-shadow: 0 0 8px var(--gize-success); animation: wkDot 1.6s ease-in-out infinite; }
+@keyframes wkDot { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .wk-dot { animation: none; } }

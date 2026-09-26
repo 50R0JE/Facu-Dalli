@@ -38,7 +38,7 @@ import { CoachState } from './screens/coach/state.js';
 
 import { ComidaState, mealNow, renderSearchSheet, animateCalRing, calcTarget, macroKcal, macroSumText, cookPortion, defaultCookState, entryBase, lastResults, offResults, previewStr, rememberCookState, renderComida, renderOffResults, renderResults, selectedFoodValues } from './screens/comida.js';
 
-import { EntrenoState, REST_DEFAULT, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, effectiveRest, restKey, restLabel, routineLocked, startLive, stopLive } from './screens/entreno.js';
+import { EntrenoState, REST_DEFAULT, day, expandedOverride, liveCounting, renderEntreno, renderExList, renderExSheet, effectiveRest, restKey, wkElapsedText, restLabel, routineLocked, startLive, stopLive } from './screens/entreno.js';
 
 import { HabitosState, addHabit, checkDaily, renderHabitos } from './screens/habitos.js';
 
@@ -162,6 +162,8 @@ function paintSessionEdit(){
 // haya terminado el día. En una superserie no se descansa entre ejercicios: se pasa a la
 // misma serie del siguiente y el descanso (el del último del grupo) va al cerrar la vuelta.
 function afterSetDone(d, ex, s){
+  // La primera serie tildada del día marca el comienzo del entreno (para el tiempo total).
+  if(!state.wkStart || state.wkStart.date!==today() || state.wkStart.day!==d.id){ state.wkStart={date:today(), day:d.id, ts:Date.now()}; save(); }
   const dayDone=d.exercises.every(x=>allSetsDone(x));
   const idx=d.exercises.indexOf(ex), g=ssGroupOf(d.exercises, idx);
   if(!g){ if(!dayDone) startRest(effectiveRest(ex).sec); return; }
@@ -184,6 +186,7 @@ export function tick(){
     if (rem <= 0){ CardioState.tmRunning=false; CardioState.tmRemainingMs=0; CardioState.tmFinished=true; beep(); if(State.view==="cardio") renderApp(); }
     else { CardioState.tmRemainingMs = rem; if(State.view==="cardio" && CardioState.cardioMode==="timer") setRing(rem / CardioState.tmTarget, fmt(rem,true)); }
   }
+  if (State.view==="entreno"){ const w=document.getElementById("wkTime"); if(w){ const t=wkElapsedText(); if(w.textContent!==t) w.textContent=t; } }
   if (CardioState.swRunning && State.view==="cardio" && CardioState.cardioMode==="stopwatch"){ const ms=CardioState.swAccum+(now-CardioState.swStartTs); setRing(swFrac(ms), fmt(ms)); }
 }
 
@@ -560,7 +563,7 @@ document.body.addEventListener("click", async e => {
   if (a === "addset") { ex.sets.push(mkSet()); }
   else if (a === "removeset") { ex.sets = ex.sets.filter(x=>x.id!==el.dataset.set); }
   else if (a === "removeex") { d.exercises = d.exercises.filter(x=>x.id!==el.dataset.ex); }
-  else if (a === "clear") { d.exercises.forEach(x=>x.sets.forEach(s=>s.done=false)); }
+  else if (a === "clear") { d.exercises.forEach(x=>x.sets.forEach(s=>s.done=false)); delete state.wkStart; }
   else return;
   save(); renderApp();
 });

@@ -11,7 +11,7 @@ import { save } from '../core/storage.js';
 
 import { syncFootText } from '../core/supabase.js';
 
-import { esc, fmtSecs, isTimedEx, norm, parseSecs, setText, today } from '../core/utils.js';
+import { esc, fmt, fmtSecs, isTimedEx, norm, parseSecs, setText, today } from '../core/utils.js';
 
 import { renderApp } from '../main.js';
 
@@ -172,6 +172,12 @@ function ssWrap(exs, groups, i, html){
   return out;
 }
 
+// Tiempo del entreno: desde la primera serie tildada del día (state.wkStart, lo marca
+// afterSetDone en main.js) hasta Guardar entreno de hoy.
+export function wkStarted(d){ const w=state.wkStart; return !!(w && w.date===today() && (!d || w.day===d.id)); }
+export function wkElapsedMs(){ const w=state.wkStart; return w && w.date===today() ? Math.max(0, Date.now()-w.ts) : 0; }
+export function wkElapsedText(){ return fmt(wkElapsedMs()); }
+
 export function renderEntreno(){
   const d = day();
   const total = d.exercises.reduce((a,e)=>a+e.sets.length,0);
@@ -280,6 +286,7 @@ export function renderEntreno(){
         <input class="day-name" type="text" value="${esc(d.name)}" data-action="dayname" ${routineLocked()?'readonly':''}>
         ${routineLocked()?'':`<button class="day-del" data-action="delday" title="Eliminar día">${trashSvg}</button>`}
       </div>
+      ${wkStarted(d) ? `<div class="wk-live"><span class="wk-dot"></span>Entrenando hace <b id="wkTime">${wkElapsedText()}</b></div>` : ''}
       <div class="progress-row">
         <div class="bar"><div style="width:${pct}%"></div></div>
         <span class="count">${done}/${total} series</span>

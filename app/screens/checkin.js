@@ -12,7 +12,7 @@ import { esc, fmtDate, mondayOf, parseSecs, today } from '../core/utils.js';
 
 import { renderApp } from '../main.js';
 
-import { day } from './entreno.js';
+import { day, wkElapsedMs, wkStarted } from './entreno.js';
 
 import { detectPRs } from './progreso.js';
 
@@ -32,9 +32,25 @@ export const CheckinState = {
 
   newPRs: [],
 
+  summary: null,
+
 };
 
 let _lastSaveTap=0;
+// Volumen: kg × reps de todas las series (las de solo peso corporal o por tiempo no suman).
+export function sessionVolume(exs){ return (exs||[]).reduce((a,e)=>a+(e.sets||[]).reduce((b,st)=>b+(Number(st.kg)||0)*(Number(st.reps)||0),0),0); }
+const durText = s => { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60; return h ? h+" h "+String(m).padStart(2,"0")+" min" : m ? m+" min"+(m<10&&ss?" "+ss+" s":"") : ss+" s"; };
+function renderSummary(){
+  const sm=CheckinState.summary; if(!sm) return "";
+  const n=v=>Math.round(v).toLocaleString("es-AR");
+  let cmp="";
+  if(sm.prevVol>0 && sm.vol>0){ const pc=Math.round((sm.vol-sm.prevVol)/sm.prevVol*100); cmp='<div class="sum-cmp'+(pc>0?' up':pc<0?' down':'')+'">'+(pc>0?'▲ '+pc+'% más':pc<0?'▼ '+(-pc)+'% menos':'Igual')+' volumen que la vez anterior</div>'; }
+  const cell=(v,l,big)=>'<div class="sum-cell'+(big?' big':'')+'"><b>'+v+'</b><span>'+l+'</span></div>';
+  return '<div class="sum-box"><div class="sum-grid">'+
+    (sm.dur>0 ? cell(durText(sm.dur),"Tiempo total",true) : '')+
+    cell(sm.sets,"Series")+cell(sm.exs,"Ejercicios")+cell(sm.vol>0?n(sm.vol)+' kg':'—',"Volumen")+
+    '</div>'+cmp+'</div>';
+}
 export function saveSession(){
   const d=day(); const exs=[];
   (d.exercises||[]).forEach(ex=>{
@@ -53,7 +69,14 @@ export function saveSession(){
     if(!confirm("Este entreno ya lo guardaste hoy"+(dup.ts?" (hace "+mins+" min)":"")+", con los mismos pesos y repeticiones.\n\n¿Guardarlo otra vez?")) return;
   }
   CheckinState.newPRs=detectPRs(exs, state.sessions); // contra el historial ANTES de sumar esta sesión
+  // Resumen: tiempo desde la primera serie tildada, series, volumen y la vez anterior de ese día.
+  const dur = wkStarted(d) ? Math.min(43200, Math.round(wkElapsedMs()/1000)) : 0;
+  const prev = (state.sessions||[]).slice().reverse().find(x=>x.day===d.name);
+  CheckinState.summary = { dur, sets: exs.reduce((a,e)=>a+e.sets.length,0), exs: exs.length, vol: sessionVolume(exs),
+    prevVol: prev ? sessionVolume(prev.exercises) : 0, prevDur: prev && prev.dur || 0 };
   const _ns={id:newId(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
+  if(dur>0) _ns.dur=dur;
+  delete state.wkStart;
   state.sessions.push(_ns);
   save();
   cloudInsertSession(_ns).then(ok=>{
@@ -75,8 +98,9 @@ export function renderFeedback(){
   const jp=["No","S\u00ed"].map(v=>'<button class="fb-n wide'+(f.joint===v?' on':'')+'" data-action="fb-set" data-k="joint" data-v="'+v+'">'+v+'</button>').join("");
   const prBanner = (CheckinState.newPRs&&CheckinState.newPRs.length) ? '<div class="pr-box"><div class="pr-title">'+trophySvg+' ¡Nuevo récord!</div>'+CheckinState.newPRs.map(p=>'<div class="pr-line"><span class="pr-ex">'+esc(p.name)+'</span><span class="pr-val">'+p.kg+' kg × '+p.reps+'</span><span class="pr-prev">antes '+p.prev+' kg</span></div>').join("")+'</div>' : '';
   host.innerHTML='<div class="fb-bg"></div><div class="fb-card">'+
+    '<div class="fb-title">\u00a1Entreno terminado!</div>'+
+    renderSummary()+
     prBanner+
-    '<div class="fb-title">\u00a1Entreno guardado! 💪</div>'+
     '<div class="fb-sub">Contale a tu coach c\u00f3mo te fue</div>'+
     scale("rpe","Fatiga percibida","1 = nada \u00b7 5 = al l\u00edmite")+
     scale("pump","Pump de la sesi\u00f3n","1 = nada \u00b7 5 = mucho")+

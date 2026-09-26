@@ -701,6 +701,7 @@ export function sessionFromRow(se){
   if(se.rpe) out.rpe=se.rpe;
   if(se.pump) out.pump=se.pump;
   if(typeof se.joint_pain==="boolean") out.joint=se.joint_pain;
+  if(se.duration_s>0) out.dur=se.duration_s;
   return out;
 }
 
@@ -893,7 +894,9 @@ async function sendItem(it){
     // upsert + ignoreDuplicates (ON CONFLICT DO NOTHING) con ids generados en el celular:
     // reintentar no duplica el entreno ni sus series aunque el envío anterior haya
     // llegado a medias.
-    sbOk(await sb.from("sessions").upsert({id:p.id, client_id:uid, performed_on:p.date, day_name:p.day, created_at:new Date(p.ts).toISOString()},{onConflict:"id", ignoreDuplicates:true}));
+    const row={id:p.id, client_id:uid, performed_on:p.date, day_name:p.day, created_at:new Date(p.ts).toISOString()};
+    if(p.dur>0) row.duration_s=Math.min(43200, Math.round(p.dur));
+    sbOk(await sb.from("sessions").upsert(row,{onConflict:"id", ignoreDuplicates:true}));
     if(p.entries && p.entries.length){
       sbOk(await sb.from("session_entries").upsert(p.entries.map(e=>({id:e.id, session_id:p.id, client_id:uid, exercise_name:e.name, set_order:e.order, kg:e.kg, reps:e.reps, ...(e.secs>0?{secs:e.secs}:{})})),{onConflict:"id", ignoreDuplicates:true}));
     }
