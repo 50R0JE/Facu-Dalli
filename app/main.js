@@ -50,7 +50,7 @@ import { showSilkBg } from './ui/background.js';
 
 import { parseRest, renderRestBar, resumeRest, startRest, stopRest } from './ui/restbar.js';
 
-import { initScrollReveal, setupExerciseFocus } from './ui/scrollfocus.js';
+import { anchorFocus, initScrollReveal, setupExerciseFocus } from './ui/scrollfocus.js';
 
 import { SheetState, closeSheet, collapseExerciseAnimated, renderSheet, sheetUnitFood, unitsLabel } from './ui/sheet.js';
 import { clientQuestions, questionSnapshot } from './core/questions.js';
@@ -173,6 +173,7 @@ function afterSetDone(d, ex, s){
 function goToSet(t){
   const inp=document.querySelector('[data-ex="'+CSS.escape(t.ex)+'"][data-set="'+CSS.escape(t.set)+'"]');
   const row=inp && inp.closest(".set"); if(!row) return;
+  anchorFocus(t.ex);
   row.scrollIntoView({block:"center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
   row.classList.remove("ss-next"); void row.offsetWidth; row.classList.add("ss-next");
 }

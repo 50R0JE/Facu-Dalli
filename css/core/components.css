@@ -98,8 +98,10 @@
 
 .clear:active { color: var(--txt); background: var(--card-2); }
 
+/* Atenuado y apenas más chico (.97): con .90 las filas se corrían hasta 18px bajo el dedo
+     al pasar el foco de un ejercicio a otro. */
 .card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: var(--space-16); margin-bottom: var(--space-12);
-    opacity: .45; transform: scale(.90);
+    opacity: .45; transform: scale(.97);
     transition: opacity var(--duration-frequent) var(--ease-drawer), transform var(--duration-frequent) var(--ease-drawer); }
 
 /* Sin atenuado por scroll acá a propósito: son ejercicios ya completados, una lista
