@@ -30,7 +30,8 @@ export async function checkAdmin(rerender){
 // Botón de entrada (Ajustes del cliente y Configuración del coach).
 export function adminEntry(){
   if (!AdminState.isAdmin) return "";
-  return `<button class="adm-entry" data-adm="open"><span><b>Revisar productos</b><small>Base compartida de GIZE · verificá lo que cargan los usuarios</small></span>${AdminState.pending ? `<i>${AdminState.pending}</i>` : ""}<em aria-hidden="true">›</em></button>`;
+  return `<a class="adm-entry" href="https://gize.ar/admin/" target="_blank" rel="noopener"><span><b>Panel de administración</b><small>Resumen, usuarios, coaches y pagos, avisos y seguridad</small></span><em aria-hidden="true">›</em></a>
+    <button class="adm-entry" data-adm="open"><span><b>Revisar productos</b><small>Base compartida de GIZE · verificá lo que cargan los usuarios</small></span>${AdminState.pending ? `<i>${AdminState.pending}</i>` : ""}<em aria-hidden="true">›</em></button>`;
 }
 
 function host(){ return document.getElementById("adminHost"); }
