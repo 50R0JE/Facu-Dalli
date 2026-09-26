@@ -273,7 +273,7 @@ document.body.addEventListener("click", async e => {
   const tabBtn = e.target.closest(".tab");
   if (tabBtn) tabRipple(tabBtn, e.clientX, e.clientY);
   const navBtn = e.target.closest("[data-view]");
-  if (navBtn) { State.view = navBtn.dataset.view; ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.calEditing=false; ComidaState.creatingFood=false; EntrenoState.exPicker=null; renderApp(); return; }
+  if (navBtn) { State.view = navBtn.dataset.view; ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.calEditing=false; ComidaState.planOpen=false; ComidaState.creatingFood=false; EntrenoState.exPicker=null; renderApp(); return; }
   const el = e.target.closest("[data-action]"); if(!el) return;
   const a = el.dataset.action;
   if (routineLocked() && ["addday","delday","removeex","addset","removeset","ex-add-open","ex-swap","ex-insert","ex-choose","ex-custom","load-default-routine"].indexOf(a)>=0) return;
@@ -295,6 +295,10 @@ document.body.addEventListener("click", async e => {
   if (a === "tm-reset") { CardioState.tmRunning=false; CardioState.tmFinished=false; CardioState.tmRemainingMs=CardioState.tmTarget; renderApp(); return; }
 
   // Comida
+  if (a === "plan-open") { ComidaState.planOpen=true; renderApp(); window.scrollTo(0,0); return; }
+  if (a === "plan-close") { ComidaState.planOpen=false; renderApp(); return; }
+  if (a === "plan-tab") { ComidaState.planTab=el.dataset.v; renderApp(); return; }
+  if (a === "plan-day") { ComidaState.planDay=el.dataset.v; renderApp(); return; }
   if (a === "cal-open") { ComidaState.calForm = state.calProfile ? Object.assign({sex:"m",age:"",height:"",weight:"",activity:"mod",goal:"mantener"}, state.calProfile) : {sex:"m",age:"",height:"",weight:"",activity:"mod",goal:"mantener"}; ComidaState.calEditing=true; renderApp(); return; }
   if (a === "cal-cancel") { ComidaState.calEditing=false; renderApp(); return; }
   if (a === "cal-sex") { ComidaState.calForm.sex = el.dataset.val; renderApp(); return; }
