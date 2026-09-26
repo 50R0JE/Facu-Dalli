@@ -2,12 +2,10 @@
 # y crear las cuentas demo para la revisión de Google Play.
 # Se corre a mano: Actions → "Supabase" → Run workflow → elegir la tarea.
 #
-# Corre SOLO desde main y dentro del Environment "production" (Settings → Environments):
-# ahí se configuran los revisores obligatorios, que la rama permitida sea solo main, y
-# van los secrets de abajo. Como secrets del Environment (no del repo), un workflow
-# subido en otra rama no los puede leer, y cada ejecución espera la aprobación.
+# Corre solo desde main: lanzado desde otra rama no arranca, así no se puede correr SQL
+# ni publicar funciones con código que no pasó por main.
 #
-# Secrets del Environment "production":
+# Secrets del repo (Settings → Secrets and variables → Actions):
 #   SUPABASE_ACCESS_TOKEN  obligatorio. Token de supabase.com/dashboard/account/tokens con
 #                          acceso SOLO a este proyecto: Project Settings (read), Logs (read),
 #                          Database (read-write), Edge Functions (read-write),
@@ -45,10 +43,9 @@ permissions:
 
 jobs:
   supabase:
-    # Sin esto la ejecución ni siquiera arranca desde otra rama (y no llega a pedir aprobación).
+    # Desde otra rama no arranca.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
     env:
       PROJECT_REF: wegptuzhsrwppbknqstf
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

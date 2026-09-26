@@ -10,11 +10,9 @@
 #      Si falta algo, la ejecución sale en rojo.
 #   El archivo queda 90 días en la ejecución (Artifacts → backup-base).
 #
-# Corre solo desde main, en el Environment "backup" (Settings → Environments; rama permitida:
-# solo main, sin revisores para que la copia semanal no quede esperando). Los secrets van
-# ahí y no en el repo: así un workflow subido en otra rama no puede leerlos.
+# Corre solo desde main.
 #
-# Secrets del Environment "backup":
+# Secrets (Settings → Secrets and variables → Actions):
 #   SUPABASE_DB_URL   Supabase → botón "Connect" → "Session pooler" → la URI, con la
 #                     contraseña de la base en lugar de [YOUR-PASSWORD].
 #   BACKUP_PASSWORD   una contraseña larga para cifrar las copias. Guardala aparte (gestor de
@@ -40,7 +38,6 @@ jobs:
   backup:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: backup
     env:
       DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       PASS: ${{ secrets.BACKUP_PASSWORD }}
