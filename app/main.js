@@ -280,7 +280,7 @@ document.body.addEventListener("click", async e => {
   const tabBtn = e.target.closest(".tab");
   if (tabBtn) tabRipple(tabBtn, e.clientX, e.clientY);
   const navBtn = e.target.closest("[data-view]");
-  if (navBtn) { State.view = navBtn.dataset.view; ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.calEditing=false; ComidaState.planOpen=false; ComidaState.creatingFood=false; EntrenoState.exPicker=null; renderApp(); return; }
+  if (navBtn) { State.view = navBtn.dataset.view; ComidaState.selectedFood=null; ComidaState.editEntry=null; ComidaState.calEditing=false; ComidaState.planOpen=false; ProgresoState.section=null; ComidaState.creatingFood=false; EntrenoState.exPicker=null; renderApp(); return; }
   const el = e.target.closest("[data-action]"); if(!el) return;
   const a = el.dataset.action;
   if (routineLocked() && ["addday","delday","removeex","addset","removeset","ex-add-open","ex-swap","ex-insert","ex-choose","ex-custom","load-default-routine"].indexOf(a)>=0) return;
@@ -302,6 +302,9 @@ document.body.addEventListener("click", async e => {
   if (a === "tm-reset") { CardioState.tmRunning=false; CardioState.tmFinished=false; CardioState.tmRemainingMs=CardioState.tmTarget; renderApp(); return; }
 
   // Comida
+  if (a === "psec-open") { ProgresoState.section=el.dataset.v; ProgresoState.wAll=false; renderApp(); window.scrollTo(0,0); return; }
+  if (a === "psec-close") { ProgresoState.section=null; renderApp(); window.scrollTo(0,0); return; }
+  if (a === "w-all") { ProgresoState.wAll=!ProgresoState.wAll; renderApp(); return; }
   if (a === "plan-open") { ComidaState.planOpen=true; renderApp(); window.scrollTo(0,0); return; }
   if (a === "plan-close") { ComidaState.planOpen=false; renderApp(); return; }
   if (a === "plan-tab") { ComidaState.planTab=el.dataset.v; renderApp(); return; }

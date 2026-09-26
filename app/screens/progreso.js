@@ -2,7 +2,7 @@ import { pencilSvg, xSvg } from '../core/icons.js';
 
 import { State, state } from '../core/state.js';
 
-import { esc, exMuscle, fmtDate, fmtSecs, setText, today } from '../core/utils.js';
+import { esc, exMuscle, fmtDate, fmtSecs, mondayOf, setText, today } from '../core/utils.js';
 
 import { renderCheckin, renderDaily, renderInfo } from './checkin.js';
 
@@ -13,6 +13,10 @@ import { renderSessionItem } from '../ui/sessiondetail.js';
 export const ProgresoState = {
 
   weightForm: {date: today(), kg: ""},
+
+  section: null,   // sección abierta (null: el menú de secciones)
+
+  wAll: false,     // historial de peso completo (si no, los últimos 5)
 
 };
 
@@ -170,8 +174,16 @@ export function detectPRs(newExercises, priorSessions){
 
 export function allSetsDone(ex){ return (ex.sets||[]).length>0 && ex.sets.every(s=>s.done); }
 
-export function renderProgreso(){
-  const ws=(state.weights||[]).slice().sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
+// Progreso: un menú de secciones (como «Mi plan» en Comida). Cada tarjeta muestra un
+// resumen y abre su propia pantalla, así la página no se hace eterna.
+const SECTIONS = [
+  ["peso", "Peso corporal"], ["registro", "Registro de hoy"], ["checkin", "Check-in semanal"],
+  ["historial", "Historial de entrenos"], ["cargas", "Evolución de cargas"], ["volumen", "Volumen semanal"], ["ficha", "Mi ficha"],
+];
+const sortedWeights = () => (state.weights||[]).slice().sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
+
+function renderPeso(){
+  const ws=sortedWeights();
   const latest=ws.length?ws[ws.length-1]:null, prev=ws.length>1?ws[ws.length-2]:null;
   let header;
   if(latest){
@@ -182,22 +194,56 @@ export function renderProgreso(){
     header=`<div class="cal-hint" style="padding:20px 8px">Todavía no cargaste tu peso. Empezá registrando el de hoy acá abajo.</div>`;
   }
   const chart=ws.length?renderWChart(ws):"";
-  const list=ws.length?ws.slice().reverse().map(e=>`<div class="w-item" data-action="weight-edit" data-id="${esc(e.id)}"><div class="w-date">${fmtDate(e.date)}</div><div class="w-kg">${e.kg.toFixed(1)} kg</div><button class="diary-rm" data-action="weight-remove" data-id="${esc(e.id)}" title="Borrar">${xSvg}</button></div>`).join(""):"";
-  return `
-    <div class="hb-head"><div class="hb-title">Peso corporal</div><div class="title-accent"></div></div>
-    ${header}
+  // El historial muestra los últimos 5; el resto, con «Ver todo».
+  const rev=ws.slice().reverse(), shown=ProgresoState.wAll?rev:rev.slice(0,5);
+  const list=shown.map(e=>`<div class="w-item" data-action="weight-edit" data-id="${esc(e.id)}"><div class="w-date">${fmtDate(e.date)}</div><div class="w-kg">${e.kg.toFixed(1)} kg</div><button class="diary-rm" data-action="weight-remove" data-id="${esc(e.id)}" title="Borrar">${xSvg}</button></div>`).join("");
+  const more=rev.length>5 ? `<button class="w-more" data-action="w-all">${ProgresoState.wAll?'Ver menos':'Ver todo el historial ('+rev.length+')'}</button>` : '';
+  return `${header}
     ${chart}
     <div class="w-form">
       <input id="wDate" class="form-input" type="date" value="${ProgresoState.weightForm.date}" data-action="wdate-field" style="flex:1">
       <input id="wKg" class="form-input" type="text" inputmode="decimal" placeholder="kg" value="${esc(ProgresoState.weightForm.kg)}" style="width:88px" data-action="wkg-field">
       <button class="form-save" style="width:auto;padding:0 18px;margin-top:0" data-action="weight-save">Guardar</button>
     </div>
-    ${list?`<div class="w-list-head">Historial de peso</div>${list}`:""}
-    ${renderCargas()}
-    ${renderHistorial()}
-    ${renderInfo()}
-    ${renderDaily()}
-    ${renderCheckin()}
-    ${renderVolumen()}
+    ${list?`<div class="w-list-head">Historial de peso</div>${list}${more}`:""}`;
+}
+
+function sectionBody(id){
+  const empty = t => `<div class="cal-hint" style="padding:20px 8px">${t}</div>`;
+  if(id==="peso") return renderPeso();
+  if(id==="registro") return renderDaily();
+  if(id==="checkin") return renderCheckin();
+  if(id==="historial") return renderHistorial() || empty("Todavía no guardaste entrenos. Al terminar uno, tocá «Guardar entreno de hoy» en Entreno.");
+  if(id==="cargas") return renderCargas() || empty("Cuando guardes entrenos con kg, acá vas a ver cómo suben tus cargas en cada ejercicio.");
+  if(id==="volumen") return renderVolumen() || empty("Armá tu rutina en Entreno y acá vas a ver cuántas series hacés por grupo muscular.");
+  if(id==="ficha") return renderInfo() || empty("Tu coach todavía no completó tu ficha.");
+  return "";
+}
+
+// Resumen de cada tarjeta del menú: [texto, pendiente?]
+function sectionSummary(id){
+  if(id==="peso"){ const ws=sortedWeights(); if(!ws.length) return ["Sin registros", true]; const l=ws[ws.length-1], p=ws.length>1?ws[ws.length-2]:null; const d=p?l.kg-p.kg:0; return [l.kg.toFixed(1).replace(".",",")+" kg"+(p&&Math.abs(d)>=0.05?(d>0?" · ▲ ":" · ▼ ")+Math.abs(d).toFixed(1).replace(".",","):""), false]; }
+  if(id==="registro") return (state.daily||{})[today()] ? ["Cargado hoy ✓", false] : ["Pendiente de hoy", true];
+  if(id==="checkin") return (state.checkins||{})[mondayOf(today())] ? ["Enviado esta semana ✓", false] : ["Pendiente esta semana", true];
+  if(id==="historial"){ const n=(state.sessions||[]).length; if(!n) return ["Sin entrenos todavía", false]; const last=(state.sessions||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0))[0]; return [n+" entreno"+(n===1?"":"s")+" · último "+fmtDate(last.date), false]; }
+  if(id==="cargas"){ const n=exercisesInHistory().length; return [n?n+" ejercicio"+(n===1?"":"s"):"Sin datos todavía", false]; }
+  if(id==="volumen"){ let t=0; (state.days||[]).forEach(d=>(d.exercises||[]).forEach(ex=>{ t+=(ex.sets||[]).length; })); return [t?t+" series por semana":"Sin rutina", false]; }
+  if(id==="ficha") return [state.info?"Tus datos y objetivos":"Sin completar", false];
+  return ["", false];
+}
+
+export function renderProgreso(){
+  const sec = SECTIONS.find(x => x[0] === ProgresoState.section);
+  if(sec){
+    return `<div class="form-head"><button class="form-back" data-action="psec-close" aria-label="Volver a Progreso">‹</button><div class="form-title">${sec[1]}</div></div>
+      <div class="psec">${sectionBody(sec[0])}</div>`;
+  }
+  const tiles = SECTIONS.map(([id, title]) => {
+    const [sum, pend] = sectionSummary(id);
+    return `<button class="ptile${pend?' pend':''}" data-action="psec-open" data-v="${id}"><span class="ptile-t">${title}</span><span class="ptile-s">${pend?'<i></i>':''}${esc(sum)}</span><span class="ptile-go" aria-hidden="true">›</span></button>`;
+  }).join("");
+  return `
+    <div class="hb-head"><div class="hb-title">Progreso</div><div class="title-accent"></div></div>
+    <div class="ptiles">${tiles}</div>
     ${(State.cloudProfile && State.cloudProfile.role!=="coach" && !State.cloudProfile.coach_id) ? '<div class="join-box"><div class="join-t">Vinculate a tu coach</div><div class="join-row"><input id="joinCode" class="form-input" placeholder="Código del coach"><button class="form-save join-btn" data-auth="join">Vincular</button></div></div>' : ''}`;
 }
