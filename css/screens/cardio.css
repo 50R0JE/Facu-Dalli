@@ -11,12 +11,12 @@
 .cneon { position: absolute; inset: 0; border-radius: 50%; }
 .cneon i { position: absolute; inset: 0; border-radius: 50%;
   background: conic-gradient(from var(--gize-angle), var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4), var(--gize-r1));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
   animation: gize-spin 7s linear infinite; }
-.cneon.glow { filter: blur(14px); opacity: .45; transition: opacity .4s ease; }
-.cneon.glow i { -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 10px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 10px)); }
+.cneon.glow { filter: blur(10px); opacity: .45; transition: opacity .4s ease; }
+.cneon.glow i { -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 calc(100% - 5px)); }
 .cring.run .cneon i { animation-duration: 2.6s; }
 .cring.run .cneon.glow { opacity: .85; }
 .cring.fin .cneon i { background: var(--gize-success); }
