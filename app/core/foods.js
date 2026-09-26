@@ -20,6 +20,7 @@
 // polenta 5 · burgol 3,9 · carne vacuna y cerdo 0,72 · pollo 0,73 · pescado 0,8 · papa 0,87.
 
 import { EXTRA_SECTIONS } from './foods-extra.js';
+import { AR_SECTIONS } from './foods-ar.js';
 
 const C_VAC = 0.72, C_POLLO = 0.73, C_PESC = 0.8, C_PAPA = 0.87;
 
@@ -527,9 +528,9 @@ export const FOOD_SECTIONS = [
 ]],
 ];
 
-// La ampliación (./foods-extra.js) se suma a la categoría del mismo nombre o, si es
-// nueva, se agrega al final.
-EXTRA_SECTIONS.forEach(([cat, rows]) => {
+// Las ampliaciones (./foods-extra.js y las comidas típicas y de cadenas de ./foods-ar.js) se
+// suman a la categoría del mismo nombre o, si es nueva, se agregan al final.
+[...EXTRA_SECTIONS, ...AR_SECTIONS].forEach(([cat, rows]) => {
   const sec = FOOD_SECTIONS.find(s => s[0] === cat);
   if (sec) sec[1].push(...rows); else FOOD_SECTIONS.push([cat, rows]);
 });
