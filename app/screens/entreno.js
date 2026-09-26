@@ -158,6 +158,7 @@ export function renderDayNotes(d){
 
 // Superserie: los ejercicios unidos van dentro de un recuadro con su letra y la indicación.
 const linkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+const unlinkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 14.5 7 17a3.5 3.5 0 0 1-5-5l2.5-2.5M14.5 9.5 17 7a3.5 3.5 0 0 1 5 5l-2.5 2.5M8 2v3M2 8h3M16 22v-3M22 16h-3"/></svg>';
 function ssWrap(exs, groups, i, html){
   const g = groups.find(x => i >= x.start && i <= x.end);
   if (!g) return html;
@@ -165,7 +166,7 @@ function ssWrap(exs, groups, i, html){
   const m = html.match(/^<div class="ex-gap">[\s\S]*?<\/div>/);
   const gap = m ? m[0] : '', body = html.slice(gap.length);
   let out;
-  if (i === g.start) out = gap + `<div class="ss-group"><div class="ss-head"><span class="ss-badge">${linkSvg}${ssName(g)} ${g.letter}</span><span class="ss-hint">Hacé una serie de cada uno, sin descanso entre medio. Descansá al terminar la vuelta.</span></div>` + body;
+  if (i === g.start) out = gap + `<div class="ss-group"><div class="ss-head"><div class="ss-top"><span class="ss-badge">${linkSvg}${ssName(g)} ${g.letter}</span>${routineLocked()?'':`<button class="ss-split" data-action="ss-split" data-i="${g.start}">${unlinkSvg}Separar</button>`}</div><span class="ss-hint">Hacé una serie de cada uno, sin descanso entre medio. Descansá al terminar la vuelta.</span></div>` + body;
   else out = gap + `<div class="ss-div" aria-hidden="true"><span>sin descanso</span></div>` + body;
   if (i === g.end) out += '</div>';
   return out;

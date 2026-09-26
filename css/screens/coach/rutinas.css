@@ -336,3 +336,7 @@
 .co-ss-group .co-gap { padding-top:2px; }
 .co-ss-group .ss-div { padding:0 2px; margin:0 0 8px; }
 .co-exc-ord.ss { color:var(--gize-text); background:linear-gradient(135deg, var(--gize-r1), var(--gize-r2)); }
+.co-ss-split { margin-left:auto; padding:3px 10px; border-radius:999px; background:none; border:1px solid var(--border); color:var(--txt-2);
+  font:600 11px var(--gize-font); text-transform:none; letter-spacing:0; cursor:pointer; }
+.co-ss-split:hover { border-color:var(--blue); color:var(--gize-text); }
+.co-ss-head span { flex-basis:100%; }

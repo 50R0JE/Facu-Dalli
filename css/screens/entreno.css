@@ -217,3 +217,9 @@ body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; 
 .set.ss-next { animation: ssNext 1.2s ease-out; border-radius: 8px; }
 @keyframes ssNext { 0%, 30% { background: color-mix(in srgb, var(--gize-blue) 22%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gize-blue) 60%, transparent); } 100% { background: transparent; box-shadow: none; } }
 @media (prefers-reduced-motion: reduce) { .set.ss-next { animation: none; } }
+.ss-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; align-self: stretch; }
+.ss-top .ss-split { margin-left: auto; }
+.ss-split { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: var(--gize-radius-pill); background: none;
+  border: 1px solid var(--border); color: var(--txt-2); font: 600 var(--text-meta) var(--gize-font); cursor: pointer; }
+.ss-split svg { width: 13px; height: 13px; }
+.ss-split:active { border-color: var(--blue); color: var(--gize-text); }
