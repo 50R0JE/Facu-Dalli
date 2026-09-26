@@ -43,9 +43,6 @@
 .pl-wall-t { font-size:clamp(26px,5vw,34px); font-weight:700; color:var(--txt); margin-bottom:8px; }
 .pl-wall-s { font-size:15px; color:var(--txt-2); max-width:520px; margin:0 auto 14px; line-height:1.5; }
 
-/* Registro: aviso de la prueba gratis al elegir "Soy coach" */
-.auth-trial { margin-top:8px; font-size:13px; color:var(--gize-success); text-align:center; }
-
 /* Sello de Mercado Pago debajo de los planes */
 .pl-mp { display:flex; justify-content:center; margin-top:14px; }
 .mp-badge { display:inline-flex; align-items:center; gap:10px; padding:6px 14px 6px 6px; border-radius:999px;
