@@ -1,4 +1,4 @@
-import { auIcoEye, auIcoLock, auIcoMail, auIcoTicket, auIcoUser } from '../core/icons.js';
+import { auIcoEye, auIcoLock, auIcoMail, auIcoUser } from '../core/icons.js';
 
 import { hideSilkBg, startAuthParticles, stopAuthParticles } from '../ui/background.js';
 
@@ -34,8 +34,9 @@ export function showLogin(msg, mode, vals){
         '<button type="button" class="auth-role-opt'+(role==="coach"?" active":"")+'" data-auth-role="coach" role="radio" aria-checked="'+(role==="coach")+'">Soy coach</button>'+
       '</div>'+
       '<input id="auRole" type="hidden" value="'+role+'">'+
-      (role==="coach"?'<div class="auth-trial">14 días gratis para probar todo · sin tarjeta</div>':'')+
     '</div>' : "";
+  // El aviso de la prueba y el código del coach ya no van acá: aparecen en la bienvenida
+  // del primer ingreso (screens/onboarding.js), para no cargar el registro.
   host.innerHTML =
     '<div class="gize-aurora auth-aurora" aria-hidden="true"><span></span><span></span><span></span><span></span></div>'+
     '<canvas class="auth-particles" aria-hidden="true"></canvas>'+
@@ -48,7 +49,6 @@ export function showLogin(msg, mode, vals){
       field("auEmail", auIcoMail, "", "Email (ej: nombre@gmail.com)", "email", "username", vals.email)+
       field("auPass", auIcoLock, "pass", "Contraseña (mínimo 6)", "password", isUp?"new-password":"current-password", "")+
       (isUp?"":'<button type="button" class="auth-forgot" data-auth="to-forgot" style="animation-delay:'+nextDelay()+'">¿Olvidaste tu contraseña?</button>')+
-      (isUp&&role==="client"?field("auCode", auIcoTicket, "", "Código de tu coach (opcional)", "text", "off", vals.code):"")+
       '<label class="auth-remember" style="animation-delay:'+nextDelay()+'">'+
         '<input id="auRemember" type="checkbox"'+(rememberSession()?" checked":"")+'>'+
         '<span class="auth-remember-box" aria-hidden="true"></span>'+

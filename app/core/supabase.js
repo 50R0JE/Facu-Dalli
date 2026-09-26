@@ -17,6 +17,8 @@ import { renderApp } from '../main.js';
 
 import { hideLogin, showLogin } from '../screens/auth.js';
 
+import { maybeShowOnboarding } from '../screens/onboarding.js';
+
 import { CheckinState } from '../screens/checkin.js';
 
 import { routineLocked } from '../screens/entreno.js';
@@ -501,6 +503,7 @@ export async function afterLogin(sessionUser){
   applyBrand();
   if (State.cloudProfile && State.cloudProfile.role==="coach"){ await Promise.all([loadCoachClients(), loadCoachQuestions().catch(()=>{})]); renderCoach(); checkPaymentReturn(); syncPush(); }
   else { renderApp(); syncPush(); } // sin await: no demora la entrada
+  maybeShowOnboarding(); // cuenta nueva: bienvenida (una sola vez), encima de la app
 }
 
 export async function loadCloud(){
