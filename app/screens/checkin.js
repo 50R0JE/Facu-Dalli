@@ -172,7 +172,11 @@ export function renderCheckin(){
     </div>`;
 }
 
-export function renderClientPlan(p){
+// Partes del plan de comidas del coach, para la pantalla «Mi plan» (app/screens/comida.js):
+// tablas de días de entreno y de descanso, agua y sal, pautas (pautas, suplementos,
+// adicionales, reemplazos) y las opciones de comidas, cada una por separado (plegables).
+export function planSections(p){
+  if(!p) return null;
   if(!p) return "";
   const meals=(rows,title)=>{
     if(!rows || !rows.length) return "";
@@ -188,19 +192,19 @@ export function renderClientPlan(p){
   const secHasContent = sec => (sec.title&&sec.title.trim()) || (sec.opts&&sec.opts.some(o=>(o.label&&o.label.trim())||(o.body&&o.body.trim()))) || (sec.items&&sec.items.some(i=>i&&i.trim()));
   const validSecs = (p.options||[]).filter(secHasContent);
   const bodyToList = body => { const parts=String(body).split(/\r?\n/).map(x=>x.trim()).filter(Boolean); if(parts.length<=1) return '<div class="mc-optbody">'+esc(body)+'</div>'; return '<ul class="mc-optitems">'+parts.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>'; };
-  const opts = validSecs.length ? '<div class="mc-opthead">🍽️ Opciones de comidas</div>'+validSecs.map(sec=>{
+  const swaps=(p.swaps&&p.swaps.length)?'<div class="mc-block"><div class="mc-title">🔁 Reemplazos</div>'+p.swaps.filter(s=>s.from||s.to).map(s=>'<div class="mc-swap"><span>'+esc(s.from||"")+'</span><span class="mc-arr">\u2192</span><span>'+esc(s.to||"")+'</span></div>').join("")+'</div>':'';
+  const optList = validSecs.map(sec=>{
     let inner;
     if(sec.opts && sec.opts.length){
-      inner = sec.opts.filter(o=>(o.label&&o.label.trim())||(o.body&&o.body.trim())).map((o,k)=>'<div class="mc-optrow c-xl">'+(o.label?'<div class="mc-optlabel">'+esc(o.label)+'</div>':'')+(o.body?bodyToList(o.body):'')+'</div>').join("");
+      inner = sec.opts.filter(o=>(o.label&&o.label.trim())||(o.body&&o.body.trim())).map(o=>'<div class="mc-optrow c-xl">'+(o.label?'<div class="mc-optlabel">'+esc(o.label)+'</div>':'')+(o.body?bodyToList(o.body):'')+'</div>').join("");
     } else {
       inner = '<ul class="mc-optitems">'+(sec.items||[]).filter(i=>i&&i.trim()).map(i=>'<li>'+esc(i)+'</li>').join("")+'</ul>';
     }
-    return '<div class="mc-block mc-optcard"><div class="mc-optt">'+esc(sec.title||"")+'</div>'+inner+'</div>';
-  }).join("") : '';
-  const swaps=(p.swaps&&p.swaps.length)?'<div class="mc-block"><div class="mc-title">🔁 Reemplazos</div>'+p.swaps.filter(s=>s.from||s.to).map(s=>'<div class="mc-swap"><span>'+esc(s.from||"")+'</span><span class="mc-arr">\u2192</span><span>'+esc(s.to||"")+'</span></div>').join("")+'</div>':'';
-  const out = meals(p.trainDays,"Días de entrenamiento")+meals(p.restDays,"Días de descanso")+ws+
-    list(p.guidelines,"Pautas nutricionales",copySvg,"mc-green")+list(p.supps,"Suplementos recomendados",pillSvg)+
-    opts+list(p.extras,"Adicionales","\u2795")+swaps;
-  if(!out) return "";
-  return '<div class="hb-head" style="margin-top:20px"><div class="hb-title">Plan de comidas de tu coach</div><div class="title-accent"></div></div><div class="mc-wrap">'+out+'</div>';
+    return { title: sec.title||"Opciones", html: inner };
+  });
+  return {
+    train: meals(p.trainDays,"Días de entrenamiento"), rest: meals(p.restDays,"Días de descanso"), ws,
+    pautas: list(p.guidelines,"Pautas nutricionales",copySvg,"mc-green")+list(p.supps,"Suplementos recomendados",pillSvg)+list(p.extras,"Adicionales","\u2795")+swaps,
+    options: optList
+  };
 }

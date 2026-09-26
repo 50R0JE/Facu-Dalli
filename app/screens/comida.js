@@ -16,7 +16,7 @@ import { foodEmoji } from '../core/foodemoji.js';
 
 import { foodUnit } from '../core/foodunits.js';
 
-import { renderClientPlan } from './checkin.js';
+import { planSections } from './checkin.js';
 
 // Nombre sin la aclaración de la unidad, que ya muestra la hoja del alimento:
 // "Pan lactal blanco (1 rebanada ≈ 25 g)" → "Pan lactal blanco". Las demás aclaraciones
@@ -48,6 +48,9 @@ export const ComidaState = {
 
   // Hidratación con todas sus opciones a la vista.
   waterOpen: false,
+  planOpen: false,   // pantalla «Mi plan» (plan de comidas del coach)
+  planTab: "comidas",
+  planDay: null,     // "entreno" | "descanso" (null: entreno)
 
   calEditing: false,
 
@@ -297,6 +300,7 @@ export function renderSearchSheet(){
 
 export function renderComida(){
   if (ComidaState.calEditing) return renderCalForm();
+  if (ComidaState.planOpen && state.coachPlan) return renderPlanScreen();
   if (ComidaState.creatingFood) return renderFoodForm();
   if (!state.calTarget && !state.coachPlan) {
     return `<div class="cal-empty">
@@ -317,14 +321,14 @@ export function renderComida(){
       <div class="day-lbl"><b>${dayLabel(vd)}</b><span>${vd===td ? dayShort(vd) : (dayLabel(vd)===dayShort(vd) ? "Día anterior" : dayShort(vd))}</span></div>
       <button class="day-arrow" data-action="day-next" aria-label="Día siguiente"${past?'':' disabled'}>›</button>
     </div>`;
-  // planFull/planBanner se calculan acá (ya con coachPlan cargado) pero se insertan al
-  // final del return, no acá arriba: el plan escrito por el coach puede ser largo
-  // (varias tablas de comidas, opciones, reemplazos) y antes iba primero en la pantalla,
-  // empujando el anillo de calorías y el diario —lo que el cliente usa a diario— bajo
-  // todo ese texto de referencia. Ahora el uso diario queda arriba sin interrupciones y
-  // el plan completo del coach como lectura al final.
-  const planFull = (state.coachPlan && state.coachPlan.plan) ? renderClientPlan(state.coachPlan.plan) : '';
-  const planBanner = state.coachPlan ? `<div class="plan-banner"><div class="plan-t">Plan de tu coach</div><div class="plan-macros"><span><b>${(+state.coachPlan.kcal||0)||"-"}</b> kcal</span><span><b>${(+state.coachPlan.protein||0)||"-"}</b>P</span><span><b>${(+state.coachPlan.carbs||0)||"-"}</b>C</span><span><b>${(+state.coachPlan.fat||0)||"-"}</b>G</span></div>${state.coachPlan.notes?`<div class="plan-notes">${esc(state.coachPlan.notes)}</div>`:''}</div>` : '';
+  // El plan del coach tiene su propia pantalla («Mi plan»): acá abajo queda solo una tarjeta
+  // compacta con las calorías y macros, así Comida es solo lo del día.
+  const cp = state.coachPlan;
+  const planCard = cp ? `<button class="plan-card" data-action="plan-open">
+      <span class="plan-card-t">Plan de tu coach</span>
+      <span class="plan-card-m">${(+cp.kcal||0) ? `<b>${(+cp.kcal).toLocaleString("es-AR")}</b> kcal` : ''}${[["P",cp.protein],["C",cp.carbs],["G",cp.fat]].filter(x=>+x[1]).map(x=>`<span class="pcm">${x[0]} <b>${+x[1]}</b></span>`).join("")}</span>
+      <span class="plan-card-go">Ver plan<span aria-hidden="true">›</span></span>
+    </button>` : '';
   const wml = state.water||0, wgoal = state.waterGoal||3000, wpct = wgoal?Math.min(Math.round(wml/wgoal*100),100):0;
   const Lstr = v => (v/1000).toLocaleString("es-AR",{maximumFractionDigits:2});
   const pct = t ? Math.min(tot.kcal/t, 1) : 0;
@@ -395,8 +399,7 @@ export function renderComida(){
         <button class="water-goal" data-action="water-goal">Meta: ${Lstr(wgoal)} L</button>
       </div>` : ""}
     </div>
-    ${planBanner}
-    ${planFull}
+    ${planCard}
     </div>`}`;
 }
 
@@ -458,3 +461,33 @@ export function weekKcal(){
   return vals.length ? { avg: Math.round(vals.reduce((a,b)=>a+b,0)/vals.length), days: vals.length } : null;
 }
 
+
+// «Mi plan»: el plan de comidas del coach en su propia pantalla, con tres pestañas.
+//   · Comidas: la tabla del día, con Día de entreno / Día de descanso (arranca en entreno).
+//   · Opciones: las opciones de comidas, cada una plegable.
+//   · Pautas: pautas, suplementos, agua y sal, adicionales y reemplazos.
+export function renderPlanScreen(){
+  const cp = state.coachPlan || {}, ps = planSections(cp.plan) || { train: "", rest: "", ws: "", pautas: "", options: [] };
+  const tabs = [["comidas", "Comidas", ps.train || ps.rest], ["opciones", "Opciones", ps.options.length], ["pautas", "Pautas", ps.pautas || ps.ws]].filter(t => t[2]);
+  let tab = ComidaState.planTab; if (!tabs.some(t => t[0] === tab)) tab = tabs.length ? tabs[0][0] : "";
+  const dayType = ComidaState.planDay || (ps.train ? "entreno" : "descanso");
+  const macro = (v, l) => +v ? `<div><b>${(+v).toLocaleString("es-AR")}</b><span>${l}</span></div>` : '';
+  let body = "";
+  if (tab === "comidas"){
+    const seg = (ps.train && ps.rest) ? `<div class="seg plan-seg"><button class="${dayType==="entreno"?'on':''}" data-action="plan-day" data-v="entreno">Día de entreno</button><button class="${dayType==="descanso"?'on':''}" data-action="plan-day" data-v="descanso">Día de descanso</button></div>` : '';
+    body = seg + (dayType === "entreno" ? (ps.train || ps.rest) : (ps.rest || ps.train));
+  } else if (tab === "opciones"){
+    body = `<div class="plan-hint">Tocá cada comida para ver sus opciones.</div>` + ps.options.map(o => `<details class="plan-acc"><summary><span>${esc(o.title)}</span><i aria-hidden="true"></i></summary><div class="plan-acc-b">${o.html}</div></details>`).join("");
+  } else if (tab === "pautas"){
+    body = (ps.ws || "") + ps.pautas;
+  }
+  return `
+    <div class="form-head"><button class="form-back" data-action="plan-close" aria-label="Volver a Comida">‹</button><div class="form-title">Mi plan</div></div>
+    <div class="plan-top">
+      <div class="plan-top-t">Plan de tu coach</div>
+      <div class="plan-top-m">${macro(cp.kcal, "kcal")}${macro(cp.protein, "Proteína")}${macro(cp.carbs, "Carbos")}${macro(cp.fat, "Grasas")}</div>
+      ${cp.notes ? `<div class="plan-top-n">${esc(cp.notes)}</div>` : ''}
+    </div>
+    ${tabs.length > 1 ? `<div class="plan-tabs" role="tablist">${tabs.map(t => `<button role="tab" aria-selected="${t[0]===tab}" class="plan-tab${t[0]===tab?' on':''}" data-action="plan-tab" data-v="${t[0]}">${t[1]}</button>`).join("")}</div>` : ''}
+    <div class="mc-wrap plan-body">${body || '<div class="cal-hint">Tu coach todavía no cargó el detalle del plan.</div>'}</div>`;
+}
