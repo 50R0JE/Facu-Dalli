@@ -192,7 +192,7 @@ function renderSuggestion(ex, timed){
     const canUse = ex.sets.some((s, i) => !s.done && kgs[i] > 0 && String(s.kg||"") !== String(kgs[i]));
     return `<div class="prog-sug coach"><span class="ps-ic">${upSvg}</span><div class="ps-txt"><span class="ps-lbl">Tu coach propone</span> <b>${esc(txt)}</b>${same?'':'<span class="ps-why">Peso de cada serie.</span>'}</div>${canUse?`<button class="ps-use" data-action="sug-use" data-ex="${esc(ex.id)}" data-coach="1">Usar</button>`:''}</div>`;
   }
-  if (ex.noSug) return "";
+  if (ex.noSug || state.days.some(x => x && x.noSug)) return "";
   const prev = lastSessionFor(ex.name); if (!prev) return "";
   const sg = suggest(ex, prev.sets, timed); if (!sg) return "";
   const canUse = sg.kg != null && ex.sets.some(s => !s.done && String(s.kg||"") !== String(sg.kg));

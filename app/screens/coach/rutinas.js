@@ -11,7 +11,8 @@ import { migrateNames } from '../../core/storage.js';
 
 import { esc, isTimedEx, mkEx, muscleOf, today } from '../../core/utils.js';
 
-import { coachDatalist, exChart, exSummary, exTable } from './clientes.js';
+import { coachDatalist, coachLogFor, exChart, exSummary, exTable } from './clientes.js';
+import { kgText, suggest } from '../../core/progresion.js';
 
 import { renderCoach } from './index.js';
 
@@ -332,20 +333,24 @@ function exerciseCard(d, day, ex, i, rt){
       act("rt-dup", copySvg, "Duplicar")+act("rt-del", trashSvg, "Quitar", " danger")+
     '</div>';
 
+  // Lo que hizo el cliente la última vez en este ejercicio (primero en este mismo día, si no
+  // en cualquiera): se ve arriba de las series y como pista dentro de cada peso propuesto.
+  const log=coachLogFor(d.sessions, day.name, ex.name); const lastLog=log[0] || coachLogFor(d.sessions, null, ex.name)[0] || null;
+  const prevSet=j=>lastLog && lastLog.sets[j] ? lastLog.sets[j] : null;
+  const setTxt=st=>st.secs>0 ? st.secs+' s' : (st.kg>0 ? kgText(st.kg)+' kg × '+st.reps : st.reps+' reps');
   const sets=(ex.sets||[]).map((st,j)=>
     '<div class="co-set-row">'+
       '<span class="co-set-n">'+(j+1)+'</span>'+
       '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="'+(timed?'45 s':'8-10')+'" aria-label="'+(timed?'Tiempo':'Reps')+' objetivo, serie '+(j+1)+'">'+
-      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="kg" aria-label="Peso objetivo, serie '+(j+1)+'">'+
+      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="'+(prevSet(j)&&prevSet(j).kg>0 ? 'antes '+kgText(prevSet(j).kg) : 'kg')+'" aria-label="Peso propuesto, serie '+(j+1)+'">'+
       '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie" aria-label="Quitar serie '+(j+1)+'">\u2715</button>'+
     '</div>').join("");
   const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>'+(timed?'Tiempo objetivo':'Reps objetivo')+'</span><span>'+(timed?'Peso (opcional)':'Peso propuesto')+'</span><span></span></div>'+sets : '';
-  // Propuesta de peso: si el coach carga el peso de las series, el cliente ve «Tu coach
-  // propone…» con «Usar»; si no, la sugerencia automática de GIZE (se puede apagar).
-  const hasKg=(ex.sets||[]).some(st=>parseFloat(String(st.targetKg||"").replace(",","."))>0);
-  const sugBox=nSets ? '<div class="co-sug">'+
-      '<div class="co-sug-txt">'+(hasKg ? '<b>El cliente ve tu peso propuesto</b> y lo pone con un toque.' : '<b>Sin peso propuesto:</b> '+(ex.noSug ? 'el cliente no ve ninguna sugerencia.' : 'GIZE le sugiere el peso según su última vez.'))+'</div>'+
-      (hasKg ? '' : '<button type="button" class="co-sug-tg'+(ex.noSug?'':' on')+'" data-coach="rt-nosug" data-i="'+i+'" role="switch" aria-checked="'+(!ex.noSug)+'"><span></span>Sugerencia automática</button>')+
+  // Última vez del cliente + la sugerencia de GIZE para cargarla de un toque como propuesta.
+  const sg=lastLog ? suggest(ex, lastLog.sets, timed) : null;
+  const lastBox=nSets ? '<div class="co-last">'+
+      (lastLog ? '<div class="co-last-t">Última vez ('+esc(fmtShort(lastLog.date))+')</div><div class="co-last-sets">'+lastLog.sets.map(st=>'<span>'+esc(setTxt(st))+'</span>').join('')+'</div>' : '<div class="co-last-t">Todavía no hizo este ejercicio.</div>')+
+      (sg && sg.kg ? '<button type="button" class="co-last-use" data-coach="rt-sug-fill" data-i="'+i+'" data-kg="'+sg.kg+'">Proponer '+esc(kgText(sg.kg))+' kg <small>('+esc(coachWhy(sg.why))+')</small></button>' : '')+
     '</div>' : '';
   const prog=exSummary(d, day.name, ex.name);
   const field=(lbl, a, v, ph, cls)=>'<label class="co-pfield"><span class="co-note-lbl">'+lbl+'</span><input class="co-pin'+(cls||"")+'" data-coach="'+a+'" data-i="'+i+'" value="'+esc(v||"")+'" placeholder="'+ph+'"></label>';
@@ -366,7 +371,7 @@ function exerciseCard(d, day, ex, i, rt){
           field("Descanso","rt-rest",ex.rest,"90 seg")+
         '</div>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder="Ej: sumar 1 rep por semana"></div>'+
-        setsTbl+sugBox+
+        lastBox+setsTbl+
         '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><textarea class="co-note co-note-area" rows="2" data-coach="rt-note" data-i="'+i+'" placeholder="Técnica, tempo, qué cuidar…">'+esc(ex.note||"")+'</textarea></div>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Link de video</span><input class="co-note" type="url" inputmode="url" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="Pegá el link de YouTube o Instagram">'+libVideoHint(ex)+'</div>'+
@@ -377,6 +382,9 @@ function exerciseCard(d, day, ex, i, rt){
 
 const linkSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
 
+// El motivo de la sugerencia está escrito para el cliente; en el editor se lee en tercera persona.
+const coachWhy=w=>String(w).replace(/^Llegaste/,"Llegó").replace(/^La vez pasada hiciste/,"La vez pasada hizo").replace(/^La vez pasada aguantaste/,"La vez pasada aguantó").replace(/^Completá/,"Le falta completar").replace(/^Mismo peso que la vez pasada, una rep más\./,"Mismo peso, una rep más.").replace(/: subí el peso\./,": subir el peso.").replace(/: sumá una más\./,": una más.").replace(/: sumá 5 segundos\./,": 5 segundos más.").replace(/ antes de subir\.$/," antes de subir.");
+const fmtShort=dt=>{ const p=String(dt||"").split("-"); return p.length===3 ? (+p[2])+"/"+(+p[1]) : dt; };
 export function renderCoachRoutine(d){
   const rt=d.routine||[];
   if(!rt.length) return '<div class="co-sec">Rutina y progreso</div><div class="cal-hint">El cliente todav\u00eda no tiene rutina.</div><button class="co-add-day" data-coach="day-add">+ Agregar d\u00eda</button>';
@@ -413,6 +421,9 @@ export function renderCoachRoutine(d){
       '<div class="co-daystats"><span class="co-stat"><b>'+totalEx+'</b> ejercicio'+(totalEx===1?'':'s')+'</span><span class="co-stat"><b>'+totalSets+'</b> serie'+(totalSets===1?'':'s')+' en total</span></div>'+
       '<div class="co-note-wrap"><span class="co-note-lbl">Nota general de este d\u00eda (la ve el cliente al entrar)</span><input class="co-note" data-coach="day-note" value="'+esc(day.note||"")+'" placeholder=""></div>'+
     '</div>'+
+    // Sugerencia automática de peso: una sola llave para toda la rutina (la ve el cliente en
+    // cada ejercicio sin peso propuesto). Se guarda como noSug en los días.
+    (()=>{ const off=rt.some(x=>x.noSug); return '<div class="co-sug-all"><div class="co-sug-txt"><b>Sugerencia automática de peso</b>'+(off?'Apagada: el cliente solo ve el peso que vos propongas.':'GIZE le sugiere el peso según su última vez, salvo donde cargues tu peso propuesto.')+'</div><button type="button" class="co-sug-tg'+(off?'':' on')+'" data-coach="rt-nosug-all" role="switch" aria-checked="'+(!off)+'" aria-label="Sugerencia automática de peso"><span></span></button></div>'; })()+
     '<div class="co-exc-section-head"><span class="co-sec" style="margin:0">Ejercicios</span><button class="co-rt-add" data-coach="rt-add">+ Agregar ejercicio</button></div>'+
     (cards||'<div class="cal-hint">D\u00eda vac\u00edo. Agreg\u00e1 ejercicios ac\u00e1 abajo.</div>')+
     (cards ? '<button class="co-rt-add-end" data-coach="rt-add">+ Agregar ejercicio al final</button>' : '')+

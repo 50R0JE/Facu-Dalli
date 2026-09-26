@@ -931,7 +931,8 @@ document.body.addEventListener("click", async e => {
   if(a==="day-del"){ const D=rtDays(); if(D&&D.length>1){ D.splice(CoachState.coachEditDay,1); CoachState.coachEditDay=0; renderCoach(); } return; }
   if(a==="rt-setadd"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex) ex.sets.push(mkSet()); renderCoach(); return; }
   if(a==="rt-setdel"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const ex=day.exercises[+b.dataset.i]; if(ex && ex.sets.length>1) ex.sets.splice(+b.dataset.j,1); renderCoach(); return; }
-  if(a==="rt-nosug"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const e=day&&day.exercises[+b.dataset.i]; if(e){ if(e.noSug) delete e.noSug; else e.noSug=true; renderCoach(); } return; }
+  if(a==="rt-nosug-all"){ const rt=rtDays()||[]; const off=rt.some(x=>x.noSug); rt.forEach(x=>{ if(off) delete x.noSug; else x.noSug=true; (x.exercises||[]).forEach(e=>delete e.noSug); }); renderCoach(); return; }
+  if(a==="rt-sug-fill"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const e=day&&day.exercises[+b.dataset.i]; const kg=parseFloat(b.dataset.kg); if(e && kg>0){ e.sets.forEach(st=>{ st.targetKg=String(kg).replace(".", ","); }); renderCoach(); } return; }
   if(a==="rt-ss-split"){ const day=(rtDays()||[])[CoachState.coachEditDay]; const g=day && ssGroupOf(day.exercises, +b.dataset.i); if(g){ for(let k=g.start;k<=g.end;k++) delete day.exercises[k].ss; renderCoach(); } return; }
   if(a==="rt-ss"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; const e=day&&day.exercises[i]; if(e && i<day.exercises.length-1){ if(e.ss) delete e.ss; else e.ss=true; renderCoach(); } return; }
   if(a==="rt-up"){ const i=+b.dataset.i; const day=(rtDays()||[])[CoachState.coachEditDay]; if(day&&i>0){ const arr=day.exercises; [arr[i-1],arr[i]]=[arr[i],arr[i-1]]; CoachState.coachExMenu=null; renderCoach(); } return; }
