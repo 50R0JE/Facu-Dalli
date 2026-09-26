@@ -229,6 +229,14 @@ document.body.addEventListener("input", async e => {
   save();
 });
 
+// «Mi plan» → Opciones: se lee una comida a la vez; al abrir una se cierra la anterior
+// (el atributo name de <details> ya lo hace en navegadores nuevos; esto cubre los demás).
+document.body.addEventListener("toggle", e => {
+  const d = e.target;
+  if (!(d instanceof HTMLDetailsElement) || !d.classList.contains("plan-acc") || !d.open) return;
+  document.querySelectorAll("details.plan-acc[open]").forEach(o => { if (o !== d) o.open = false; });
+}, true);
+
 document.body.addEventListener("keydown", async e => {
   if (e.key === "Enter" && e.target.dataset && e.target.dataset.action === "habit-name-input") { e.preventDefault(); addHabit(); }
   if (e.key === "Enter" && e.target.classList && e.target.classList.contains("auth-in")) {
