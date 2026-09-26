@@ -1,0 +1,20 @@
+/* Cartel de versión nueva (app/ui/actualizar.js): abajo, encima de la barra de navegación. */
+.upd { position: fixed; left: 0; right: 0; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 60;
+  display: flex; justify-content: center; padding: 0 12px; pointer-events: none; animation: upd-in var(--duration-standard) var(--ease-drawer); }
+.upd-card { pointer-events: auto; width: 100%; max-width: 516px; display: flex; flex-direction: column; gap: var(--space-10);
+  background: var(--card-2); border: 1px solid var(--blue); border-radius: 12px; padding: var(--space-12) var(--space-14);
+  box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+.upd-txt { display: flex; flex-direction: column; gap: var(--space-2); }
+.upd-txt b { font-size: var(--text-emphasis); color: var(--txt); }
+.upd-txt span { font-size: var(--text-meta); color: var(--txt-2); line-height: 1.35; }
+.upd-btns { display: flex; justify-content: flex-end; gap: var(--space-8); }
+.upd-later, .upd-go { font: inherit; font-size: var(--text-body); font-weight: 700; padding: 9px 16px; border-radius: 8px; text-decoration: none; }
+.upd-later { background: none; border: 1px solid var(--border); color: var(--txt-2); }
+.upd-go { background: var(--blue); color: var(--gize-text); border: 1px solid var(--blue); }
+.upd-go:active { filter: brightness(.9); }
+/* Obligatoria: tapa toda la app. */
+.upd-forzada { inset: 0; z-index: 10002; align-items: center; background: rgba(0,0,0,.78); pointer-events: auto; padding: 24px; }
+.upd-forzada .upd-btns { justify-content: stretch; }
+.upd-forzada .upd-go { flex: 1; text-align: center; }
+@keyframes upd-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .upd { animation: none; } }

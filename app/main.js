@@ -62,6 +62,7 @@ import { productByCode, searchOFF } from './core/off.js';
 import { addDays, dayItems, loadDay, retryDay, setDayItems } from './screens/comida-historial.js';
 import { EditState, cleanSessionEdit, openSessionEdit, removeSessionEditSet, renderSessionEdit, setSessionEditVal } from './ui/sessionedit.js';
 import { closeScanner, openScanner, scannerManualCode } from './ui/scanner.js';
+import { initUpdateCheck } from './ui/actualizar.js';
 
 // Series cuyo peso se completó solo copiando el de la serie de arriba (ver input "kg").
 const autoKg = new Set();
@@ -1038,6 +1039,7 @@ if (migrateNames(state.days)) save();
 
 cloudBoot();
 
+initUpdateCheck(); // cartel de versión nueva en las apps de las tiendas
 resumeRest(); // descanso que quedó corriendo al cerrar la app
 // En la app nativa (Capacitor) los archivos ya viajan dentro de la app: no hace falta el service worker.
 const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
