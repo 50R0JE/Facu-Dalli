@@ -144,3 +144,15 @@
 .ci-q label { display:block; font-size: var(--text-emphasis); color:var(--txt); font-weight:700; margin-bottom:9px; line-height:1.45; }
 
 .ci-in { width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:5px; padding:12px 13px; color:var(--txt); font-size: var(--text-emphasis); font-family:inherit; resize:vertical; line-height:1.5; }
+
+/* Resumen al terminar el entreno (renderSummary en app/screens/checkin.js) */
+.sum-box { margin: 10px 0 14px; }
+.sum-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sum-cell { background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.sum-cell b { font-size: 20px; font-weight: 700; color: var(--gize-text); font-variant-numeric: tabular-nums; line-height: 1.15; }
+.sum-cell span { font-size: 11px; color: var(--txt-2); }
+.sum-cell.big { grid-column: 1 / -1; padding: 14px 10px; border: 1.5px solid transparent;
+  background: linear-gradient(var(--gize-surface-2), var(--gize-surface-2)) padding-box, var(--gize-rgb-ring) border-box; }
+.sum-cell.big b { font-size: 30px; }
+.sum-cmp { margin-top: 8px; text-align: center; font-size: var(--text-meta); color: var(--txt-2); font-weight: 600; }
+.sum-cmp.up { color: var(--gize-success); }

@@ -549,7 +549,7 @@
 .sess-det-wrap .diary-rm { margin-top: 2px; }
 .sess-body { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 
-.sd-tot { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.sd-tot { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; margin-bottom: 12px; }
 .sd-tot > div { background: var(--card-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
 .sd-tot b { display: block; font-family: var(--font-mono); font-size: var(--text-emphasis); color: var(--txt); }
 .sd-tot span { font-size: 11px; color: var(--txt-3); }
