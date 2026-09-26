@@ -19,13 +19,14 @@ export function rowToFood(r){
 
 function ready(){ return !!(State.sb && State.cloudUser); }
 
-// Búsqueda por nombre o marca (sin tildes). Los verificados y los más usados primero.
+// Búsqueda por nombre o marca (sin tildes). Los verificados y los más usados primero; después,
+// los más escaneados en Open Food Facts (los productos conocidos antes que los raros).
 export async function searchShared(q){
   if (!ready()) return [];
   const k = norm(q).replace(/[%_\\]/g, " ").trim();
   if (k.length < 3) return [];
   const r = await State.sb.from("products").select(COLS).like("search", "%" + k + "%")
-    .order("verified", { ascending: false }).order("uses", { ascending: false }).limit(15);
+    .order("verified", { ascending: false }).order("uses", { ascending: false }).order("scans", { ascending: false }).limit(15);
   if (r.error) throw r.error;
   return (r.data || []).map(rowToFood);
 }
