@@ -65,3 +65,17 @@ body:not(#_) .co-head :is(.co-back, .co-logout, .co-gear) {
     box-shadow: 0 0 26px -10px color-mix(in srgb, var(--gize-r2) 70%, transparent);
   }
 }
+
+/* ---------- Fondo quieto: brillos en las esquinas ----------
+   Pedido: la aurora en movimiento llamaba más la atención que la app. En el modo normal
+   se reemplaza por dos brillos quietos y oscuros (azul arriba a la izquierda, rosa abajo a
+   la derecha): los mismos colores de la marca, sin movimiento. El modo liviano sigue con
+   su aurora quieta de siempre (css/ui/lite.css). */
+html:not(.lite) .app-aurora {
+  inset: 0; /* sin el margen de la aurora: los brillos quedan en las esquinas de la pantalla */
+  background: radial-gradient(75% 38% at 0% 0%, rgba(47,160,255,.40), transparent 70%),
+    radial-gradient(75% 38% at 100% 85%, rgba(255,61,174,.34), transparent 70%);
+}
+html:not(.lite) .app-aurora span { display: none; }
+html:not(.lite) body.silk-on .app-aurora { opacity: 1; }
+html:not(.lite) body.silk-coach .app-aurora { opacity: .7; }
