@@ -18,7 +18,8 @@ import { renderCoach } from './index.js';
 
 import { CoachState, coachWeekSel } from './state.js';
 
-import { blockWeek } from '../entreno.js';
+import { blockWeek, restLabel } from '../entreno.js';
+import { parseRest } from '../../ui/restbar.js';
 
 import { closeSheet } from '../../ui/sheet.js';
 
@@ -281,7 +282,10 @@ function exSwatchColor(ex){
 }
 
 function rirRestSummary(ex){
-  const bits=[]; if(ex.rir) bits.push("RIR "+ex.rir); if(ex.rest) bits.push(ex.rest+"s");
+  // El descanso como lo toma la app del cliente (parseRest: "3" son 3 minutos, "90" son
+  // 90 segundos); los rangos escritos a mano ("2'-3'") se muestran tal cual.
+  const bits=[]; if(ex.rir) bits.push("RIR "+ex.rir);
+  if(ex.rest){ const t=String(ex.rest).trim(), sec=parseRest(t); bits.push("desc. "+(/^\d+\s*(s|seg|segundos|min|minutos)?$/i.test(t) && sec ? restLabel(sec) : t)); }
   return bits.join(" \u00b7 ");
 }
 
