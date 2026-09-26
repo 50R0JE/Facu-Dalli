@@ -159,17 +159,14 @@ function paintSessionEdit(){
   const fresh=tmp.querySelector(".se-sheet"); if(fresh) card.innerHTML=fresh.innerHTML;
 }
 
-// Serie tildada: arranca el descanso del ejercicio (se puede saltear con la X), salvo que se
-// haya terminado el día. En una superserie no se descansa entre ejercicios: se pasa a la
-// misma serie del siguiente y el descanso (el del último del grupo) va al cerrar la vuelta.
 function afterSetDone(d, ex, s){
   // La primera serie tildada del día marca el comienzo del entreno (para el tiempo total).
   if(!state.wkStart || state.wkStart.date!==today() || state.wkStart.day!==d.id){ state.wkStart={date:today(), day:d.id, ts:Date.now()}; save(); }
-  const dayDone=d.exercises.every(x=>allSetsDone(x));
-  const idx=d.exercises.indexOf(ex), g=ssGroupOf(d.exercises, idx);
-  if(!g){ if(!dayDone) startRest(effectiveRest(ex).sec); return; }
+  // El descanso ya no arranca solo al tildar: se inicia con «Iniciar descanso». En una
+  // superserie la pantalla igual pasa a la serie que sigue.
+  const idx=d.exercises.indexOf(ex);
+  if(!ssGroupOf(d.exercises, idx)) return;
   const nx=ssNext(d.exercises, idx, ex.sets.indexOf(s));
-  if(nx.rest && !dayDone) startRest(effectiveRest(d.exercises[g.end]).sec);
   if(nx.target) setTimeout(()=>goToSet(nx.target), 420);
 }
 // Lleva la pantalla a la serie que sigue y la marca un momento.
