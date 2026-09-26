@@ -339,7 +339,14 @@ function exerciseCard(d, day, ex, i, rt){
       '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="kg" aria-label="Peso objetivo, serie '+(j+1)+'">'+
       '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie" aria-label="Quitar serie '+(j+1)+'">\u2715</button>'+
     '</div>').join("");
-  const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>'+(timed?'Tiempo objetivo':'Reps objetivo')+'</span><span>'+(timed?'Peso (opcional)':'Peso objetivo')+'</span><span></span></div>'+sets : '';
+  const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>'+(timed?'Tiempo objetivo':'Reps objetivo')+'</span><span>'+(timed?'Peso (opcional)':'Peso propuesto')+'</span><span></span></div>'+sets : '';
+  // Propuesta de peso: si el coach carga el peso de las series, el cliente ve «Tu coach
+  // propone…» con «Usar»; si no, la sugerencia automática de GIZE (se puede apagar).
+  const hasKg=(ex.sets||[]).some(st=>parseFloat(String(st.targetKg||"").replace(",","."))>0);
+  const sugBox=nSets ? '<div class="co-sug">'+
+      '<div class="co-sug-txt">'+(hasKg ? '<b>El cliente ve tu peso propuesto</b> y lo pone con un toque.' : '<b>Sin peso propuesto:</b> '+(ex.noSug ? 'el cliente no ve ninguna sugerencia.' : 'GIZE le sugiere el peso según su última vez.'))+'</div>'+
+      (hasKg ? '' : '<button type="button" class="co-sug-tg'+(ex.noSug?'':' on')+'" data-coach="rt-nosug" data-i="'+i+'" role="switch" aria-checked="'+(!ex.noSug)+'"><span></span>Sugerencia automática</button>')+
+    '</div>' : '';
   const prog=exSummary(d, day.name, ex.name);
   const field=(lbl, a, v, ph, cls)=>'<label class="co-pfield"><span class="co-note-lbl">'+lbl+'</span><input class="co-pin'+(cls||"")+'" data-coach="'+a+'" data-i="'+i+'" value="'+esc(v||"")+'" placeholder="'+ph+'"></label>';
   return '<div class="co-exc co-exc-open'+ssCls+'" data-id="'+esc(ex.id)+'">'+
@@ -359,7 +366,7 @@ function exerciseCard(d, day, ex, i, rt){
           field("Descanso","rt-rest",ex.rest,"90 seg")+
         '</div>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Objetivo de progreso</span><input class="co-note" data-coach="rt-goal" data-i="'+i+'" value="'+esc(ex.goal||"")+'" placeholder="Ej: sumar 1 rep por semana"></div>'+
-        setsTbl+
+        setsTbl+sugBox+
         '<button class="co-set-add" data-coach="rt-setadd" data-i="'+i+'">+ Serie</button>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Nota para el cliente</span><textarea class="co-note co-note-area" rows="2" data-coach="rt-note" data-i="'+i+'" placeholder="Técnica, tempo, qué cuidar…">'+esc(ex.note||"")+'</textarea></div>'+
         '<div class="co-note-wrap"><span class="co-note-lbl">Link de video</span><input class="co-note" type="url" inputmode="url" data-coach="rt-video" data-i="'+i+'" value="'+esc(ex.video||"")+'" placeholder="Pegá el link de YouTube o Instagram">'+libVideoHint(ex)+'</div>'+
