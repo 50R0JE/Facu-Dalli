@@ -3,7 +3,7 @@
 
 .macro-top b { color: var(--txt); font-weight: 600; }
 
-.macro-top span { color: var(--txt-2); font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+.macro-top span { color: var(--txt-2); font-variant-numeric: tabular-nums; font-family: var(--gize-font); }
 
 .cal-search input { width: 100%; background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: 13px 14px 13px 38px; color: var(--txt); font-size: var(--text-emphasis); }
 
@@ -15,7 +15,7 @@
 
 .food-name { font-size: var(--text-body); color: var(--txt); }
 
-.food-kcal { font-size: var(--text-body); color: var(--blue-2); font-variant-numeric: tabular-nums; font-family: var(--font-mono); display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.food-kcal { font-size: var(--text-body); color: var(--blue-2); font-variant-numeric: tabular-nums; font-family: var(--gize-font); display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 
 .food-kcal span { font-size: 10px; color: var(--txt-3); }
 
@@ -34,7 +34,7 @@
 
 .diary-name span { display: block; font-size: var(--text-meta); color: var(--txt-3); margin-top: 2px; }
 
-.diary-kcal { font-size: var(--text-body); color: var(--txt); font-variant-numeric: tabular-nums; font-family: var(--font-mono); flex-shrink: 0; }
+.diary-kcal { font-size: var(--text-body); color: var(--txt); font-variant-numeric: tabular-nums; font-family: var(--gize-font); flex-shrink: 0; }
 
 .cal-empty { text-align: center; padding: 40px 20px; }
 
@@ -124,10 +124,10 @@ body.scan-open { overflow:hidden; }
 .wk-avg { flex:0 1 150px; min-width:0; display:flex; flex-direction:column; gap:3px; padding:12px 12px 11px; border-radius:14px;
     background:var(--gize-surface); border:1px solid var(--gize-border); }
 .wk-t { font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--txt-3); }
-.wk-n { font:700 20px var(--font-mono); color:var(--gize-text); line-height:1.15; }
+.wk-n { font:700 20px var(--gize-font); color:var(--gize-text); line-height:1.15; }
 .wk-n small { font:500 10px var(--gize-font); color:var(--txt-3); margin-left:3px; }
 .wk-st { font-size:var(--text-meta); font-weight:700; margin-top:2px; }
-.wk-d { font:600 11px var(--font-mono); color:var(--txt-2); }
+.wk-d { font:600 11px var(--gize-font); color:var(--txt-2); }
 .wk-days, .wk-hint { font-size:10.5px; color:var(--txt-3); line-height:1.35; }
 /* Color = estado, no juicio: déficit en azul (dato), superávit en ámbar (aviso), en la
    meta / mantenimiento en verde agua. */
@@ -162,7 +162,7 @@ button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer
 .fh-bar { width: 8px; height: 34px; border-radius: 4px; background: var(--gize-surface-2); display: flex; align-items: flex-end; overflow: hidden; }
 .fh-bar i { display: block; width: 100%; border-radius: 4px; background: var(--gize-blue); }
 .fh-dn { font-size: 11px; font-weight: 600; }
-.fh-dk { font-size: 10px; font-family: var(--gize-font-data); font-variant-numeric: tabular-nums; }
+.fh-dk { font-size: 10px; font-family: var(--gize-font); font-variant-numeric: tabular-nums; }
 .fh-tot { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 10px 2px 12px;
   border-bottom: 1px solid var(--gize-border); margin-bottom: 8px; }
 .fh-tot b { font-size: 18px; }
@@ -189,7 +189,7 @@ button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer
 .meal-head { display: flex; align-items: center; gap: 8px; padding: 2px 0 8px; }
 .meal-ic { font-size: 16px; }
 .meal-t { font-size: 16px; font-weight: 700; }
-.meal-k { margin-left: auto; font: 600 13px var(--gize-font-data); color: var(--gize-text-2); font-variant-numeric: tabular-nums; }
+.meal-k { margin-left: auto; font: 600 13px var(--gize-font); color: var(--gize-text-2); font-variant-numeric: tabular-nums; }
 .meal-add { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--gize-border); background: var(--gize-surface-2);
   color: var(--gize-blue); font-size: 20px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
 .meal-add:active { background: color-mix(in srgb, var(--gize-blue) 18%, transparent); }
@@ -203,7 +203,7 @@ button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer
 .wm-main { flex: 1; min-width: 0; }
 .wm-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .wm-t { font-size: 14px; font-weight: 600; }
-.wm-v { font: 600 12.5px var(--gize-font-data); color: var(--gize-text-2); }
+.wm-v { font: 600 12.5px var(--gize-font); color: var(--gize-text-2); }
 .wm-bar { height: 4px; border-radius: 4px; background: var(--gize-surface-2); margin-top: 6px; overflow: hidden; }
 .wm-bar i { display: block; height: 100%; background: var(--gize-blue); border-radius: 4px; }
 .wm-add { flex: none; border: 1px solid var(--gize-border); background: var(--gize-surface-2); color: var(--gize-text); border-radius: 999px;
