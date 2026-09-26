@@ -16,6 +16,7 @@ export const AR_SECTIONS = [
 ]],
 ["Huevos", [
   ["Omelette de jamón y queso (3 huevos)", 175, 14.4, 1.6, 12.4, 240],
+  ["Huevos rellenos con mayonesa (1 mitad ≈ 30 g)", 243, 10.2, 0.8, 22, 30],
 ]],
 ["Carne vacuna", [
   ["Milanesa a la suiza (con salsa blanca y queso gratinado) (1 milanesa ≈ 270 g)", 252, 16.6, 11.5, 15.5, 270],
@@ -34,6 +35,7 @@ export const AR_SECTIONS = [
   ["Bondiola al horno con papas", 182, 11.9, 11.4, 9.9, 370],
   ["Costillitas de cerdo a la barbacoa (1 porción ≈ 250 g)", 302, 22.3, 4.9, 21.5, 250],
   ["Matambrito de cerdo a la pizza", 235, 21.6, 1.7, 15.7, 300],
+  ["Lechón asado (con cuero)", 290, 23, 0, 22, 200],
 ]],
 ["Pollo y aves", [
   ["Pollo al disco (con verduras y papas)", 120, 8.4, 7.1, 6.4, 400],
@@ -48,9 +50,14 @@ export const AR_SECTIONS = [
   ["Puré mixto (papa y calabaza)", 78, 1.8, 11.9, 2.6, 200],
   ["Tomate relleno con atún y arroz (1 u. ≈ 200 g)", 101, 5.5, 5.6, 6.3, 200],
   ["Revuelto de zapallitos", 91, 5.7, 3.8, 5.9, 250],
+  ["Ensalada de zanahoria rallada y huevo", 91, 3.7, 6.8, 5.5, 200],
+  ["Ensalada de rúcula y parmesano", 163, 7.8, 1.5, 14, 110],
+  ["Espinacas a la crema (1 porción ≈ 200 g)", 78, 4.7, 3.6, 5, 200],
+  ["Batatas fritas", 265, 2, 33, 14, 150],
 ]],
 ["Cereales, harinas y pastas", [
   ["Avena cocida con leche, banana y miel (bowl)", 108, 3.9, 17.3, 2.6, 350],
+  ["Ensalada de arroz (con atún, choclo, huevo y mayonesa)", 151, 7.6, 14.8, 6.7, 300],
 ]],
 ["Pastas frescas y rellenas (cocidas)", [
   ["Tallarines con estofado", 142, 8.5, 20, 3.1, 410],
@@ -121,6 +128,8 @@ export const AR_SECTIONS = [
   ["Caramelos masticables (tipo Sugus / Flynn Paff) (1 u. ≈ 5 g)", 405, 0.3, 85, 7, 5],
   ["Butter Toffees (Arcor) (1 u. ≈ 6 g)", 415, 1, 81, 9.5, 6],
   ["Chicle sin azúcar (tipo Beldent) (1 u. ≈ 1,5 g)", 160, 0, 66, 0, 1.5],
+  ["Bananita Dolca (1 u. ≈ 30 g)", 395, 2.1, 73, 10.5, 30],
+  ["Franui, frambuesas bañadas en chocolate (Rapanui)", 417, 4.8, 46.5, 23.5, 50],
 ]],
 ["Helados y postres", [
   ["Torta rogel", 366, 7, 62.5, 9.8, 100],
@@ -165,6 +174,9 @@ export const AR_SECTIONS = [
   ["Bombón escocés helado (1 u. ≈ 70 g)", 274, 3.8, 29.2, 16, 70],
   ["Mazamorra (con leche y azúcar)", 120, 2.4, 24.2, 1.6, 250],
   ["Kuchen de frutos rojos", 315, 4, 39.9, 15.5, 100],
+  ["Don Pedro (helado con whisky y nueces)", 252, 4, 20.7, 14.5, 185],
+  ["Frutillas con crema (1 porción ≈ 200 g)", 98, 1.1, 7.4, 7.2, 200],
+  ["Strudel de manzana", 274, 3.3, 41.1, 11.2, 110],
 ]],
 ["Bebidas", [
   ["Caffè latte (Starbucks, grande)", 40, 2.7, 4, 1.5, 473, {ml:true}],
@@ -208,6 +220,7 @@ export const AR_SECTIONS = [
   ["Vino con coca (1 copa ≈ 300 ml)", 64, 0, 6.6, 0, 300, {ml:true}],
   ["Sangría", 77, 0.2, 9.2, 0.1, 250, {ml:true}],
   ["Piña colada", 174, 0.4, 22.7, 1.9, 250, {ml:true}],
+  ["Ananá fizz (1 porción ≈ 150 ml)", 65, 0.2, 8, 0, 150, {ml:true}],
 ]],
 ["Comidas y congelados", [
   ["Empanada de carne cortada a cuchillo (1 u. ≈ 90 g)", 226, 10.5, 20, 11.5, 90],
@@ -346,5 +359,12 @@ export const AR_SECTIONS = [
   ["Sándwich de salame y queso", 313, 14.3, 31.3, 14.5, 150],
   ["Picada de fiambres y quesos (sin pan)", 326, 20.2, 5.3, 24.9, 150],
   ["Sándwich de jamón crudo y queso (en baguette)", 275, 16.6, 27.6, 10.9, 155],
+  ["Pionono salado de jamón, queso y huevo (1 rodaja ≈ 90 g)", 271, 10.5, 16.8, 17.9, 90],
+  ["Milanesa de carne con puré de papas (1 porción ≈ 350 g)", 193, 10.6, 15.4, 10.1, 350],
+  ["Salchichas con puré (1 porción ≈ 300 g)", 140, 5.1, 11.3, 7.3, 300],
+  ["Sándwich de pollo (con lechuga, tomate y mayonesa)", 216, 14.4, 24.9, 6.2, 235],
+  ["Arrolladito primavera frito (1 u. ≈ 70 g)", 230, 7.5, 26, 10.5, 70],
+  ["Arroz frito / chaufa (con pollo, huevo y verduras)", 175, 7, 24, 5.5, 300],
+  ["Poke bowl de salmón (con arroz, palta y edamame)", 146, 6.7, 15.1, 6.7, 400],
 ]],
 ];
