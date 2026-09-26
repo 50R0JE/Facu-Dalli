@@ -63,3 +63,31 @@
 .cardio-toolsec { margin-top:26px; padding-top:20px; border-top:1px solid var(--border); }
 
 .cardio-tools-h { font-size:11px; color:var(--txt-3); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:14px; text-align:center; }
+
+/* Número del temporizador tocable → ruedas de minutos y segundos */
+.cring-pick { background: none; border: none; padding: 4px 10px; color: inherit; font-family: inherit; cursor: pointer; border-radius: 12px; }
+.cring-pick:active { background: rgba(255,255,255,.05); }
+.tpick { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; }
+.tpick-bg { position: absolute; inset: 0; background: rgba(0,0,0,.6); opacity: 0; transition: opacity var(--duration-standard) ease; }
+.tpick-card { position: relative; width: 100%; max-width: 540px; background: var(--gize-surface); border: 1px solid var(--gize-border); border-bottom: none;
+  border-radius: 22px 22px 0 0; padding: 18px 16px calc(16px + env(safe-area-inset-bottom)); overflow: hidden;
+  transform: translateY(100%); transition: transform var(--duration-standard) var(--ease-drawer); }
+.tpick-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: var(--gize-rgb-line); }
+.tpick.open .tpick-bg { opacity: 1; }
+.tpick.open .tpick-card { transform: none; }
+.tpick-title { text-align: center; font-size: var(--text-emphasis); font-weight: 700; margin-bottom: 10px; }
+.tpick-wheels { position: relative; display: flex; justify-content: center; align-items: center; gap: 28px; height: 220px; }
+.tw-band { position: absolute; left: 12%; right: 12%; top: 50%; height: 44px; transform: translateY(-50%); border-radius: 12px;
+  background: color-mix(in srgb, var(--gize-blue) 12%, transparent); border: 1px solid color-mix(in srgb, var(--gize-blue) 35%, transparent); pointer-events: none; }
+.tw-col { position: relative; display: flex; align-items: center; gap: 6px; }
+.tw-wheel { height: 220px; width: 84px; overflow-y: scroll; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none;
+  padding: 88px 0; box-sizing: border-box; -webkit-overflow-scrolling: touch; outline: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+.tw-wheel::-webkit-scrollbar { display: none; }
+.tw-item { height: 44px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center;
+  font-size: 26px; font-weight: 600; color: var(--txt-2); font-variant-numeric: tabular-nums; transition: color .12s, transform .12s; cursor: pointer; }
+.tw-item.on { color: var(--gize-text); font-weight: 700; transform: scale(1.12); }
+.tw-unit { font-size: var(--text-meta); color: var(--txt-2); font-weight: 600; width: 26px; }
+.tpick-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.tpick-btns .ctrl { max-width: none; border-radius: var(--gize-radius-pill); }
+@media (prefers-reduced-motion: reduce) { .tpick-card, .tpick-bg { transition: none; } }

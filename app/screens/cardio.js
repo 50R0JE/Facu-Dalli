@@ -49,7 +49,7 @@ export function renderCardio(){
 // como la aguja de los segundos, sin reiniciarse. tick() (main.js) lo mueve con setRing(), sin redibujar la pantalla.
 const R = 92, C = 2 * Math.PI * R;
 const ringOffset = frac => (C * (1 - Math.min(1, Math.max(0, frac)))).toFixed(2);
-function ring(frac, big, label, state, comet){
+function ring(frac, big, label, state, comet, pick){
   const small = big.length > 5 ? ' small' : '';
   const deg = (Math.min(1, Math.max(0, frac))*360).toFixed(2);
   // Cronómetro: anillo entero tenue y un cometa (cabeza blanca + estela que se desvanece) que
@@ -70,7 +70,9 @@ function ring(frac, big, label, state, comet){
       ${body}
     </svg>
     <div class="cring-in">
-      <div class="time-display${small}" id="cringTime">${big}</div>
+      ${pick
+        ? `<button type="button" class="time-display cring-pick${small}" id="cringTime" data-action="tm-pick" aria-label="Cambiar el tiempo">${big}</button>`
+        : `<div class="time-display${small}" id="cringTime">${big}</div>`}
       <div class="cring-label" id="cringLabel">${label}</div>
     </div>
   </div>`;
@@ -105,8 +107,8 @@ export function renderCardioTools(modes){
     const paused = !CardioState.tmRunning && !CardioState.tmFinished && rem < CardioState.tmTarget;
     const editable = !CardioState.tmRunning && !CardioState.tmFinished && !paused;
     const big = CardioState.tmFinished ? "00:00" : fmt(rem, true);
-    const label = CardioState.tmFinished ? "¡Tiempo!" : CardioState.tmRunning ? "Restan" : paused ? "En pausa" : "Temporizador";
-    const r = ring(CardioState.tmFinished ? 1 : tmFrac(), big, label, CardioState.tmFinished ? "fin" : CardioState.tmRunning ? "run" : "");
+    const label = CardioState.tmFinished ? "¡Tiempo!" : CardioState.tmRunning ? "Restan" : paused ? "En pausa" : "Tocá para cambiar";
+    const r = ring(CardioState.tmFinished ? 1 : tmFrac(), big, label, CardioState.tmFinished ? "fin" : CardioState.tmRunning ? "run" : "", false, editable);
     const row = editable
       ? `<div class="cring-row">
           <button class="cstep" data-action="tm-step" data-d="-15" aria-label="Quitar 15 segundos">${minus}<span>15 s</span></button>
@@ -123,3 +125,50 @@ export function renderCardioTools(modes){
     return modes + row + `<div class="ctrl-row">${ctrls}</div>`;
   }
 }
+
+// Ruedas para elegir minutos y segundos (se abre tocando el número del temporizador). Se
+// desliza como el reloj del celular: sin teclado, que en iPhone corría la pantalla.
+const ITEM = 44;
+function wheel(id, max, val, unit){
+  let items = ""; for (let i = 0; i <= max; i++) items += `<div class="tw-item${i===val?' on':''}">${String(i).padStart(2,"0")}</div>`;
+  return `<div class="tw-col"><div class="tw-wheel" id="${id}" tabindex="0" aria-label="${unit}">${items}</div><div class="tw-unit">${unit}</div></div>`;
+}
+const wheelVal = (el, max) => Math.max(0, Math.min(max, Math.round(el.scrollTop / ITEM)));
+
+export function openTimePicker(onDone){
+  closeTimePicker();
+  const m = Math.floor(CardioState.tmTarget / 60000), sec = Math.floor((CardioState.tmTarget % 60000) / 1000);
+  const box = document.createElement("div");
+  box.id = "timePick"; box.className = "tpick";
+  box.innerHTML = `<div class="tpick-bg" data-tp="close"></div>
+    <div class="tpick-card" role="dialog" aria-label="Elegir el tiempo">
+      <div class="tpick-title">Elegí el tiempo</div>
+      <div class="tpick-wheels">
+        <div class="tw-band" aria-hidden="true"></div>
+        ${wheel("twMin", 60, m, "min")}${wheel("twSec", 59, sec, "seg")}
+      </div>
+      <div class="tpick-btns"><button type="button" class="ctrl ghost" data-tp="close">Cancelar</button><button type="button" class="ctrl primary" data-tp="ok">Listo</button></div>
+    </div>`;
+  document.body.appendChild(box);
+  const wm = box.querySelector("#twMin"), ws = box.querySelector("#twSec");
+  wm.scrollTop = m * ITEM; ws.scrollTop = sec * ITEM;
+  [[wm, 60], [ws, 59]].forEach(([w, max]) => {
+    const mark = () => { const v = wheelVal(w, max); w.querySelectorAll(".tw-item").forEach((it, i) => it.classList.toggle("on", i === v)); };
+    w.addEventListener("scroll", mark, { passive: true });
+    // Tocar un número lo lleva al centro.
+    w.addEventListener("click", e => { const it = e.target.closest(".tw-item"); if (!it) return; const i = [...w.children].indexOf(it); w.scrollTo({ top: i * ITEM, behavior: "smooth" }); });
+    w.addEventListener("keydown", e => { if (e.key === "ArrowUp" || e.key === "ArrowDown"){ e.preventDefault(); w.scrollTo({ top: (wheelVal(w, max) + (e.key === "ArrowUp" ? -1 : 1)) * ITEM, behavior: "smooth" }); } });
+  });
+  box.addEventListener("click", e => {
+    const b = e.target.closest("[data-tp]"); if (!b) return;
+    if (b.dataset.tp === "ok"){
+      let mm = wheelVal(wm, 60), ss = wheelVal(ws, 59);
+      if (mm === 60) ss = 0;
+      const t = (mm * 60 + ss) * 1000;
+      if (t > 0){ CardioState.tmTarget = t; CardioState.tmRemainingMs = t; CardioState.tmFinished = false; }
+    }
+    closeTimePicker(); onDone && onDone();
+  });
+  requestAnimationFrame(() => box.classList.add("open"));
+}
+export function closeTimePicker(){ const b = document.getElementById("timePick"); if (b) b.remove(); }
