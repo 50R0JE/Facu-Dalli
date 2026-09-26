@@ -6,7 +6,7 @@ import { coachActivity, coachInitials, renderCoachInfo } from './clientes.js';
 
 import { renderApplyPicker, renderCoachBlock, renderCoachPlan, renderCoachRoutine, renderCopyPicker } from './rutinas.js';
 
-import { picker, renderCoachCheckins, renderCoachDaily, renderCoachPhotos, renderCoachWeekly } from './seguimiento.js';
+import { picker, renderCoachCheckins, renderCoachDaily, renderCoachWeekly } from './seguimiento.js';
 
 import { CoachState } from './state.js';
 
@@ -128,18 +128,25 @@ export function renderCoach(){
       } else if(tab==="plan"){
         panel=renderCoachPlan(d);
       } else {
-        panel=renderCoachNotify(d)+
-               '<div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+
-               '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div>'+
-             // Ya no se suben fotos de progreso: la sección queda solo si hay fotos viejas.
-             ((d.photos||[]).length ? '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d) : '')+
-             secHead("Seguimiento diario","daily")+renderCoachDaily(d)+
-             secHead("Check-in semanal","checkin")+renderCoachCheckins(d)+
-             '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+
-             '<div class="co-panel"><div class="co-sec">Volumen semanal por m\u00fasculo</div>'+vol+'</div>'+
-             '<div class="co-panel"><div class="co-sec">Promedio semanal de peso</div>'+renderCoachWeekly(d)+'</div>'+
-             '<div class="co-sec">Peso corporal (d\u00eda a d\u00eda)</div>'+wblock+
-             '<button class="logout-btn cfg-danger co-remove-client" data-coach="remove-client">Desvincular alumno</button>';
+        // Ficha en secciones, como Progreso del alumno: un menú de tarjetas y cada una abre su parte.
+        const SECS=[
+          ["notif","Notificación al cliente", ()=>renderCoachNotify(d), ()=>{ const m=(d.notify&&d.notify.msgs)||[]; return m.length?"Último: "+fmtDate(String(m[0].created_at).slice(0,10)):"Mandale un mensaje"; }],
+          ["ficha","Ficha del cliente", ()=>renderCoachInfo(d), ()=>d.info&&Object.keys(d.info).length?"Datos y objetivos":"Sin completar"],
+          ["bloque","Bloque / mesociclo", ()=>renderCoachBlock(d), ()=>d.block?(d.block.name||"Bloque cargado"):"Sin bloque"],
+          ["daily","Seguimiento diario", ()=>secHead("Seguimiento diario","daily")+renderCoachDaily(d), ()=>{ const n=(d.daily||[]).length; return n?n+" registro"+(n===1?"":"s"):"Sin registros"; }],
+          ["checkin","Check-in semanal", ()=>secHead("Check-in semanal","checkin")+renderCoachCheckins(d), ()=>{ const n=(d.checkins||[]).length; return n?n+" check-in"+(n===1?"":"s"):"Sin check-ins"; }],
+          ["hist","Historial de entrenos", ()=>sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>', ()=>{ const n=d.sessions.length; return n?n+" entreno"+(n===1?"":"s")+(sessSorted[0]?" · último "+fmtDate(sessSorted[0].date):""):"Sin entrenos"; }],
+          ["volumen","Volumen semanal por músculo", ()=>vol, ()=>{ let t=0; (d.routine||[]).forEach(x=>(x.exercises||[]).forEach(ex=>{ t+=(ex.sets||[]).length; })); return t?t+" series por semana":"Sin rutina"; }],
+          ["peso","Peso corporal", ()=>'<div class="co-sec">Promedio semanal</div>'+renderCoachWeekly(d)+'<div class="co-sec">Día a día</div>'+wblock, ()=>{ const w=d.weights; return w.length?Number(w[w.length-1].kg).toFixed(1).replace(".",",")+" kg":"Sin registros"; }],
+        ];
+        const cur=SECS.find(x=>x[0]===CoachState.coachSec);
+        if(cur){
+          panel='<div class="form-head co-sec-head"><button class="form-back" data-coach="sec-close" aria-label="Volver a la ficha">‹</button><div class="form-title">'+cur[1]+'</div></div>'+
+            '<div class="co-panel co-sec-body">'+cur[2]()+'</div>';
+        } else {
+          panel='<div class="ptiles co-ptiles">'+SECS.map(x=>'<button class="ptile" data-coach="sec-open" data-v="'+x[0]+'"><span class="ptile-t">'+x[1]+'</span><span class="ptile-s">'+esc(x[3]())+'</span><span class="ptile-go" aria-hidden="true">›</span></button>').join("")+'</div>'+
+            '<button class="logout-btn cfg-danger co-remove-client" data-coach="remove-client">Desvincular alumno</button>';
+        }
       }
       body=tabs+panel;
     }

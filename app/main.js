@@ -839,7 +839,7 @@ document.body.addEventListener("click", async e => {
     }catch(err){ alert("No se pudo cambiar el código: "+((err&&err.message)||err)); }
     renderCoach(); return;
   }
-  if(a==="open"){ CoachState.coachClientTab="ficha"; openClient(b.dataset.id); return; }
+  if(a==="open"){ CoachState.coachClientTab="ficha"; CoachState.coachSec=null; openClient(b.dataset.id); return; }
   if(a==="back"){ CoachState.coachSel=null; CoachState.coachData=null; renderCoach(); refreshCoachClients(); return; }
   if(a==="refresh"){ if(CoachState.coachSel) openClient(CoachState.coachSel); return; }
   if(a==="open-settings"){ CoachState.coachNameForm=null; CoachState.coachSettingsOpen=true; renderCoachSettings(); return; }
@@ -895,7 +895,9 @@ document.body.addEventListener("click", async e => {
     CoachState.coachTplEdit=null; CoachState.coachView="tpls"; renderCoach(); return;
   }
   if(!CoachState.coachData && !CoachState.coachTplEdit) return;
-  if(a==="client-tab"){ CoachState.coachClientTab=b.dataset.t; renderCoach(); return; }
+  if(a==="client-tab"){ CoachState.coachClientTab=b.dataset.t; CoachState.coachSec=null; renderCoach(); return; }
+  if(a==="sec-open"){ CoachState.coachSec=b.dataset.v; renderCoach(); window.scrollTo(0,0); return; }
+  if(a==="sec-close"){ CoachState.coachSec=null; renderCoach(); window.scrollTo(0,0); return; }
   if(a==="edit-day"){ CoachState.coachEditDay=+b.dataset.i||0; renderCoach(); return; }
   if(a==="rt-tosave"){
     const nm=prompt("Nombre para guardar esta rutina en tu biblioteca:","");
