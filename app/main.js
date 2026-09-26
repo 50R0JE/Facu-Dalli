@@ -18,7 +18,7 @@ import { runningSetId, startTimer, stopTimer } from './ui/settimer.js';
 
 import { showLogin } from './screens/auth.js';
 
-import { CardioState, renderCardio, setRing, swFrac } from './screens/cardio.js';
+import { CardioState, openTimePicker, renderCardio, setRing, swFrac } from './screens/cardio.js';
 
 import { CheckinState, renderFeedback, saveSession } from './screens/checkin.js';
 
@@ -267,6 +267,7 @@ document.body.addEventListener("click", async e => {
   if (a === "sw-toggle") { if(CardioState.swRunning){ CardioState.swAccum+=Date.now()-CardioState.swStartTs; CardioState.swRunning=false; } else { CardioState.swStartTs=Date.now(); CardioState.swRunning=true; } renderApp(); return; }
   if (a === "sw-lap") { CardioState.swLaps.push(CardioState.swAccum+(Date.now()-CardioState.swStartTs)); renderApp(); return; }
   if (a === "sw-reset") { CardioState.swRunning=false; CardioState.swAccum=0; CardioState.swStartTs=0; CardioState.swLaps=[]; renderApp(); return; }
+  if (a === "tm-pick") { openTimePicker(renderApp); return; }
   if (a === "tm-step") { const t=Math.min(3600000, Math.max(15000, CardioState.tmTarget + parseInt(el.dataset.d,10)*1000)); CardioState.tmTarget=t; CardioState.tmRemainingMs=t; CardioState.tmFinished=false; renderApp(); return; }
   if (a === "tm-preset") { CardioState.tmTarget=parseInt(el.dataset.sec)*1000; CardioState.tmRemainingMs=CardioState.tmTarget; CardioState.tmFinished=false; renderApp(); return; }
   if (a === "tm-toggle") { if(CardioState.tmRunning){ CardioState.tmRemainingMs=Math.max(0,CardioState.tmEndTs-Date.now()); CardioState.tmRunning=false; } else { initAudio(); CardioState.tmEndTs=Date.now()+CardioState.tmRemainingMs; CardioState.tmRunning=true; CardioState.tmFinished=false; } renderApp(); return; }
