@@ -3,7 +3,8 @@
 // supabase/productos-revision.sql) y cada acción queda en public.admin_audit.
 //   { action: "pagos", coach_id }            → cobros de Mercado Pago de la suscripción del coach
 //   { action: "aviso", target, title, body } → notificación a todos / coaches / alumnos
-//   { action: "eliminar", user_id }          → borra la cuenta (antes cancela su suscripción en MP)
+//   { action: "eliminar", user_id }          → borra la cuenta (antes cancela su suscripción en MP
+//                                              y borra sus fotos de Storage)
 // Usa los secrets de siempre: MP_ACCESS_TOKEN, VAPID, FCM_SERVICE_ACCOUNT y los de Apple.
 // Va sin "Verify JWT" (como las demás) y valida la sesión con auth.getUser().
 
@@ -121,6 +122,36 @@ async function mp(path: string, init: RequestInit = {}) {
   return body;
 }
 
+// Buckets donde cada usuario guarda sus archivos en su carpeta ({uid}/): fotos de check-in,
+// de perfil y de tablas nutricionales. Borrar auth.users no los toca (Supabase no deja
+// borrar storage.objects por SQL), así que al eliminar una cuenta hay que borrarlos a mano.
+const USER_BUCKETS = ["checkins", "avatars", "productos"];
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// Borra todos los archivos de la carpeta del usuario en cada bucket y devuelve cuántos.
+// Primero lista todo (list() devuelve de a 1000 como máximo) y después borra: borrar
+// mientras se pagina corre el offset y se saltearía archivos. Lanza si algo falla.
+async function removeUserFiles(db: ReturnType<typeof createClient>, uid: string): Promise<number> {
+  let total = 0;
+  for (const bucket of USER_BUCKETS) {
+    const st = db.storage.from(bucket);
+    const paths: string[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const { data, error } = await st.list(uid, { limit: 1000, offset });
+      if (error) throw new Error(bucket + ": " + error.message);
+      // id null = subcarpeta (la app no las crea; se ignoran).
+      (data || []).forEach((it) => { if (it && it.id) paths.push(uid + "/" + it.name); });
+      if (!data || data.length < 1000) break;
+    }
+    for (let i = 0; i < paths.length; i += 100) {
+      const { error } = await st.remove(paths.slice(i, i + 100));
+      if (error) throw new Error(bucket + ": " + error.message);
+    }
+    total += paths.length;
+  }
+  return total;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -181,6 +212,8 @@ Deno.serve(async (req) => {
   if (input.action === "eliminar") {
     const uid = String(input.user_id || "");
     if (!uid) return json({ error: "Falta el usuario" }, 400);
+    // Va a Storage como nombre de carpeta: tiene que ser un uuid y nada más.
+    if (!UUID.test(uid)) return json({ error: "Usuario inválido" }, 400);
     if (uid === adminId) return json({ error: "No podés eliminar tu propia cuenta desde el panel." }, 400);
     const { data: prof } = await db.from("profiles").select("full_name, role").eq("id", uid).maybeSingle();
     const { data: bill } = await db.from("coach_billing").select("mp_preapproval_id, mp_status").eq("coach_id", uid).maybeSingle();
@@ -188,9 +221,17 @@ Deno.serve(async (req) => {
       try { await mp("/preapproval/" + encodeURIComponent(bill.mp_preapproval_id), { method: "PUT", body: JSON.stringify({ status: "cancelled" }) }); }
       catch (e) { return json({ error: "No se pudo cancelar su suscripción en Mercado Pago: " + (e as Error).message }, 502); }
     }
+    // Las fotos se borran ANTES que la cuenta: si algo falla, la cuenta sigue y se puede
+    // reintentar; al revés, las fotos quedarían para siempre sin dueño.
+    let archivos = 0;
+    try { archivos = await removeUserFiles(db, uid); }
+    catch (e) { return json({ error: "No se pudieron borrar sus fotos: " + (e as Error).message }, 500); }
+    // Los productos que cargó quedan (son de todos, created_by pasa a null), pero sin la
+    // foto de la tabla que acabamos de borrar.
+    await db.from("products").update({ photo_path: null }).like("photo_path", uid + "/%");
     const { error } = await db.auth.admin.deleteUser(uid);
     if (error) return json({ error: error.message }, 500);
-    await log("eliminar", uid, { nombre: prof && prof.full_name, rol: prof && prof.role });
+    await log("eliminar", uid, { nombre: prof && prof.full_name, rol: prof && prof.role, archivos });
     return json({ ok: true });
   }
 
