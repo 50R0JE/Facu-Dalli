@@ -580,3 +580,19 @@
 
 /* Aviso de datos todavía no guardados en la cuenta (sin conexión). */
 .sync-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 6px; border: 1px solid color-mix(in srgb, #F5A524 55%, transparent); background: color-mix(in srgb, #F5A524 12%, transparent); color: var(--gize-text); font-size: var(--text-meta); line-height: 1.45; }
+
+/* Series en pantallas angostas (muchos Android miden 360 de ancho) o con la letra del sistema
+   agrandada: kg y reps se achican para que el tilde y la ✕ entren siempre en la fila. */
+.set:not(.timed) .field { flex: 1 1 0; min-width: 0; }
+.set:not(.timed) .field:first-of-type { flex-grow: 1.25; }
+.set:not(.timed) .field input { flex: 1 1 auto; width: auto; min-width: 0; }
+.set:not(.timed) .field input { min-width: 40px; }
+.set .unit { flex-shrink: 0; }
+@media (max-width: 400px) {
+  .set { gap: 5px; }
+  .set .field { gap: 2px; }
+  .set .unit { font-size: 11px; }
+  .set .field input { padding: var(--space-10) 6px; }
+  .set .goal { padding: 3px 4px; }
+  .set .rm { padding: 2px; }
+}
