@@ -15,8 +15,8 @@
 .cring-dot { fill: #fff; filter: drop-shadow(0 0 6px rgba(47,160,255,.9)); }
 .cring.run .cring-arc { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--gize-blue) 45%, transparent)); }
 .cring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-.cring .time-display { margin: 0; font-family: var(--gize-font-data); font-size: clamp(36px, 12vw, 52px); font-weight: 700; letter-spacing: -.03em; line-height: 1; }
-.cring .time-display.small { font-size: clamp(30px, 9.5vw, 38px); }
+.cring .time-display { margin: 0; font-size: clamp(40px, 14vw, 58px); font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+.cring .time-display.small { font-size: clamp(32px, 10.5vw, 42px); }
 .cring-label { font-size: var(--text-meta); color: var(--txt-2); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
 .cring.fin .cring-label { color: var(--gize-success); }
 .cring.fin .cring-arc { stroke: var(--gize-success); animation: cringDone 1s ease-in-out 3; }
@@ -45,9 +45,8 @@
 
 .lap span:first-child { color: var(--txt-2); }
 
-.lap .lap-d { margin-left: auto; margin-right: 14px; color: var(--txt-3); font-family: var(--gize-font-data); font-size: var(--text-meta); }
+.lap .lap-d { margin-left: auto; margin-right: 14px; color: var(--txt-3); font-size: var(--text-meta); }
 
-.lap span:last-child { font-family: var(--gize-font-data); }
 
 .cardio-rx { background:var(--card); border:1px solid var(--blue); border-left:3px solid var(--blue); border-radius:4px; padding:var(--space-14); margin-bottom:var(--space-16); }
 
