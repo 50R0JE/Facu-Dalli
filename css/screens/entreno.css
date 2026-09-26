@@ -246,3 +246,7 @@ body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; 
 .prog-sug.coach { background: color-mix(in srgb, var(--gize-blue) 9%, transparent); border-color: color-mix(in srgb, var(--gize-blue) 40%, transparent); }
 .prog-sug.coach .ps-ic { color: var(--gize-blue); background: color-mix(in srgb, var(--gize-blue) 15%, transparent); }
 .prog-sug.coach .ps-use { color: var(--gize-blue); border-color: color-mix(in srgb, var(--gize-blue) 55%, transparent); }
+/* Descanso: el tiempo se toca para cambiarlo (ruedas, como en Cardio) */
+.rest-edit { flex-direction: column; justify-content: center; gap: 0; padding: 0 16px; min-width: 84px; }
+.rest-edit-t { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.rest-edit-h { font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-2); }

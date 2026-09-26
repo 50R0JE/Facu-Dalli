@@ -104,19 +104,22 @@ function wheel(id, max, val, unit){
 }
 const wheelVal = (el, max) => Math.max(0, Math.min(max, Math.round(el.scrollTop / ITEM)));
 
-export function openTimePicker(ms, title, onPick){
+// opts.note: texto chico debajo del título; opts.extra: {label, fn} botón de texto abajo.
+export function openTimePicker(ms, title, onPick, opts){
+  opts = opts || {};
   closeTimePicker();
   const m = Math.min(60, Math.floor(ms / 60000)), sec = Math.floor((ms % 60000) / 1000);
   const box = document.createElement("div");
   box.id = "timePick"; box.className = "tpick";
   box.innerHTML = `<div class="tpick-bg" data-tp="close"></div>
     <div class="tpick-card" role="dialog" aria-label="Elegir el tiempo">
-      <div class="tpick-title">${title}</div>
+      <div class="tpick-title">${title}</div>${opts.note ? `<div class="tpick-note">${opts.note}</div>` : ""}
       <div class="tpick-wheels">
         <div class="tw-band" aria-hidden="true"></div>
         ${wheel("twMin", 60, m, "min")}${wheel("twSec", 59, sec, "seg")}
       </div>
       <div class="tpick-btns"><button type="button" class="ctrl ghost" data-tp="close">Cancelar</button><button type="button" class="ctrl primary" data-tp="ok">Listo</button></div>
+      ${opts.extra ? `<button type="button" class="tpick-extra" data-tp="extra">${opts.extra.label}</button>` : ""}
     </div>`;
   document.body.appendChild(box);
   const wm = box.querySelector("#twMin"), ws = box.querySelector("#twSec");
@@ -130,6 +133,7 @@ export function openTimePicker(ms, title, onPick){
   });
   box.addEventListener("click", e => {
     const b = e.target.closest("[data-tp]"); if (!b) return;
+    if (b.dataset.tp === "extra"){ closeTimePicker(); opts.extra.fn(); return; }
     if (b.dataset.tp === "ok"){
       let mm = wheelVal(wm, 60), ss = wheelVal(ws, 59);
       if (mm === 60) ss = 0;

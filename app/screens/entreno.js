@@ -59,25 +59,10 @@ export function effectiveRest(ex){
 }
 
 function restRow(ex){
-  const r = effectiveRest(ex), sec = r.sec;
-  const open = EntrenoState.restEditEx === ex.id;
-  // El tiempo al costado es el que se toca para ajustarlo (antes un lápiz).
-  const main = `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span></button>`+
-    `<button class="rest-edit${open?' on':''}" data-action="rest-edit" data-ex="${esc(ex.id)}" title="Ajustar descanso" aria-label="Ajustar descanso, ahora ${esc(r.label)}" aria-expanded="${open}"><span class="rest-edit-t">${esc(r.label)}</span>${chevronDownSvg}</button></div>`;
-  if(!open) return main;
-  const locked = routineLocked();
-  const coachTxt = ex.rest ? esc(ex.rest) : "2:00";
-  return main + `<div class="rest-editor">
-      <div class="re-title">Descanso de este ejercicio</div>
-      <div class="re-adj">
-        <button class="re-step" data-action="rest-adj" data-ex="${esc(ex.id)}" data-d="-15" aria-label="Restar 15 segundos">−15s</button>
-        <span class="re-val">${restLabel(sec)}</span>
-        <button class="re-step" data-action="rest-adj" data-ex="${esc(ex.id)}" data-d="15" aria-label="Sumar 15 segundos">+15s</button>
-      </div>
-      <div class="re-presets">${REST_PRESETS.map(p=>`<button class="rest-opt${p===sec?' on':''}" data-action="rest-preset" data-ex="${esc(ex.id)}" data-sec="${p}">${restLabel(p)}</button>`).join("")}</div>
-      ${locked ? (r.own ? `<button class="re-reset" data-action="rest-reset" data-ex="${esc(ex.id)}">Usar el de tu coach (${coachTxt})</button>` : `<div class="re-hint">Tu coach puso ${coachTxt}. Si lo cambiás, queda solo para vos.</div>`) : ''}
-      <button class="re-done" data-action="rest-edit" data-ex="${esc(ex.id)}">Listo</button>
-    </div>`;
+  const r = effectiveRest(ex);
+  // El tiempo al costado se toca para cambiarlo (ruedas de minutos y segundos, como en Cardio).
+  return `<div class="rest-row"><button class="rest-btn-full" data-action="rest-from-ex" data-sec="${r.sec}"><span class="rbf-play">${playSvg} Iniciar descanso</span></button>`+
+    `<button class="rest-edit" data-action="rest-edit" data-ex="${esc(ex.id)}" aria-label="Cambiar el descanso, ahora ${esc(restLabel(r.sec))}"><span class="rest-edit-t">${esc(restLabel(r.sec))}</span><span class="rest-edit-h">cambiar</span></button></div>`;
 }
 
 export function blockWeek(b, dstr){
