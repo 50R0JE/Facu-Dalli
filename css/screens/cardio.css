@@ -4,46 +4,35 @@
 
 .cmode { flex: 1; padding: 11px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); color: var(--txt-2); font-size: var(--text-body); font-weight: 600; cursor: pointer; text-align: center; }
 
-/* Anillo del tiempo (app/screens/cardio.js): la gama RGB de marca en un trazo que se vacía
-   (temporizador) o gira una vez por minuto (cronómetro). Reemplaza al corredor y al reloj de
-   arena animados. */
-.cring-row { display: flex; align-items: center; justify-content: center; gap: var(--space-8); margin: 22px 0 18px; }
-.cring { position: relative; width: min(236px, calc(100vw - 140px)); aspect-ratio: 1; flex: none; }
-.cring svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.cring-track { fill: none; stroke: var(--gize-surface-2); stroke-width: 7; }
-.cring-arc { fill: none; stroke: url(#cringGrad); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset .12s linear; }
-.cring-dot { fill: #fff; filter: drop-shadow(0 0 6px rgba(47,160,255,.9)); }
-.cring-track.sw { stroke: url(#cringGrad); opacity: .16; }
-.cring.comet.run .cring-track.sw { animation: cringBreath 2.4s ease-in-out infinite; }
-.cring.comet .cring-arc { transition: none; stroke-width: 9; }
-.cring.comet .cring-arc.tail { stroke-linecap: butt; }
-.cring.comet.run #cringDot { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gize-r2) 55%, transparent)); }
-@keyframes cringBreath { 50% { opacity: .3; } }
-.cring.run .cring-arc { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--gize-blue) 45%, transparent)); }
+/* Anillo de neón (app/screens/cardio.js): la gama RGB girando como el borde del botón
+   principal (@property --gize-angle de brand/tokens.css), con un halo desenfocado detrás. */
+.cring-row { display: flex; align-items: center; justify-content: center; margin: 24px 0 20px; }
+.cring { position: relative; width: min(240px, calc(100vw - 96px)); aspect-ratio: 1; flex: none; }
+.cneon { position: absolute; inset: 0; border-radius: 50%; }
+.cneon i { position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from var(--gize-angle), var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4), var(--gize-r1));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  animation: gize-spin 7s linear infinite; }
+.cneon.glow { filter: blur(14px); opacity: .45; transition: opacity .4s ease; }
+.cneon.glow i { -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 10px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 14px), #000 calc(100% - 10px)); }
+.cring.run .cneon i { animation-duration: 2.6s; }
+.cring.run .cneon.glow { opacity: .85; }
+.cring.fin .cneon i { background: var(--gize-success); }
+.cring.fin .cneon.glow { opacity: .8; animation: cringDone 1s ease-in-out 3; }
+@keyframes cringDone { 50% { opacity: .2; } }
 .cring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .cring .time-display { margin: 0; font-size: clamp(40px, 14vw, 58px); font-weight: 700; letter-spacing: -.02em; line-height: 1; }
 .cring .time-display.small { font-size: clamp(32px, 10.5vw, 42px); }
 .cring-label { font-size: var(--text-meta); color: var(--txt-2); text-transform: uppercase; letter-spacing: .12em; font-weight: 600; }
 .cring.fin .cring-label { color: var(--gize-success); }
-.cring.fin .cring-arc { stroke: var(--gize-success); animation: cringDone 1s ease-in-out 3; }
-.cring.fin .cring-dot { display: none; }
-@keyframes cringDone { 50% { opacity: .35; } }
-@media (prefers-reduced-motion: reduce) { .cring-arc { transition: none; } .cring.comet.run .cring-track.sw { animation: none; } .cring.fin .cring-arc { animation: none; } }
-
-/* − / + 15 s a los costados del anillo (sin teclado: en iPhone el teclado corría la pantalla) */
-.cstep { flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); color: var(--txt);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; cursor: pointer; }
-.cstep svg { width: 18px; height: 18px; }
-.cstep span { font-size: 9.5px; color: var(--txt-2); font-weight: 600; }
-.cstep:active { background: var(--card-2); border-color: var(--blue); }
+html.lite .cneon i { animation: none; }
+@media (prefers-reduced-motion: reduce) { .cneon i, .cring.fin .cneon.glow { animation: none; } }
 
 .ctrl-row { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
 .ctrl-row .ctrl { max-width: 170px; border-radius: var(--gize-radius-pill); }
 .ctrl-row .ctrl.wide { max-width: 280px; }
-
-/* Tiempos rápidos: grilla pareja de 3 × 2 */
-.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 330px; margin: 0 auto 22px; }
-.preset { padding: 11px 6px; border-radius: var(--gize-radius-pill); background: var(--card); border: 1px solid var(--border); color: var(--txt-2); font-size: var(--text-body); font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
 
 .laps { margin-top: 26px; display: flex; flex-direction: column; gap: 6px; }
 
@@ -80,13 +69,18 @@
 .tw-band { position: absolute; left: 12%; right: 12%; top: 50%; height: 44px; transform: translateY(-50%); border-radius: 12px;
   background: color-mix(in srgb, var(--gize-blue) 12%, transparent); border: 1px solid color-mix(in srgb, var(--gize-blue) 35%, transparent); pointer-events: none; }
 .tw-col { position: relative; display: flex; align-items: center; gap: 6px; }
-.tw-wheel { height: 220px; width: 84px; overflow-y: scroll; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none;
-  padding: 88px 0; box-sizing: border-box; -webkit-overflow-scrolling: touch; outline: none;
-  -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+.tw-wheel { flex: none; height: 220px; width: 84px; min-width: 84px; overflow-y: scroll; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none;
+  padding: 88px 0; box-sizing: border-box; outline: none; }
+/* Desvanecido arriba y abajo con una capa encima (una máscara en el elemento que se desliza
+   se dibujaba cortada en Safari de iPhone). */
+.tpick-wheels::before, .tpick-wheels::after { content: ""; position: absolute; left: 0; right: 0; height: 80px; z-index: 1; pointer-events: none; }
+.tpick-wheels::before { top: 0; background: linear-gradient(var(--gize-surface), transparent); }
+.tpick-wheels::after { bottom: 0; background: linear-gradient(transparent, var(--gize-surface)); }
 .tw-wheel::-webkit-scrollbar { display: none; }
 .tw-item { height: 44px; display: flex; align-items: center; justify-content: center; scroll-snap-align: center;
   font-size: 26px; font-weight: 600; color: var(--txt-2); font-variant-numeric: tabular-nums; transition: color .12s, transform .12s; cursor: pointer; }
-.tw-item.on { color: var(--gize-text); font-weight: 700; transform: scale(1.12); }
+.tw-item.on { color: var(--gize-text); font-weight: 700; }
+.tw-item { width: 100%; }
 .tw-unit { font-size: var(--text-meta); color: var(--txt-2); font-weight: 600; width: 26px; }
 .tpick-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 .tpick-btns .ctrl { max-width: none; border-radius: var(--gize-radius-pill); }
