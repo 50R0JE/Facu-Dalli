@@ -237,12 +237,16 @@ button.wk-avg { font: inherit; color: inherit; text-align: left; cursor: pointer
 /* ---- Barra "Buscar alimento" (abre la ventana) y ventana de búsqueda ---- */
 button.search-open { flex: 1; background: var(--card-2); border: 1px solid var(--border); border-radius: 4px; padding: 13px 14px 13px 38px; font: inherit; color: var(--gize-text-2); text-align: left; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .search-ph { font-size: 15px; }
-.search-sheet { height: min(88dvh, calc(100dvh - var(--kb, 0px) - 12px)); max-height: none; display: flex; flex-direction: column; }
+/* Alto: lo que queda arriba del teclado menos la barra de estado del iPhone (hora, batería). */
+.search-sheet { height: min(88dvh, calc(100dvh - var(--kb, 0px) - env(safe-area-inset-top, 0px) - 16px)); max-height: none; display: flex; flex-direction: column; }
 .ss-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .ss-head .sheet-title { margin: 0; }
 .ss-x { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--gize-border); background: transparent; color: var(--gize-text-2); display: grid; place-items: center; cursor: pointer; }
 .ss-x svg { width: 16px; height: 16px; }
 .search-sheet .meal-chips { margin-bottom: 12px; }
 .search-sheet .food-search-row { margin-bottom: 10px; }
-.ss-results { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px; }
+.ss-results { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 8px; padding-bottom: 6px; }
+/* Las filas no se achican para entrar: la lista se desliza (en iPhone quedaban aplastadas). */
+.ss-results > *, .ss-results #offResults > * { flex-shrink: 0; }
+.ss-results #offResults { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
 .search-sheet .cal-create { margin: 10px 0 0; flex: none; }

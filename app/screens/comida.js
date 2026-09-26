@@ -18,6 +18,11 @@ import { foodUnit } from '../core/foodunits.js';
 
 import { renderClientPlan } from './checkin.js';
 
+// Nombre sin la aclaración de la unidad, que ya muestra la hoja del alimento:
+// "Pan lactal blanco (1 rebanada ≈ 25 g)" → "Pan lactal blanco". Las demás aclaraciones
+// ("(tipo Cindor)", "(crudo)") quedan.
+export const shortName = n => String(n || "").replace(/\s*\((1 [^)]*|medida \d+ ml)\)/gi, "").trim();
+
 // Las 4 comidas del día (como Fitia). Lo anotado antes de que existieran queda en "otras".
 export const MEALS = [["desayuno", "Desayuno", "☀️"], ["almuerzo", "Almuerzo", "🍽️"], ["merienda", "Merienda", "🧉"], ["cena", "Cena", "🌙"]];
 export const mealName = id => (MEALS.find(m => m[0] === id) || [0, "Otras comidas"])[1];
@@ -143,8 +148,11 @@ export function renderResults(q){
   const all = (state.foods||[]).concat(state.offRecent||[], FOODS);
   // Primero los que empiezan con lo buscado, después los que tienen una palabra que
   // empieza así y al final el resto ("pan" → Pan francés antes que Sartén de pan…).
-  const rank = f => { const n=norm(f.name); return n.startsWith(nq) ? 0 : (n.includes(" "+nq) ? 1 : 2); };
-  lastResults = all.filter(f=>norm(f.name).includes(nq)).sort((a,b)=>rank(a)-rank(b)).slice(0,40);
+  // Se busca en el nombre sin la aclaración de la unidad ("bana" no trae "Pan lactal (1
+  // rebanada…)").
+  const key = f => norm(shortName(f.name));
+  const rank = f => { const n=key(f); return n.startsWith(nq) ? 0 : (n.includes(" "+nq) ? 1 : 2); };
+  lastResults = all.filter(f=>key(f).includes(nq)).sort((a,b)=>rank(a)-rank(b)).slice(0,40);
   const local = lastResults.length ? lastResults.map((f,i)=>foodRow(f, "food-pick", i)).join("")
     : (nq.length < 3 ? '<div class="cal-hint">Sin resultados en la base. Probá crear el alimento 👇</div>' : '');
   return local + '<div id="offResults">'+renderOffResults()+'</div>';
@@ -153,7 +161,7 @@ export function renderResults(q){
 function foodRow(f, action, i){
   return `<div class="food-row" data-action="${action}" data-idx="${i}">
     <span class="food-emo" aria-hidden="true">${foodEmoji(f.name, f.cat)}</span>
-    <div class="food-name">${esc(f.name)}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}${f.src==="OFF"?'<span class="food-cook">marca</span>':''}</div>
+    <div class="food-name">${esc(shortName(f.name))}${f.cook?'<span class="food-cook">crudo / cocido</span>':''}${f.src==="OFF"?'<span class="food-cook">marca</span>':''}</div>
     <div class="food-kcal">${f.kcal} kcal<span>por 100 ${f.unit==="ml"?"ml":"g"}${f.cook?" "+f.cook.base:""}</span></div>
   </div>`;
 }
@@ -290,7 +298,7 @@ export function renderComida(){
   const item = e=>`
     <div class="diary-item" data-action="diary-edit" data-id="${esc(e.id)}">
       <span class="food-emo" aria-hidden="true">${foodEmoji(e.name)}</span>
-      <div class="diary-name">${esc(e.name)}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${r1(e.p)} · C ${r1(e.c)} · G ${r1(e.f)}</span></div>
+      <div class="diary-name">${esc(shortName(e.name))}<span>${e.grams} ${e.unit==="ml"?"ml":"g"} · P ${r1(e.p)} · C ${r1(e.c)} · G ${r1(e.f)}</span></div>
       <div class="diary-kcal">${e.kcal} kcal</div>
       <button class="diary-rm" data-action="diary-remove" data-id="${esc(e.id)}" title="Quitar">${xSvg}</button>
     </div>`;
