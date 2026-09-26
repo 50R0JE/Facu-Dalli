@@ -25,12 +25,15 @@ const NUTR = ["energy-kcal_100g", "energy_100g", "proteins_100g", "carbohydrates
 const input = createReadStream(CSV);
 const lines = createInterface({ input: CSV.endsWith(".gz") ? input.pipe(createGunzip()) : input, crlfDelay: Infinity });
 const rows = new Map(), skipped = {};
-let col = null, total = 0, ar = 0, incompletos = 0;
+let col = null, ncol = 0, total = 0, ar = 0, incompletos = 0, corridas = 0;
+// Qué dato falta en los que tienen la tabla "completa" pero no pasan (para revisar el archivo).
+const faltan = { kcal: 0, proteinas: 0, carbos: 0, grasas: 0, "solo por porción": 0 };
 for await (const line of lines){
-  if (!col){ col = Object.fromEntries(line.split("\t").map((h, i) => [h, i])); continue; }
+  if (!col){ const h = line.split("\t"); ncol = h.length; col = Object.fromEntries(h.map((h, i) => [h, i])); continue; }
   total++;
   if (line.indexOf("en:argentina") < 0) continue; // descarte rápido: casi todo el archivo es de otros países
   const f = line.split("\t"), v = k => col[k] == null ? undefined : f[col[k]];
+  if (f.length !== ncol) corridas++;
   if (!String(v("countries_tags") || "").split(",").includes("en:argentina")) continue;
   ar++;
   if (!String(v("states_tags") || "").split(",").includes("en:nutrition-facts-completed")){ incompletos++; continue; }
@@ -38,6 +41,14 @@ for await (const line of lines){
     quantity: v("quantity"), serving_quantity: v("serving_quantity"), unique_scans_n: v("unique_scans_n"), nutriments: {} };
   for (const k of NUTR){ const x = v(k); if (x !== undefined && x !== "") p.nutriments[k] = x; }
   const r = offToRow(p);
+  if (r.skip === "tabla incompleta"){
+    const n = p.nutriments;
+    if (n["energy-kcal_100g"] == null && n.energy_100g == null) faltan.kcal++;
+    if (n.proteins_100g == null) faltan.proteinas++;
+    if (n.carbohydrates_100g == null) faltan.carbos++;
+    if (n.fat_100g == null) faltan.grasas++;
+    if (/serving/.test(v("nutrition_data_per") || "")) faltan["solo por porción"]++;
+  }
   if (r.skip){ skipped[r.skip] = (skipped[r.skip] || 0) + 1; continue; }
   const prev = rows.get(r.code);
   if (!prev || r.scans > prev.scans) rows.set(r.code, r);
@@ -45,7 +56,8 @@ for await (const line of lines){
 if (!col || col.code == null || col.countries_tags == null){ console.error("El archivo no tiene el formato esperado"); process.exit(1); }
 const all = [...rows.values()];
 console.log("Productos en el archivo:", total, "· de Argentina:", ar, "· sin la tabla completa:", incompletos, "· válidos:", all.length);
-console.log("Descartados:", JSON.stringify(skipped));
+console.log("Descartados:", JSON.stringify(skipped), "· en los de tabla incompleta falta:", JSON.stringify(faltan),
+  "· filas con columnas corridas:", corridas, "· columnas:", ncol, "· tiene nutrition_data_per:", col.nutrition_data_per != null);
 if (OUT) writeFileSync(OUT, rowsToSql(all));
 
 // ---- 2. Cargar en Supabase ----
