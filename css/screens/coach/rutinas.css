@@ -328,5 +328,11 @@
 .co-ss-head { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:2px 0 6px; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--gize-text); }
 .co-ss-head svg { width:13px; height:13px; color:var(--gize-r2); }
 .co-ss-head span { text-transform:none; letter-spacing:0; font-weight:500; color:var(--txt-2); }
-.co-exc.co-ss { border-left:3px solid var(--gize-r2); box-shadow:-4px 0 12px -6px color-mix(in srgb, var(--gize-r2) 60%, transparent); }
+.co-ss-group { margin:0 0 8px; padding:10px 10px 2px; border:1.5px solid transparent; border-radius:10px;
+  background:linear-gradient(var(--gize-surface), var(--gize-surface)) padding-box, var(--gize-rgb-ring) border-box;
+  box-shadow:0 0 36px -14px color-mix(in srgb, var(--gize-r2) 55%, transparent); }
+.co-ss-group .co-ss-head { margin:0 2px 8px; }
+.co-ss-group .co-exc { margin-bottom:8px; }
+.co-ss-group .co-gap { padding-top:2px; }
+.co-ss-group .ss-div { padding:0 2px; margin:0 0 8px; }
 .co-exc-ord.ss { color:var(--gize-text); background:linear-gradient(135deg, var(--gize-r1), var(--gize-r2)); }
