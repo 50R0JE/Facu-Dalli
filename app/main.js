@@ -559,7 +559,16 @@ document.body.addEventListener("click", async e => {
   if (a === "ex-collapse") { collapseExerciseAnimated(ex.id, ()=>{ expandedOverride.delete(ex.id); renderApp(); }); return; }
   // Descanso por ejercicio. Sin coach se guarda en el ejercicio (viaja con la rutina);
   // con coach, como preferencia propia (state.restPrefs) sin tocar la rutina del coach.
-  if (a === "rest-edit") { EntrenoState.restEditEx = EntrenoState.restEditEx===ex.id ? null : ex.id; renderApp(); return; }
+  if (a === "rest-edit") {
+    const r=effectiveRest(ex), locked=routineLocked();
+    const setRest=sec=>{ sec=Math.min(900, Math.max(15, sec)); if(locked) state.restPrefs[restKey(ex)]=sec; else ex.rest=restLabel(sec); save(); renderApp(); };
+    const coachTxt=ex.rest ? restLabel(parseRest(ex.rest)||REST_DEFAULT) : "2:00";
+    openTimePicker(r.sec*1000, "Descanso de este ejercicio", ms=>{ if(ms>0) setRest(Math.round(ms/1000)); }, locked ? {
+      note: r.own ? "Lo cambiaste vos. Tu coach puso "+coachTxt+"." : "Tu coach puso "+coachTxt+". Si lo cambiás, queda solo para vos.",
+      extra: r.own ? { label: "Usar el de tu coach ("+coachTxt+")", fn: ()=>{ delete state.restPrefs[restKey(ex)]; save(); renderApp(); } } : null
+    } : { note: "Entre 15 segundos y 15 minutos." });
+    return;
+  }
   if (a === "rest-adj" || a === "rest-preset") {
     const cur = effectiveRest(ex).sec;
     const sec = Math.min(900, Math.max(15, a === "rest-preset" ? (parseInt(el.dataset.sec)||REST_DEFAULT) : cur + (parseInt(el.dataset.d)||0)));

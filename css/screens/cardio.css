@@ -85,3 +85,5 @@ html.lite .cneon i { animation: none; }
 .tpick-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 .tpick-btns .ctrl { max-width: none; border-radius: var(--gize-radius-pill); }
 @media (prefers-reduced-motion: reduce) { .tpick-card, .tpick-bg { transition: none; } }
+.tpick-note { text-align: center; font-size: var(--text-meta); color: var(--txt-2); margin: -4px 0 8px; }
+.tpick-extra { display: block; margin: 12px auto 0; background: none; border: none; color: var(--gize-blue); font: 600 var(--text-body) var(--gize-font); cursor: pointer; }
