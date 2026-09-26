@@ -161,11 +161,12 @@ const linkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 function ssWrap(exs, groups, i, html){
   const g = groups.find(x => i >= x.start && i <= x.end);
   if (!g) return html;
-  let out = html;
-  if (i === g.start){
-    const n = g.end - g.start + 1;
-    out = out.replace(/^(<div class="ex-gap">[\s\S]*?<\/div>)?/, m => (m || '') + `<div class="ss-group"><div class="ss-head"><span class="ss-badge">${linkSvg}${ssName(g)} ${g.letter}</span><span class="ss-hint">Hacé una serie de cada uno, sin descanso entre medio. Descansá al terminar la vuelta.</span></div>`);
-  }
+  // Lo que va entre ejercicios (+ y Separar, rutina propia) queda adentro del panel.
+  const m = html.match(/^<div class="ex-gap">[\s\S]*?<\/div>/);
+  const gap = m ? m[0] : '', body = html.slice(gap.length);
+  let out;
+  if (i === g.start) out = gap + `<div class="ss-group"><div class="ss-head"><span class="ss-badge">${linkSvg}${ssName(g)} ${g.letter}</span><span class="ss-hint">Hacé una serie de cada uno, sin descanso entre medio. Descansá al terminar la vuelta.</span></div>` + body;
+  else out = gap + `<div class="ss-div" aria-hidden="true"><span>sin descanso</span></div>` + body;
   if (i === g.end) out += '</div>';
   return out;
 }

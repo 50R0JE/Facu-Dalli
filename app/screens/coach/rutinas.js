@@ -383,10 +383,12 @@ export function renderCoachRoutine(d){
   const cards=exs.map((ex,i)=>{
     const prevSS=i>0 && !!exs[i-1].ss;
     const link=i>0 ? '<button class="co-ss-link'+(prevSS?' on':'')+'" data-coach="rt-ss" data-i="'+(i-1)+'" aria-pressed="'+prevSS+'">'+linkSvg+'<span>'+(prevSS?'Separar':'Unir en superserie')+'</span></button>' : '';
-    const g=groups.find(x=>x.start===i);
-    const head=g ? '<div class="co-ss-head">'+linkSvg+ssName(g)+' '+g.letter+'<span>una serie de cada uno, sin descanso entre medio</span></div>' : '';
-    return '<div class="co-gap"><button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+link+'</div>'+head+
-      exerciseCard(d, day, ex, i, rt);
+    // Los unidos van en un solo panel: cabecera arriba y "sin descanso" entre ejercicios.
+    const g=groups.find(x=>i>=x.start && i<=x.end);
+    const gap='<div class="co-gap"><button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+link+'</div>';
+    const open=g && i===g.start ? '<div class="co-ss-group"><div class="co-ss-head">'+linkSvg+ssName(g)+' '+g.letter+'<span>una serie de cada uno, sin descanso entre medio</span></div>' : '';
+    const div=g && i>g.start ? '<div class="ss-div" aria-hidden="true"><span>sin descanso</span></div>' : '';
+    return (g && i>g.start ? '' : gap)+open+(g && i>g.start ? gap+div : '')+exerciseCard(d, day, ex, i, rt)+(g && i===g.end ? '</div>' : '');
   }).join("");
   return '<div class="co-sec">Rutina y progreso</div>'+coachDatalist()+
     '<div class="co-daytabs">'+tabs+'<button class="co-daytab add" data-coach="day-add">+</button></div>'+

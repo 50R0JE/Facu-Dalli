@@ -186,18 +186,23 @@
 @keyframes pr-spark { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.4); } }
 @media (prefers-reduced-motion: reduce) { .pr-chip { animation: none; } }
 
-/* Superseries (app/core/superserie.js): los ejercicios unidos van en un recuadro con un
-   filete RGB a la izquierda, la letra (A1, A2…) en vez del número y la indicación arriba. */
-.ss-group { position: relative; margin: 0 0 var(--space-12); padding: 12px 0 2px 14px; }
-.ss-group::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 14px; width: 3px; border-radius: 3px;
-  background: linear-gradient(180deg, var(--gize-r1), var(--gize-r2), var(--gize-r3), var(--gize-r4)); box-shadow: 0 0 10px color-mix(in srgb, var(--gize-r2) 45%, transparent); }
-.ss-head { display: flex; flex-direction: column; gap: 4px; margin: -4px 0 10px; }
+/* Superseries (app/core/superserie.js): los ejercicios unidos forman un solo panel con el
+   borde RGB de las tarjetas; adentro van sin borde propio, separados por "sin descanso". */
+body:not(#_) .ss-group { margin: 0 0 var(--space-12); border: 1.5px solid transparent; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(var(--gize-surface), var(--gize-surface)) padding-box, var(--gize-rgb-ring) border-box;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35), 0 0 44px -12px color-mix(in srgb, var(--gize-r2) 50%, transparent); }
+.ss-head { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 4px; }
 .ss-badge { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-size: var(--text-meta); font-weight: 800; letter-spacing: .08em;
   text-transform: uppercase; color: var(--gize-text); background: color-mix(in srgb, var(--gize-r2) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--gize-r2) 45%, transparent); padding: 4px 10px; border-radius: var(--gize-radius-pill); }
 .ss-badge svg { width: 13px; height: 13px; }
 .ss-hint { font-size: var(--text-meta); color: var(--txt-2); line-height: 1.4; }
-.ss-group .card:last-child, .ss-group .ex-collapsed:last-child { margin-bottom: 0; }
+body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; background: transparent; box-shadow: none; margin: 0; transform: none; }
+.ss-group .card { padding-top: var(--space-12); }
+.ss-group .ex-collapsed { padding: var(--space-12) var(--space-16); }
+.ss-div { display: flex; align-items: center; gap: 10px; padding: 0 16px; color: color-mix(in srgb, var(--gize-r2) 80%, var(--gize-text)); font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.ss-div::before, .ss-div::after { content: ""; flex: 1; border-top: 1px dashed color-mix(in srgb, var(--gize-r2) 45%, transparent); }
+.ss-group .ex-gap { padding: 8px 16px 0; }
 .ex-num.ss { background: linear-gradient(135deg, var(--gize-r1), var(--gize-r2)); min-width: 26px; }
 .ss-tag { display: inline-block; margin-right: 6px; font-size: 11px; font-weight: 800; color: var(--gize-r2); }
 /* Entre ejercicios (rutina propia): + para insertar y el botón para unir o separar. */
