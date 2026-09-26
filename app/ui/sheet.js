@@ -41,6 +41,7 @@ export function renderSheet(){
         <button class="ctrl ghost" data-action="portion-cancel">Cancelar</button>
         <button class="ctrl primary" data-action="${isEdit?'portion-save':'portion-add'}">${isEdit?'Guardar':'Agregar'}</button>
       </div>
+      ${sf && sf.src==="GIZE" && sf.gid ? `<div class="sheet-src">${sf.verified?'<b>✓ Verificado por GIZE</b>':'Cargado por la comunidad de GIZE'} · <button class="sheet-report" data-action="prod-report">¿Algún dato está mal?</button></div>` : ""}
     </div>`;
 }
 
