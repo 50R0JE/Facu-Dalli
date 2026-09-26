@@ -15,7 +15,8 @@ import { esc, fmt, fmtSecs, isTimedEx, norm, parseSecs, setText, today } from '.
 
 import { renderApp } from '../main.js';
 
-import { allSetsDone, bestKgBefore, bestSetOf, renderLastSession } from './progreso.js';
+import { allSetsDone, bestKgBefore, bestSetOf, lastSessionFor, renderLastSession } from './progreso.js';
+import { suggest } from '../core/progresion.js';
 import { prSets } from '../ui/festejo.js';
 
 import { parseRest } from '../ui/restbar.js';
@@ -178,6 +179,16 @@ export function wkStarted(d){ const w=state.wkStart; return !!(w && w.date===tod
 export function wkElapsedMs(){ const w=state.wkStart; return w && w.date===today() ? Math.max(0, Date.now()-w.ts) : 0; }
 export function wkElapsedText(){ return fmt(wkElapsedMs()); }
 
+// Sugerencia de progresión (app/core/progresion.js), debajo de «La vez pasada».
+const upSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>';
+function renderSuggestion(ex, timed){
+  if (allSetsDone(ex)) return "";
+  const prev = lastSessionFor(ex.name); if (!prev) return "";
+  const sg = suggest(ex, prev.sets, timed); if (!sg) return "";
+  const canUse = sg.kg != null && ex.sets.some(s => !s.done && String(s.kg||"") !== String(sg.kg));
+  return `<div class="prog-sug"><span class="ps-ic">${upSvg}</span><div class="ps-txt"><span class="ps-lbl">Hoy probá</span> <b>${esc(sg.text)}</b><span class="ps-why">${esc(sg.why)}</span></div>${canUse?`<button class="ps-use" data-action="sug-use" data-ex="${esc(ex.id)}" data-kg="${sg.kg}">Usar</button>`:''}</div>`;
+}
+
 export function renderEntreno(){
   const d = day();
   const total = d.exercises.reduce((a,e)=>a+e.sets.length,0);
@@ -257,6 +268,7 @@ export function renderEntreno(){
         ${ex.goal?`<span class="ep-goal">${esc(ex.goal)}</span>`:''}
       </div>`:''}
       ${renderLastSession(ex.name)}
+      ${renderSuggestion(ex, timed)}
       ${sets}
       ${ex.note?`<div class="ex-note"><span class="ex-note-t">Nota de tu coach</span>${esc(ex.note)}</div>`:''}
       ${routineLocked()?'':`<button class="add-set" data-action="addset" data-ex="${esc(ex.id)}">+ Serie</button>`}
