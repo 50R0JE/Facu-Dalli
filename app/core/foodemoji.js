@@ -9,21 +9,22 @@ import { norm } from './utils.js';
 // "Gaseosa sin azúcar" no dé 🍯).
 const RULES = [
   // Lo que empieza por su nombre de producto (manda sobre el resto de las palabras)
-  [/^ huevo (?!de chocolate)/, "🥚"], [/^ pan\b/, "🍞"], [/aceite de oliva|aceituna/, "🫒"],
+  [/^ huevo (?!de chocolate|kinder)/, "🥚"], [/^ (alfajor|pepas?)\b/, "🍪"], [/^ omelet/, "🍳"], [/^ pan\b/, "🍞"], [/aceite de oliva|aceituna/, "🫒"],
   [/^ (aceite|grasa)\b|mayonesa|salsa de soja/, "🫙"], [/soja texturizada/, "🫘"],
-  [/cerveza|birra/, "🍺"], [/\bvino\b|champagne|espumante|sidra|fernet|vermut|aperitivo|aperol|campari|whisky|vodka|\bron\b|\bgin\b|tequila|licor|daiquiri|trago|clerico|cuba libre|destornillador/, "🍷"],
+  [/cerveza|birra/, "🍺"], [/\bvino\b|champagne|espumante|sidra|fernet|vermut|aperitivo|aperol|campari|whisky|vodka|\bron\b|\bgin\b|tequila|licor|daiquiri|trago|clerico|cuba libre|destornillador|gancia|cynar|pina colada/, "🍷"],
   // Platos y preparaciones (mandan sobre sus ingredientes)
   [/\bflan\b|\bpostre\b|mousse|arroz con leche|crema pastelera|\bpudding\b|budin de pan/, "🍮"],
   [/pastafrola|\btarta\b|pascualina|quiche|\btartas?\b|pastel de papa/, "🥧"],
   [/panqueque|\bcrepes?\b/, "🥞"], [/waffle|wafle/, "🧇"], [/muffin|cupcake|magdalena/, "🧁"],
-  [/helad|palito bombon|cucurucho|milkshake|yogur helado/, "🍦"],
-  [/\btorta\b|budin|brownie|lemon pie|chocotorta|cheesecake|bizcochuelo|pionono|tiramisu/, "🍰"],
-  [/\bdonas?\b|donut/, "🍩"], [/medialuna|factura|croissant|churro|pastelito/, "🥐"],
+  [/helad|palito bombon|cucurucho|milkshake|yogur helado|mcflurry|sundae|king fusion|^ cono\b|crocantino|almendrado|bombon escoces/, "🍦"],
+  [/\btorta\b|budin|brownie|lemon pie|chocotorta|cheesecake|bizcochuelo|pionono|tiramisu|milhojas/, "🍰"],
+  [/\bdonas?\b|donut/, "🍩"], [/medialuna|factura|croissant|churro|pastelito|librito|cremona|figacita|fosforito/, "🥐"],
+  [/tortilla de grasa|tortas? fritas?|galleta de campo|galleta marinera/, "🫓"], [/pan de carne/, "🥩"],
   [/pizza|fugazza|fugazzeta|pizzeta|calzone|prepizza/, "🍕"],
-  [/big mac|cuarto de libra|hamburgues|burger/, "🍔"], [/pancho|salchicha|hot ?dog/, "🌭"],
+  [/big mac|cuarto de libra|hamburgues|burger|whopper|stacker|cheese|mcnifica|grand tasty|mcbacon|mcmelt|mcpollo|mccrispy|long chicken|doble carne|mega (clasico|taste)/, "🍔"], [/pancho|salchicha|hot ?dog/, "🌭"],
   [/shawarma|kebab|doner/, "🥙"], [/humita en chala|\btamal/, "🫔"],
-  [/empanada|canelon|raviol|sorrentino|capelet|tortelin|agnolotti|tapas para empanadas/, "🥟"],
-  [/sandwich|sanguche|\btostado (de|jyq|jamon)|\bwrap\b|choripan|morcipan|\bal pan\b|\ben pan\b|lomito completo/, "🥪"],
+  [/empanad|canelon|raviol|sorrentino|capelet|tortelin|agnolotti|tapas para empanadas/, "🥟"],
+  [/^ sub |twister|sandwich|sanguche|\btostado (de|jyq|jamon)|\bwrap\b|choripan|morcipan|\bal pan\b|\ben pan\b|lomito completo/, "🥪"],
   [/\btacos?\b|burrito|quesadilla|fajita|nacho|dorito/, "🌮"], [/sushi|\broll\b|sashimi|niguiri/, "🍣"],
   [/ensalada de frutas|coctel de frutas|coctel de fruta/, "🍓"], [/ensalada/, "🥗"],
   [/\bsopa\b|caldo|guiso|locro|puchero|estofado|carbonada|cazuela|maiz pisado/, "🍲"],
@@ -31,7 +32,7 @@ const RULES = [
   [/milanesa de (soja|berenjena|calabaza|zapallo|quinoa|lentejas?|garbanzos?)|seitan|tempeh|medallon de (lentejas|vegetales)/, "🥗"],
   // Bebidas
   [/licuado|batido|shake|smoothie/, "🥤"], [/submarino|chocolatada/, "🍫"],
-  [/\bmate\b|terere/, "🧉"], [/\bcafe\b|capuchino|cortado|espresso|latte|\bte\b|infusion/, "☕"],
+  [/\bmate\b|terere/, "🧉"], [/\bcafe\b|capuchino|cappuccino|macchiato|lagrima|cortado|espresso|latte|\bte\b|infusion/, "☕"],
   [/gaseosa|\bcoca\b|pepsi|sprite|fanta|\bsoda\b|\bjugo\b|agua saborizada|agua tonica|isotonic|energizante|gatorade|powerade|limonada|kombucha/, "🥤"],
   [/^ agua\b/, "💧"],
   // Suplementos
@@ -94,7 +95,8 @@ const memo = new Map();
 export function foodEmoji(name, cat) {
   const key = name + "|" + (cat || "");
   if (memo.has(key)) return memo.get(key);
-  const full = " " + norm(String(name || "")).replace(/\bsin (azucar|tacc|alcohol|piel|sal)\b/g, "") + " ";
+  const full = " " + norm(String(name || "")).replace(/\bsin (azucar|tacc|alcohol|piel|sal)\b/g, "")
+    .replace(/\(([^()]*,\s*)?(mcdonald'?s|burger king|mostaza|kfc|subway|starbucks|mccafe|grido|sbarro|el noble)\b[^()]*\)/g, " ") + " ";
   // En "Avena con leche" o "Arroz con pollo" manda lo que va antes del "con".
   const head = full.split(/ \(?con /)[0] + " ";
   const match = n => { for (const [re, em] of RULES) if (re.test(n)) return em; return null; };
