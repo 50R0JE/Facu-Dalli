@@ -19,7 +19,6 @@ import { runningSetId, startTimer, stopTimer } from './ui/settimer.js';
 import { showLogin } from './screens/auth.js';
 
 import { ssGroupOf, ssNext } from './core/superserie.js';
-import { openSharePreview } from './ui/sharecard.js';
 import { CardioState, openTimePicker, renderCardio, setRing, swFrac } from './screens/cardio.js';
 
 import { CheckinState, renderFeedback, saveSession } from './screens/checkin.js';
@@ -439,7 +438,6 @@ document.body.addEventListener("click", async e => {
     renderApp(); return;
   }
   if (a === "fb-set") { CheckinState.fbForm=CheckinState.fbForm||{}; CheckinState.fbForm[el.dataset.k]=el.dataset.v; renderFeedback(); return; }
-  if (a === "share-sum") { if(CheckinState.summary) openSharePreview(Object.assign({}, CheckinState.summary, { prs: CheckinState.newPRs||[] })); return; }
   if (a === "fb-skip") { CheckinState.fbSession=null; CheckinState.fbForm=null; CheckinState.newPRs=[]; renderApp(); return; }
   if (a === "fb-save") {
     const se=state.sessions.find(x=>x.id===CheckinState.fbSession); const f=CheckinState.fbForm||{};

@@ -37,7 +37,6 @@ export const CheckinState = {
 };
 
 let _lastSaveTap=0;
-const shareSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';
 // Volumen: kg × reps de todas las series (las de solo peso corporal o por tiempo no suman).
 export function sessionVolume(exs){ return (exs||[]).reduce((a,e)=>a+(e.sets||[]).reduce((b,st)=>b+(Number(st.kg)||0)*(Number(st.reps)||0),0),0); }
 const durText = s => { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60; return h ? h+" h "+String(m).padStart(2,"0")+" min" : m ? m+" min"+(m<10&&ss?" "+ss+" s":"") : ss+" s"; };
@@ -47,7 +46,7 @@ function renderSummary(){
   return '<div class="sum-box"><div class="sum-grid">'+
     (sm.dur>0 ? cell(durText(sm.dur),"Tiempo total",true) : '')+
     cell(sm.sets,"Series")+cell(sm.exs,"Ejercicios")+
-    '</div><button class="sum-share" data-action="share-sum">'+shareSvg+' Compartir resumen</button></div>';
+    '</div></div>';
 }
 export function saveSession(){
   const d=day(); const exs=[];
@@ -70,7 +69,7 @@ export function saveSession(){
   // Resumen: tiempo desde la primera serie tildada, series, volumen y la vez anterior de ese día.
   const dur = wkStarted(d) ? Math.min(43200, Math.round(wkElapsedMs()/1000)) : 0;
   const prev = (state.sessions||[]).slice().reverse().find(x=>x.day===d.name);
-  CheckinState.summary = { dur, sets: exs.reduce((a,e)=>a+e.sets.length,0), exs: exs.length, day: d.name, date: today(), exercises: exs };
+  CheckinState.summary = { dur, sets: exs.reduce((a,e)=>a+e.sets.length,0), exs: exs.length };
   const _ns={id:newId(), date:today(), ts:Date.now(), day:d.name, exercises:exs};
   if(dur>0) _ns.dur=dur;
   delete state.wkStart;
