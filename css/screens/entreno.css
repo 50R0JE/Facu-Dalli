@@ -230,3 +230,16 @@ body:not(#_) .ss-group :is(.card, .ex-collapsed) { border: 0; border-radius: 0; 
 .wk-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gize-success); box-shadow: 0 0 8px var(--gize-success); animation: wkDot 1.6s ease-in-out infinite; }
 @keyframes wkDot { 50% { opacity: .35; } }
 @media (prefers-reduced-motion: reduce) { .wk-dot { animation: none; } }
+
+/* Sugerencia de progresión */
+.prog-sug { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; padding: 10px 12px; border-radius: 10px;
+  background: color-mix(in srgb, var(--gize-success) 8%, transparent); border: 1px solid color-mix(in srgb, var(--gize-success) 35%, transparent); }
+.ps-ic { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--gize-success); background: color-mix(in srgb, var(--gize-success) 14%, transparent); }
+.ps-ic svg { width: 16px; height: 16px; }
+.ps-txt { flex: 1; min-width: 0; font-size: var(--text-body); color: var(--gize-text); line-height: 1.3; }
+.ps-lbl { color: var(--txt-2); font-size: var(--text-meta); }
+.ps-txt b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.ps-why { display: block; font-size: 11.5px; color: var(--txt-2); margin-top: 2px; }
+.ps-use { flex: none; padding: 7px 14px; border-radius: var(--gize-radius-pill); border: 1px solid color-mix(in srgb, var(--gize-success) 55%, transparent);
+  background: none; color: var(--gize-success); font: 700 var(--text-meta) var(--gize-font); cursor: pointer; }
+.ps-use:active { background: color-mix(in srgb, var(--gize-success) 15%, transparent); }

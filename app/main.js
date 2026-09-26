@@ -548,6 +548,8 @@ document.body.addEventListener("click", async e => {
     });
     renderApp(); return;
   }
+  // Sugerencia de progresión: pone ese peso en las series que faltan (las reps las anota uno).
+  if (a === "sug-use") { const kg=parseFloat(el.dataset.kg); if(ex && kg>0){ ex.sets.forEach(s=>{ if(!s.done){ s.kg=String(kg); autoKg.delete(s.id); } }); save(); renderApp(); } return; }
   if (a === "ex-expand") { expandedOverride.add(ex.id); renderApp(); return; }
   if (a === "ex-collapse") { collapseExerciseAnimated(ex.id, ()=>{ expandedOverride.delete(ex.id); renderApp(); }); return; }
   // Descanso por ejercicio. Sin coach se guarda en el ejercicio (viaja con la rutina);
