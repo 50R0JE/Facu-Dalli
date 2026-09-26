@@ -131,7 +131,8 @@ export function renderCoach(){
         panel=renderCoachNotify(d)+
                '<div class="co-sec">Ficha del cliente</div>'+renderCoachInfo(d)+
                '<div class="co-panel"><div class="co-sec">Bloque / mesociclo</div>'+renderCoachBlock(d)+'</div>'+
-             '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d)+
+             // Ya no se suben fotos de progreso: la sección queda solo si hay fotos viejas.
+             ((d.photos||[]).length ? '<div class="co-sec">Fotos de progreso</div>'+renderCoachPhotos(d) : '')+
              secHead("Seguimiento diario","daily")+renderCoachDaily(d)+
              secHead("Check-in semanal","checkin")+renderCoachCheckins(d)+
              '<div class="co-sec">Historial de entrenos</div>'+(sess||'<div class="cal-hint">El cliente todavía no registró entrenos.</div>')+

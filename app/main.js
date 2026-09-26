@@ -271,7 +271,6 @@ document.body.addEventListener("change", async e => {
     return;
   }
   if (a === "cf-photo") { const file=t.files&&t.files[0]; if(file){ const ff=ComidaState.foodForm; if(ff.photoUrl) URL.revokeObjectURL(ff.photoUrl); ff.photo=file; ff.photoUrl=URL.createObjectURL(file); renderApp(); } return; }
-  if (a === "photo-pick") { const file=t.files&&t.files[0]; if(file){ try{ await cloudUploadPhoto(file); }catch(err){ alert("No se pudo subir la foto: "+((err&&err.message)||err)); } } t.value=""; return; }
 });
 
 document.body.addEventListener("mousemove", e => {
