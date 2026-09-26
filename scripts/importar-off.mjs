@@ -30,7 +30,7 @@ const NUTR = ["energy-kcal_100g", "energy_100g", "proteins_100g", "carbohydrates
 const input = createReadStream(CSV);
 const lines = createInterface({ input: CSV.endsWith(".gz") ? input.pipe(createGunzip()) : input, crlfDelay: Infinity });
 const rows = new Map(), skipped = {};
-let col = null, total = 0, ar = 0;
+let col = null, total = 0, ar = 0, sinNombre = 0;
 for await (const line of lines){
   if (!col){ col = Object.fromEntries(line.split("\t").map((h, i) => [h, i])); continue; }
   total++;
@@ -42,6 +42,7 @@ for await (const line of lines){
     quantity: v("quantity"), serving_quantity: v("serving_quantity"), unique_scans_n: v("unique_scans_n"), nutriments: {} };
   for (const k of NUTR){ const x = v(k); if (x !== undefined && x !== "") p.nutriments[k] = x; }
   const r = offToRow(p);
+  if (r.skip === "nombre"){ const q = offToRow(Object.assign({}, p, { product_name: "x producto" })); if (!q.skip) sinNombre++; }
   if (r.skip){ skipped[r.skip] = (skipped[r.skip] || 0) + 1; continue; }
   r.completa = String(v("states_tags") || "").split(",").includes("en:nutrition-facts-completed");
   const prev = rows.get(r.code);
@@ -51,7 +52,8 @@ if (!col || col.code == null || col.countries_tags == null){ console.error("El a
 const all = [...rows.values()];
 console.log("Productos en el archivo:", total, "· de Argentina:", ar, "· válidos:", all.length,
   "(marcados en OFF como tabla completa:", all.filter(r => r.completa).length + ")");
-console.log("Descartados:", JSON.stringify(skipped));
+console.log("Descartados:", JSON.stringify(skipped), "· sin nombre pero con tabla:", sinNombre,
+  "· columnas de nombre:", Object.keys(col).filter(k => /name|abbreviated/.test(k)).join(","));
 if (OUT) writeFileSync(OUT, rowsToSql(all));
 
 // ---- 2. Cargar en Supabase ----
