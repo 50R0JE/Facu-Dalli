@@ -5,7 +5,9 @@
     /* Marca GIZE: los valores salen de brand/tokens.css (--gize-*, fuente de verdad en
        brand/BRAND.md). Estos alias mantienen los nombres que ya usa el resto del CSS.
        red/ring-over → --gize-danger; xl-* (tablas tipo Excel) → --gize-success;
-       purple/pink/cyan → gama RGB. Los números usan --gize-font-data (JetBrains Mono). */
+       purple/pink/cyan → gama RGB. Toda la app usa Outfit, también los números (con
+       tabular-nums para que las cifras queden alineadas): --font-mono y --gize-font-data
+       apuntan a Outfit. */
     --bg: var(--gize-bg); --card: var(--gize-surface); --card-2: var(--gize-surface-2); --border: var(--gize-border);
     --txt: var(--gize-text); --txt-2: var(--gize-text-2); --txt-3: var(--gize-text-2);
     --blue: var(--gize-blue); --blue-2: var(--gize-blue-deep); --red: var(--gize-danger);
@@ -13,7 +15,8 @@
     --glow: color-mix(in srgb, var(--gize-blue) 28%, transparent);
     --ring-over: var(--gize-danger); --glow-over: color-mix(in srgb, var(--gize-danger) 30%, transparent);
     --xl-head: var(--gize-success-bg); --xl-band: var(--gize-success-bg);
-    --font-mono: var(--gize-font-data);
+    --gize-font-data: var(--gize-font);
+    --font-mono: var(--gize-font);
     --text-meta: 12px;      /* secundario: hints, timestamps, sub-labels, botones fantasma */
     --text-body: 14px;      /* primario: nombres, valores, inputs, botones estándar */
     --text-emphasis: 15px;  /* énfasis dentro de una fila: nombre destacado, CTA principal */
