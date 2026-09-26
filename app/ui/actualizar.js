@@ -1,13 +1,15 @@
 // Cartel de "hay una versión nueva" en las apps de las tiendas. La web se actualiza sola
 // (service worker); la app de Android/iPhone no: los archivos viajan dentro de la app y
 // quien no actualiza desde la tienda se queda con la versión vieja.
-// La app lee https://gize.ar/app/version.json (en vivo, no el que viaja dentro de la app)
-// y compara con su número de compilación (versionCode en Android):
+// La app lee la configuración «version» de la base (tabla app_config, la cambia un admin desde
+// gize.ar/admin → Avisos); si no responde, https://gize.ar/app/version.json. Compara con su
+// número de compilación (versionCode en Android):
 //   · menor que "ultima"  → cartel abajo con "Actualizar" y la cruz (vuelve a los 3 días).
 //   · menor que "minima"  → pantalla que no se puede cerrar (para un arreglo obligatorio).
 // "ultima" se sube a mano recién cuando la versión ya está publicada en la tienda: si no,
 // el cartel mandaría a actualizar a algo que todavía no está.
 import { esc } from '../core/utils.js';
+import { SB_KEY, SB_URL } from '../core/supabase.js';
 
 const URL_VERSION = "https://gize.ar/app/version.json";
 const SKIP_KEY = "gize_upd_skip";
@@ -19,6 +21,15 @@ function nativo(){
   try { return window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? window.Capacitor : null; } catch (e) { return null; }
 }
 
+async function readConfig(){
+  try {
+    const r = await fetch(SB_URL + "/rest/v1/app_config?key=eq.version&select=value", { cache: "no-store", headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
+    if (r.ok){ const rows = await r.json(); if (rows && rows[0] && rows[0].value) return rows[0].value; }
+  } catch (e) {}
+  try { const r = await fetch(URL_VERSION + "?t=" + Date.now(), { cache: "no-store" }); if (r.ok) return await r.json(); } catch (e) {}
+  return null;
+}
+
 export async function checkUpdate(force){
   const cap = nativo();
   if (!cap || !cap.Plugins || !cap.Plugins.App) return;
@@ -28,9 +39,9 @@ export async function checkUpdate(force){
     const info = await cap.Plugins.App.getInfo();
     const build = parseInt(info && info.build, 10);
     if (!build) return;
-    const r = await fetch(URL_VERSION + "?t=" + Date.now(), { cache: "no-store" });
-    if (!r.ok) return;
-    const cfg = (await r.json())[cap.getPlatform()];
+    const all = await readConfig();
+    if (!all) return;
+    const cfg = all[cap.getPlatform()];
     if (!cfg || !cfg.tienda || !/^https:\/\//i.test(cfg.tienda)) return;
     const ultima = +cfg.ultima || 0, minima = +cfg.minima || 0;
     if (build < minima) return show(cfg.tienda, true, ultima, cfg.version);

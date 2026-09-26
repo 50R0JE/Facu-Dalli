@@ -419,6 +419,20 @@ function cachedProfile(){
 // cloudBoot() ya llama a ensureSb() apenas termina de cargar todo el árbol de
 // módulos, momento en el que "State" ya está inicializado sin problema.
 
+// Actividad para el panel de administrador: cuándo se abrió la app, con qué versión y en qué
+// plataforma (la base lo guarda como mucho una vez por hora, ver touch_me en supabase/admin.sql).
+async function touchMe(){
+  try{
+    let version="web", platform="web";
+    const C=window.Capacitor;
+    if(C && C.isNativePlatform && C.isNativePlatform()){
+      platform=C.getPlatform();
+      try{ const info=await C.Plugins.App.getInfo(); version=info.version+" ("+info.build+")"; }catch(e){ version="?"; }
+    }
+    await State.sb.rpc("touch_me",{p_version:version, p_platform:platform});
+  }catch(e){}
+}
+
 export async function afterLogin(sessionUser){
   // getUser() revalida el token pegándole a la red. Si no hay conexión esa llamada
   // falla y ANTES dejábamos State.cloudUser en null: como flushOutbox()/pendingCount()
@@ -428,6 +442,7 @@ export async function afterLogin(sessionUser){
   // red (lee la sesión guardada en el dispositivo), así que arrancamos con ESE y solo
   // lo reemplazamos por la versión fresca del servidor si getUser() llega a responder.
   State.cloudUser = sessionUser || State.cloudUser || null;
+  if(State.cloudUser && State.sb) setTimeout(touchMe, 4000);
   // Los datos del celular son de quien los cargó (state.ownerUid). Si entra OTRA cuenta en
   // este dispositivo se empieza de cero, para que no herede la rutina ni el diario ajenos.
   // Antes eso se hacía borrando todo al perder la sesión, y se perdía lo que todavía no se
