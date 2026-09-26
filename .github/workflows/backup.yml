@@ -10,6 +10,8 @@
 #      Si falta algo, la ejecución sale en rojo.
 #   El archivo queda 90 días en la ejecución (Artifacts → backup-base).
 #
+# Corre solo desde main.
+#
 # Secrets (Settings → Secrets and variables → Actions):
 #   SUPABASE_DB_URL   Supabase → botón "Connect" → "Session pooler" → la URI, con la
 #                     contraseña de la base en lugar de [YOUR-PASSWORD].
@@ -34,6 +36,7 @@ permissions:
 
 jobs:
   backup:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -102,7 +105,7 @@ jobs:
           rm -f out/backup.dump out/filas.txt
           ls out
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: backup-base
           path: out/*.gpg

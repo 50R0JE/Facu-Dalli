@@ -1,0 +1,8 @@
+# Las actions de los workflows van fijadas por SHA (un tag se puede mover, un commit no).
+# Dependabot abre un PR por mes cuando sale una versión nueva, con el SHA y el tag actualizados.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
