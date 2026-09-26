@@ -45,20 +45,29 @@ export function renderCardio(){
 }
 
 // Anillo alrededor del tiempo (en vez de los dibujitos animados): en el temporizador se
-// vacía a medida que pasa el tiempo; en el cronómetro da una vuelta por minuto, como la
-// aguja de los segundos. tick() (main.js) lo mueve con setRing(), sin redibujar la pantalla.
+// vacía a medida que pasa el tiempo; en el cronómetro un cometa da una vuelta por minuto,
+// como la aguja de los segundos, sin reiniciarse. tick() (main.js) lo mueve con setRing(), sin redibujar la pantalla.
 const R = 92, C = 2 * Math.PI * R;
 const ringOffset = frac => (C * (1 - Math.min(1, Math.max(0, frac)))).toFixed(2);
-function ring(frac, big, label, state){
+function ring(frac, big, label, state, comet){
   const small = big.length > 5 ? ' small' : '';
-  return `<div class="cring${state?' '+state:''}">
+  const deg = (Math.min(1, Math.max(0, frac))*360).toFixed(2);
+  // Cronómetro: anillo entero tenue y un cometa (cabeza blanca + estela que se desvanece) que
+  // gira sin parar, una vuelta por minuto; al pasar de 59 a 60 s sigue de largo, no se reinicia.
+  const tail = [[.36, .07], [.30, .1], [.24, .16], [.18, .26], [.12, .45], [.06, 1]].map(([f, o]) =>
+    `<circle class="cring-arc${f > .06 ? " tail" : ""}" cx="100" cy="100" r="${R}" stroke-dasharray="${(C*f).toFixed(2)} ${C.toFixed(2)}" transform="rotate(${(-90 - f*360).toFixed(2)} 100 100)" opacity="${o}"/>`).join("");
+  const body = comet
+    ? `<circle class="cring-track sw" cx="100" cy="100" r="${R}"/>
+      <g id="cringDot" transform="rotate(${deg} 100 100)">${tail}<circle class="cring-dot" cx="100" cy="${100-R}" r="6"/></g>`
+    : `<circle class="cring-track" cx="100" cy="100" r="${R}"/>
+      <circle class="cring-arc" id="cringArc" cx="100" cy="100" r="${R}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${ringOffset(frac)}" transform="rotate(-90 100 100)"/>
+      <g id="cringDot" transform="rotate(${deg} 100 100)"><circle class="cring-dot" cx="100" cy="${100-R}" r="6"/></g>`;
+  return `<div class="cring${state?' '+state:''}${comet?' comet':''}">
     <svg viewBox="0 0 200 200" aria-hidden="true">
       <defs><linearGradient id="cringGrad" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#2FA0FF"/><stop offset=".45" stop-color="#A65CFF"/><stop offset=".75" stop-color="#FF3DAE"/><stop offset="1" stop-color="#25E8C8"/>
       </linearGradient></defs>
-      <circle class="cring-track" cx="100" cy="100" r="${R}"/>
-      <circle class="cring-arc" id="cringArc" cx="100" cy="100" r="${R}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${ringOffset(frac)}" transform="rotate(-90 100 100)"/>
-      <g id="cringDot" transform="rotate(${(frac*360).toFixed(2)} 100 100)"><circle class="cring-dot" cx="100" cy="${100-R}" r="6"/></g>
+      ${body}
     </svg>
     <div class="cring-in">
       <div class="time-display${small}" id="cringTime">${big}</div>
@@ -89,7 +98,7 @@ export function renderCardioTools(modes){
       : paused
         ? '<button class="ctrl ghost" data-action="sw-reset">Reiniciar</button><button class="ctrl primary" data-action="sw-toggle">Seguir</button>'
         : '<button class="ctrl primary wide" data-action="sw-toggle">Iniciar</button>';
-    return modes + `<div class="cring-row">${ring(swFrac(elapsed), fmt(elapsed), label, CardioState.swRunning ? "run" : "")}</div>
+    return modes + `<div class="cring-row">${ring(swFrac(elapsed), fmt(elapsed), label, CardioState.swRunning ? "run" : "", true)}</div>
       <div class="ctrl-row">${ctrls}</div>${laps}`;
   } else {
     const rem = CardioState.tmRunning ? Math.max(0, CardioState.tmEndTs-Date.now()) : CardioState.tmRemainingMs;

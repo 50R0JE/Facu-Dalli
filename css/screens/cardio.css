@@ -13,6 +13,12 @@
 .cring-track { fill: none; stroke: var(--gize-surface-2); stroke-width: 7; }
 .cring-arc { fill: none; stroke: url(#cringGrad); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset .12s linear; }
 .cring-dot { fill: #fff; filter: drop-shadow(0 0 6px rgba(47,160,255,.9)); }
+.cring-track.sw { stroke: url(#cringGrad); opacity: .16; }
+.cring.comet.run .cring-track.sw { animation: cringBreath 2.4s ease-in-out infinite; }
+.cring.comet .cring-arc { transition: none; stroke-width: 9; }
+.cring.comet .cring-arc.tail { stroke-linecap: butt; }
+.cring.comet.run #cringDot { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gize-r2) 55%, transparent)); }
+@keyframes cringBreath { 50% { opacity: .3; } }
 .cring.run .cring-arc { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--gize-blue) 45%, transparent)); }
 .cring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .cring .time-display { margin: 0; font-size: clamp(40px, 14vw, 58px); font-weight: 700; letter-spacing: -.02em; line-height: 1; }
@@ -22,7 +28,7 @@
 .cring.fin .cring-arc { stroke: var(--gize-success); animation: cringDone 1s ease-in-out 3; }
 .cring.fin .cring-dot { display: none; }
 @keyframes cringDone { 50% { opacity: .35; } }
-@media (prefers-reduced-motion: reduce) { .cring-arc { transition: none; } .cring.fin .cring-arc { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cring-arc { transition: none; } .cring.comet.run .cring-track.sw { animation: none; } .cring.fin .cring-arc { animation: none; } }
 
 /* − / + 15 s a los costados del anillo (sin teclado: en iPhone el teclado corría la pantalla) */
 .cstep { flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); color: var(--txt);
