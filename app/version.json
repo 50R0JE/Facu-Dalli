@@ -1,0 +1,12 @@
+{
+  "android": {
+    "ultima": 11,
+    "minima": 0,
+    "tienda": "https://play.google.com/store/apps/details?id=ar.com.gize.app"
+  },
+  "ios": {
+    "ultima": 0,
+    "minima": 0,
+    "tienda": ""
+  }
+}
