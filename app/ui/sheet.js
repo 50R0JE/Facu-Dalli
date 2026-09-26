@@ -1,6 +1,6 @@
 import { esc } from '../core/utils.js';
 
-import { ComidaState, cookPortion, entryBase, entryCookState, foodByName, mealChips, mealNow, previewStr, selectedFoodValues } from '../screens/comida.js';
+import { ComidaState, shortName, cookPortion, entryBase, entryCookState, foodByName, mealChips, mealNow, previewStr, selectedFoodValues } from '../screens/comida.js';
 import { foodUnit, unitText } from '../core/foodunits.js';
 
 export const SheetState = {
@@ -21,7 +21,7 @@ export function renderSheet(){
   return `
     <div class="sheet-bg" data-action="portion-cancel"></div>
     <div class="sheet">
-      <div class="sheet-title">${esc(title)}</div>
+      <div class="sheet-title">${esc(shortName(title))}</div>
       ${mealChips(ComidaState.sheetMeal || (isEdit ? ComidaState.editEntry.meal : ComidaState.meal) || mealNow(), "sheet-meal")}
       ${sf && sf.cook ? `<div class="sheet-cook" role="radiogroup" aria-label="¿Cómo lo pesaste?">
         <span class="sheet-cook-lbl">¿Cómo lo pesaste?</span>
