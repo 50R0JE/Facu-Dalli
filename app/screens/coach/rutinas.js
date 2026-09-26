@@ -334,15 +334,14 @@ function exerciseCard(d, day, ex, i, rt){
     '</div>';
 
   // Lo que hizo el cliente la última vez en este ejercicio (primero en este mismo día, si no
-  // en cualquiera): se ve arriba de las series y como pista dentro de cada peso propuesto.
+  // en cualquiera): se ve arriba de las series.
   const log=coachLogFor(d.sessions, day.name, ex.name); const lastLog=log[0] || coachLogFor(d.sessions, null, ex.name)[0] || null;
-  const prevSet=j=>lastLog && lastLog.sets[j] ? lastLog.sets[j] : null;
   const setTxt=st=>st.secs>0 ? st.secs+' s' : (st.kg>0 ? kgText(st.kg)+' kg × '+st.reps : st.reps+' reps');
   const sets=(ex.sets||[]).map((st,j)=>
     '<div class="co-set-row">'+
       '<span class="co-set-n">'+(j+1)+'</span>'+
       '<input class="co-target" data-coach="rt-target" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.target||"")+'" placeholder="'+(timed?'45 s':'8-10')+'" aria-label="'+(timed?'Tiempo':'Reps')+' objetivo, serie '+(j+1)+'">'+
-      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="'+(prevSet(j)&&prevSet(j).kg>0 ? 'antes '+kgText(prevSet(j).kg) : 'kg')+'" aria-label="Peso propuesto, serie '+(j+1)+'">'+
+      '<input class="co-target" data-coach="rt-targetkg" data-i="'+i+'" data-j="'+j+'" value="'+esc(st.targetKg||"")+'" placeholder="kg" aria-label="Peso propuesto, serie '+(j+1)+'">'+
       '<button class="co-set-rm" data-coach="rt-setdel" data-i="'+i+'" data-j="'+j+'" title="Quitar serie" aria-label="Quitar serie '+(j+1)+'">\u2715</button>'+
     '</div>').join("");
   const setsTbl=nSets ? '<div class="co-set-head"><span>#</span><span>'+(timed?'Tiempo objetivo':'Reps objetivo')+'</span><span>'+(timed?'Peso (opcional)':'Peso propuesto')+'</span><span></span></div>'+sets : '';
