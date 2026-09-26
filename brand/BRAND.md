@@ -9,8 +9,7 @@ este archivo, gana este archivo.
 ## Tipografía
 | Uso | Tipografía | Licencia |
 |---|---|---|
-| Interfaz, textos, botones | **Outfit** (400/500/600/700) | SIL OFL 1.1 |
-| Datos: números en tablas, cronómetros, pesos y macros | **JetBrains Mono** (500–800) | SIL OFL 1.1 |
+| Interfaz, textos, botones y números | **Outfit** (400/500/600/700/800) | SIL OFL 1.1 |
 | Logotipo | **Bigger Display**, ya convertida a curvas en `logo/*.svg` | Thunder Studio, gratis para uso comercial |
 
 ```html
@@ -19,9 +18,9 @@ este archivo, gana este archivo.
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 ```
 
-**Por qué una mono para los datos:** todos los dígitos ocupan lo mismo, así las columnas
-de kilos, repeticiones y macros quedan alineadas (con Outfit un 1 es más angosto que un 8
-y las tablas bailan). Además separa el dato del texto de interfaz. Variable: `--gize-font-data`.
+**Números:** también van en Outfit (decisión de septiembre 2026: se ve más linda y pareja
+que una mono). Donde hace falta que las cifras queden alineadas (tablas, kcal, pesos) se usa
+`font-variant-numeric: tabular-nums`. `--gize-font-data` queda como alias de Outfit.
 
 **Regla:** nunca cargar Bigger Display como webfont ni escribir "GIZE" con una fuente del sistema.
 El logo se usa siempre como SVG desde `logo/`.
