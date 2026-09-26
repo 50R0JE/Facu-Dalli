@@ -477,7 +477,7 @@ export function renderPlanScreen(){
     const seg = (ps.train && ps.rest) ? `<div class="seg plan-seg"><button class="${dayType==="entreno"?'on':''}" data-action="plan-day" data-v="entreno">Día de entreno</button><button class="${dayType==="descanso"?'on':''}" data-action="plan-day" data-v="descanso">Día de descanso</button></div>` : '';
     body = seg + (dayType === "entreno" ? (ps.train || ps.rest) : (ps.rest || ps.train));
   } else if (tab === "opciones"){
-    body = `<div class="plan-hint">Tocá cada comida para ver sus opciones.</div>` + ps.options.map(o => `<details class="plan-acc"><summary><span>${esc(o.title)}</span><i aria-hidden="true"></i></summary><div class="plan-acc-b">${o.html}</div></details>`).join("");
+    body = `<div class="plan-hint">Tocá una comida para ver sus opciones.</div>` + ps.options.map(o => `<details class="plan-acc" name="plan-opc"><summary><span>${esc(o.title)}</span><i aria-hidden="true"></i></summary><div class="plan-acc-b">${o.html}</div></details>`).join("");
   } else if (tab === "pautas"){
     body = (ps.ws || "") + ps.pautas;
   }
