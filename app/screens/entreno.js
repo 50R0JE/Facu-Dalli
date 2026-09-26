@@ -23,6 +23,8 @@ import { parseRest } from '../ui/restbar.js';
 
 import { timerText } from '../ui/settimer.js';
 
+import { focusFor } from '../ui/scrollfocus.js';
+
 export const EntrenoState = {
 
   exPicker: null,
@@ -199,6 +201,8 @@ export function renderEntreno(){
   // seguridad para lo que no prevemos). Cada ejercicio se renderiza en su propio try/catch:
   // si uno falla, muestra una card de error puntual y el resto del día se ve normal.
   const groups = ssGroups(d.exercises);
+  // Ejercicio en foco (ver ui/scrollfocus.js): se dibuja ya marcado para que no parpadee.
+  const fid = focusFor(d.exercises.map(ex => ex.id), d.exercises.filter(ex => !allSetsDone(ex) || expandedOverride.has(ex.id)).map(ex => ex.id));
   const cards = d.exercises.map((ex, exIdx) => ssWrap(d.exercises, groups, exIdx, (() => { try {
     // Entre ejercicios (rutina propia): insertar uno acá y unir/separar con el de arriba.
     const g = groups.find(x => exIdx >= x.start && exIdx <= x.end) || null;
@@ -249,7 +253,7 @@ export function renderEntreno(){
         <button class="done${s.done?' on':''}" data-action="toggle" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}">${s.done?checkSvg:''}</button>
         ${routineLocked()?'':`<button class="rm" data-action="removeset" data-ex="${esc(ex.id)}" data-set="${esc(s.id)}" title="Quitar serie">${xSvg}</button>`}
       </div>`).join("");
-    return `${insertBtn}<div class="card${exIdx===0?' ex-focused':''}" data-ex-id="${esc(ex.id)}">
+    return `${insertBtn}<div class="card${ex.id===fid?' ex-focused':''}" data-ex-id="${esc(ex.id)}">
       <div class="card-head">
         <span class="ex-num${tag?' ss':''}" aria-label="Ejercicio ${tag||exIdx+1}">${tag||exIdx+1}</span>
         <input class="ex-name" type="text" value="${esc(ex.name)}" data-action="exname" data-ex="${esc(ex.id)}" ${routineLocked()?'readonly':''}>
