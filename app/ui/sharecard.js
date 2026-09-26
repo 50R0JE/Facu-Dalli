@@ -8,7 +8,7 @@
 import { esc } from '../core/utils.js';
 
 const W = 1080, H = 1920;
-const R1 = "#2FA0FF", R2 = "#A65CFF", R3 = "#FF3DAE", R4 = "#25E8C8";
+const R1 = "#2FA0FF", R2 = "#A65CFF", R3 = "#FF3DAE", R4 = "#25E8C8", GOLD = "#FFC940";
 const FONT = "Outfit, system-ui, -apple-system, sans-serif";
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
@@ -25,79 +25,119 @@ function fit(ctx, txt, max){ let t = String(txt); if (ctx.measureText(t).width <
 function loadImg(src){ return new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; }); }
 function blob(ctx, x, y, r, color, a){ const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, color + a); g.addColorStop(1, color + "00"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
 
+// Grano fino encima de todo (como una foto impresa): le saca lo "digital plano" al degradé.
+function grain(ctx){
+  const g = document.createElement("canvas"); g.width = 360; g.height = 640;
+  const gx = g.getContext("2d"), im = gx.createImageData(360, 640), d = im.data;
+  for (let i = 0; i < d.length; i += 4){ const v = Math.random() * 255; d[i] = d[i+1] = d[i+2] = v; d[i+3] = 14; }
+  gx.putImageData(im, 0, 0);
+  ctx.save(); ctx.globalCompositeOperation = "overlay"; ctx.imageSmoothingEnabled = false; ctx.drawImage(g, 0, 0, W, H); ctx.restore();
+}
+function conic(ctx, cx, cy, from){
+  try { const g = ctx.createConicGradient(from, cx, cy); [R1, R2, R3, R4, R1].forEach((c, i) => g.addColorStop(i / 4, c)); return g; }
+  catch (e) { const g = ctx.createLinearGradient(cx - 300, cy - 300, cx + 300, cy + 300); g.addColorStop(0, R1); g.addColorStop(.5, R3); g.addColorStop(1, R4); return g; }
+}
+function rrect(ctx, x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function caps(ctx, txt, x, y, size, color, spacing, align){
+  ctx.font = "700 " + size + "px " + FONT; ctx.fillStyle = color; ctx.textAlign = align || "left";
+  try { ctx.letterSpacing = (spacing || 6) + "px"; } catch (e) {}
+  ctx.fillText(txt, x, y); try { ctx.letterSpacing = "0px"; } catch (e) {}
+}
+
 // data: { day, date (AAAA-MM-DD), dur (s), sets, exs, exercises:[{name,sets}], prs:[{name,kg,reps,prev}] }
 export async function drawShareCard(data){
-  try { await Promise.all([document.fonts.load("700 100px Outfit"), document.fonts.load("500 40px Outfit"), document.fonts.load("800 40px Outfit")]); } catch (e) {}
+  try { await Promise.all(["800 300px", "700 100px", "600 40px", "500 40px"].map(f => document.fonts.load(f + " Outfit"))); } catch (e) {}
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
-  blob(ctx, 120, 260, 760, R1, "55"); blob(ctx, 1000, 820, 700, R3, "40"); blob(ctx, 180, 1650, 760, R4, "38"); blob(ctx, 980, 1780, 600, R2, "40");
+  const M = 88; // margen
 
-  // Firma de GIZE arriba
+  // Fondo: negro profundo con una malla de luces de la gama (azul arriba, magenta al costado,
+  // verde agua abajo) muy difuminadas.
+  ctx.fillStyle = "#040507"; ctx.fillRect(0, 0, W, H);
+  blob(ctx, 60, 120, 900, R1, "66"); blob(ctx, 1150, 760, 820, R3, "4a"); blob(ctx, 980, 330, 520, R2, "40");
+  blob(ctx, -40, 1480, 820, R4, "3a"); blob(ctx, 1080, 1960, 700, R2, "44");
+  const vign = ctx.createRadialGradient(W / 2, H * .45, 300, W / 2, H * .45, 1250); vign.addColorStop(0, "rgba(0,0,0,0)"); vign.addColorStop(1, "rgba(0,0,0,.55)");
+  ctx.fillStyle = vign; ctx.fillRect(0, 0, W, H);
+
+  // Encabezado: firma y fecha
   const logo = await loadImg("brand/logo/gize-firma-horizontal.svg");
-  if (logo) ctx.drawImage(logo, 90, 110, 269.4 * 1.1, 110);
-
-  ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "rgba(255,255,255,.62)"; ctx.font = "700 34px " + FONT;
-  ctx.letterSpacing = "6px"; ctx.fillText("ENTRENO TERMINADO", 90, 330); ctx.letterSpacing = "0px";
-  ctx.fillStyle = "#fff"; ctx.font = "700 92px " + FONT; ctx.fillText(fit(ctx, data.day || "Entreno", W - 180), 90, 435);
+  if (logo) ctx.drawImage(logo, M, 104, 269.4 * .92, 92);
   const d = new Date((data.date || "") + "T12:00:00");
-  if (!isNaN(d)) { ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.font = "500 40px " + FONT; ctx.fillText(DIAS[d.getDay()] + " " + d.getDate() + " de " + MESES[d.getMonth()], 90, 500); }
+  if (!isNaN(d)) caps(ctx, (DIAS[d.getDay()].slice(0, 3) + " " + d.getDate() + " " + MESES[d.getMonth()].slice(0, 3)).toUpperCase(), W - M, 164, 30, "rgba(255,255,255,.7)", 5, "right");
 
-  // Anillo RGB con el tiempo total
-  const cx = W / 2, cy = 830, rr = 250;
-  let stroke;
-  try { stroke = ctx.createConicGradient(-Math.PI / 2, cx, cy); [R1, R2, R3, R4, R1].forEach((col, i) => stroke.addColorStop(i / 4, col)); }
-  catch (e) { stroke = ctx.createLinearGradient(cx - rr, cy - rr, cx + rr, cy + rr); stroke.addColorStop(0, R1); stroke.addColorStop(.5, R2); stroke.addColorStop(1, R4); }
-  ctx.save(); ctx.shadowColor = R2; ctx.shadowBlur = 60; ctx.strokeStyle = stroke; ctx.lineWidth = 14;
-  ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
-  ctx.strokeStyle = stroke; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
-  ctx.textAlign = "center"; ctx.fillStyle = "#fff";
-  if (data.dur > 0){
-    const [big, unit] = durTxt(data.dur);
-    ctx.font = "700 " + (big.length > 3 ? 120 : 190) + "px " + FONT; ctx.fillText(big, cx, cy + (big.length > 3 ? 30 : 55));
-    ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.font = "600 44px " + FONT; ctx.fillText(big.length > 3 ? "de entreno" : unit + " de entreno", cx, cy + 125);
-  } else {
-    ctx.font = "700 170px " + FONT; ctx.fillText(String(data.sets || 0), cx, cy + 40);
-    ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.font = "600 44px " + FONT; ctx.fillText("series", cx, cy + 120);
+  // Título
+  caps(ctx, "ENTRENO COMPLETADO", M, 330, 30, "rgba(255,255,255,.62)", 7);
+  const line = ctx.createLinearGradient(M, 0, M + 260, 0); line.addColorStop(0, R1); line.addColorStop(.5, R3); line.addColorStop(1, R4);
+  ctx.fillStyle = line; rrect(ctx, M, 350, 180, 5, 3); ctx.fill();
+  ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = "800 104px " + FONT;
+  const title = fit(ctx, data.day || "Entreno", W - M * 2);
+  ctx.fillText(title, M, 470);
+
+  // Héroe: anillo de neón con el tiempo adentro
+  const cx = W / 2, cy = 870, rr = 300;
+  ctx.save(); ctx.lineCap = "round";
+  ctx.strokeStyle = "rgba(255,255,255,.06)"; ctx.lineWidth = 22; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
+  const ring = conic(ctx, cx, cy, -Math.PI / 2);
+  ctx.strokeStyle = ring; ctx.shadowColor = R2; ctx.shadowBlur = 90; ctx.lineWidth = 12;
+  ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
+  ctx.shadowBlur = 30; ctx.shadowColor = R1; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+  // Número en blanco con un leve degradé hacia abajo
+  let big = "", unit = "";
+  if (data.dur > 0){ const s = Math.round(data.dur), h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60); if (h){ big = h + ":" + String(m).padStart(2, "0"); unit = "HORAS"; } else { big = String(Math.max(1, m)); unit = "MINUTOS"; } }
+  else { big = String(data.sets || 0); unit = "SERIES"; }
+  const size = big.length >= 4 ? 190 : big.length === 3 ? 230 : 280;
+  const tg = ctx.createLinearGradient(0, cy - size * .7, 0, cy + size * .3); tg.addColorStop(0, "#ffffff"); tg.addColorStop(1, "#cfd8ff");
+  ctx.textAlign = "center"; ctx.fillStyle = tg; ctx.font = "800 " + size + "px " + FONT;
+  try { ctx.letterSpacing = "-6px"; } catch (e) {}
+  ctx.fillText(big, cx, cy + size * .3); try { ctx.letterSpacing = "0px"; } catch (e) {}
+  caps(ctx, unit, cx, cy + size * .3 + 78, 34, "rgba(255,255,255,.72)", 10, "center");
+
+  // Números: tres columnas con divisores finos
+  const prs = data.prs || [];
+  const stats = [[data.sets || 0, "SERIES"], [data.exs || 0, "EJERCICIOS"], [prs.length, prs.length === 1 ? "RÉCORD" : "RÉCORDS"]];
+  const sy = 1290, colW = (W - M * 2) / 3;
+  stats.forEach(([v, l], i) => {
+    const x = M + colW * i + colW / 2;
+    ctx.textAlign = "center"; ctx.font = "800 96px " + FONT; ctx.fillStyle = i === 2 && v > 0 ? GOLD : "#fff"; ctx.fillText(String(v), x, sy);
+    caps(ctx, l, x, sy + 52, 26, "rgba(255,255,255,.6)", 5, "center");
+    if (i) { ctx.fillStyle = "rgba(255,255,255,.14)"; ctx.fillRect(M + colW * i, sy - 80, 2, 140); }
+  });
+
+  // Panel de vidrio con lo que hiciste (récords primero, con su marca dorada)
+  const prNames = new Set(prs.map(p => p.name));
+  const rows = prs.slice(0, 4).map(p => [true, p.name, kgTxt(p.kg) + " kg × " + p.reps])
+    .concat((data.exercises || []).filter(e => !prNames.has(e.name)).map(e => [false, e.name, bestOf(e.sets)]).filter(r => r[2]))
+    .slice(0, 4);
+  if (rows.length){
+    const px = M, py = 1430, pw = W - M * 2, rowH = 86, ph = 34 + rows.length * rowH + 14;
+    ctx.save(); rrect(ctx, px, py, pw, ph, 36); ctx.fillStyle = "rgba(255,255,255,.055)"; ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.12)"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    rows.forEach(([pr, name, val], i) => {
+      const y = py + 34 + i * rowH + 52;
+      if (i) { ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(px + 36, y - 60, pw - 72, 2); }
+      ctx.textAlign = "right"; ctx.font = "700 40px " + FONT; ctx.fillStyle = pr ? GOLD : "#fff"; ctx.fillText(val, px + pw - 40, y);
+      const vw = ctx.measureText(val).width;
+      let nx = px + 40;
+      if (pr){ // pastilla «RÉCORD»
+        ctx.font = "800 22px " + FONT; try { ctx.letterSpacing = "3px"; } catch (e) {}
+        const tw = ctx.measureText("RÉCORD").width + 30; rrect(ctx, nx, y - 34, tw, 42, 21); ctx.fillStyle = "rgba(255,201,64,.16)"; ctx.fill();
+        ctx.strokeStyle = "rgba(255,201,64,.55)"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.textAlign = "left"; ctx.fillStyle = GOLD; ctx.fillText("RÉCORD", nx + 15, y - 5); try { ctx.letterSpacing = "0px"; } catch (e) {}
+        nx += tw + 18;
+      }
+      ctx.textAlign = "left"; ctx.font = "600 38px " + FONT; ctx.fillStyle = "rgba(255,255,255,.92)";
+      ctx.fillText(fit(ctx, name, px + pw - 40 - vw - 28 - nx), nx, y);
+    });
   }
 
-  // Números
-  const prs = data.prs || [];
-  const stats = [[data.sets || 0, "series"], [data.exs || 0, "ejercicios"], [prs.length, prs.length === 1 ? "récord" : "récords"]];
-  stats.forEach(([v, l], i) => {
-    const x = 90 + i * 310, y = 1150;
-    ctx.fillStyle = "rgba(255,255,255,.06)"; ctx.strokeStyle = "rgba(255,255,255,.14)"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, 280, 170, 28) : ctx.rect(x, y, 280, 170); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = i === 2 && v > 0 ? "#FFC940" : "#fff"; ctx.font = "700 76px " + FONT; ctx.fillText(String(v), x + 140, y + 92);
-    ctx.fillStyle = "rgba(255,255,255,.65)"; ctx.font = "500 34px " + FONT; ctx.fillText(l, x + 140, y + 140);
-  });
-
-  // Récords (si hay) o los ejercicios con su mejor serie
-  ctx.textAlign = "left";
-  let y = 1420;
-  // Primero los récords (punto dorado), después el resto de los ejercicios; hasta 5 filas.
-  const prNames = new Set(prs.map(p => p.name));
-  const rows = prs.slice(0, 5).map(p => ["pr", p.name, kgTxt(p.kg) + " kg × " + p.reps])
-    .concat((data.exercises || []).filter(e => !prNames.has(e.name)).map(e => ["", e.name, bestOf(e.sets)]).filter(r => r[2]))
-    .slice(0, 5);
-  ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.font = "700 30px " + FONT; ctx.letterSpacing = "5px";
-  ctx.fillText("LO QUE HICE", 90, y);
-  if (prs.length){ ctx.textAlign = "right"; ctx.fillStyle = "#FFC940"; ctx.fillText("● RÉCORD", W - 90, y); ctx.textAlign = "left"; }
-  ctx.letterSpacing = "0px";
-  y += 30;
-  rows.forEach(([ic, name, val]) => {
-    y += 72;
-    ctx.fillStyle = "#fff"; ctx.font = "600 40px " + FONT;
-    ctx.textAlign = "right"; ctx.fillStyle = ic ? "#FFC940" : R1; ctx.font = "700 40px " + FONT; ctx.fillText(val, W - 90, y); const vw = ctx.measureText(val).width;
-    ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = "600 40px " + FONT;
-    let nx = 90;
-    if (ic){ ctx.save(); ctx.fillStyle = "#FFC940"; ctx.shadowColor = "#FFC940"; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(102, y - 14, 11, 0, Math.PI * 2); ctx.fill(); ctx.restore(); nx = 132; }
-    ctx.fillStyle = "#fff"; ctx.fillText(fit(ctx, name, W - 90 - nx - vw - 30), nx, y);
-  });
-
   // Pie
-  ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.font = "600 36px " + FONT; ctx.fillText("gize.ar", cx, H - 90);
+  ctx.textAlign = "left"; ctx.font = "500 30px " + FONT; ctx.fillStyle = "rgba(255,255,255,.6)"; ctx.fillText("Entrenado con GIZE", M, H - 92);
+  ctx.font = "700 30px " + FONT; const url = "gize.ar", uw = ctx.measureText(url).width + 44;
+  rrect(ctx, W - M - uw, H - 132, uw, 58, 29); ctx.fillStyle = "rgba(255,255,255,.1)"; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.25)"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.fillText(url, W - M - uw / 2, H - 92);
+
+  grain(ctx);
   return c;
 }
 
