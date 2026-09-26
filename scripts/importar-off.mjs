@@ -1,57 +1,50 @@
 // Trae de Open Food Facts los productos vendidos en Argentina con la tabla nutricional
 // completa y los suma a la base compartida de GIZE (public.products).
 // Lo corre el workflow "Importar Open Food Facts" (.github/workflows/importar-off.yml).
-//   node scripts/importar-off.mjs --out off.sql       arma el SQL (para probar en una base local)
-//   node scripts/importar-off.mjs --apply             carga en Supabase por tandas (API de Supabase;
-//                                                     usa PROJECT_REF y SUPABASE_ACCESS_TOKEN)
-//   --max-pages N                                     tope de páginas de 100 productos (800)
-// Open Food Facts pide identificarse (User-Agent) y no más de 10 búsquedas por minuto: se
-// espera 6,5 s entre páginas. Datos bajo licencia ODbL (se cita la fuente en la app y en
+//   node scripts/importar-off.mjs --csv productos.csv.gz --out off.sql   arma el SQL (para probar local)
+//   node scripts/importar-off.mjs --csv productos.csv.gz --apply         carga en Supabase por tandas
+//                                                                         (usa PROJECT_REF y SUPABASE_ACCESS_TOKEN)
+// La fuente es el archivo completo que publica Open Food Facts para descargas grandes
+// (https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz, separado por
+// tabulaciones): su buscador corta a las pocas páginas. Se lee de a una línea, sin
+// descomprimirlo entero. Datos bajo licencia ODbL (se cita la fuente en la app y en
 // gize.ar/privacidad). El log de Actions es público: solo se imprimen cantidades.
-import { writeFileSync } from "node:fs";
+import { createReadStream, writeFileSync } from "node:fs";
+import { createInterface } from "node:readline";
+import { createGunzip } from "node:zlib";
 import { batchSql, offToRow, rowsToSql } from "./off-import-lib.mjs";
 
 const has = k => process.argv.includes(k);
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
-const OUT = arg("--out", ""), APPLY = has("--apply"), MAX_PAGES = parseInt(arg("--max-pages", "800"), 10) || 800;
-const UA = "GIZE/1.0 (https://gize.ar - soporte@gize.ar)";
-const FIELDS = "code,product_name,product_name_es,generic_name_es,brands,quantity,serving_quantity,nutriments,nutrition_data_per,unique_scans_n";
+const CSV = arg("--csv", ""), OUT = arg("--out", ""), APPLY = has("--apply");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-if (!OUT && !APPLY){ console.error("Falta --out archivo.sql o --apply"); process.exit(1); }
+if (!CSV || (!OUT && !APPLY)){ console.error("Uso: --csv archivo.csv.gz y además --out archivo.sql o --apply"); process.exit(1); }
 
-async function page(n){
-  const u = "https://world.openfoodfacts.org/api/v2/search?countries_tags=en:argentina&states_tags=en:nutrition-facts-completed" +
-    "&sort_by=unique_scans_n&page_size=100&page=" + n + "&fields=" + FIELDS;
-  for (let t = 0; t < 5; t++){
-    try {
-      const r = await fetch(u, { headers: { "User-Agent": UA, Accept: "application/json" } });
-      if (r.status === 429 || r.status >= 500){ await sleep(20000 * (t + 1)); continue; }
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return await r.json();
-    } catch (e) { if (t === 4) throw e; await sleep(10000 * (t + 1)); }
-  }
-  throw new Error("Open Food Facts no respondió");
-}
-
-// ---- 1. Descargar ----
+// ---- 1. Leer el archivo y quedarse con Argentina ----
+const NUTR = ["energy-kcal_100g", "energy_100g", "proteins_100g", "carbohydrates_100g", "fat_100g", "alcohol_100g", "fiber_100g"];
+const input = createReadStream(CSV);
+const lines = createInterface({ input: CSV.endsWith(".gz") ? input.pipe(createGunzip()) : input, crlfDelay: Infinity });
 const rows = new Map(), skipped = {};
-let total = 0, pages = 0;
-for (let n = 1; n <= MAX_PAGES; n++){
-  const j = await page(n);
-  const list = j.products || [];
-  pages = n; total += list.length;
-  for (const p of list){
-    const r = offToRow(p);
-    if (r.skip){ skipped[r.skip] = (skipped[r.skip] || 0) + 1; continue; }
-    if (!rows.has(r.code)) rows.set(r.code, r);
-  }
-  if (n === 1) console.log("Productos de Argentina con tabla completa según Open Food Facts:", j.count);
-  if (n % 20 === 0) console.log("… página", n, "· válidos hasta ahora:", rows.size);
-  if (list.length < 100) break;
-  await sleep(6500);
+let col = null, total = 0, ar = 0, incompletos = 0;
+for await (const line of lines){
+  if (!col){ col = Object.fromEntries(line.split("\t").map((h, i) => [h, i])); continue; }
+  total++;
+  if (line.indexOf("en:argentina") < 0) continue; // descarte rápido: casi todo el archivo es de otros países
+  const f = line.split("\t"), v = k => col[k] == null ? undefined : f[col[k]];
+  if (!String(v("countries_tags") || "").split(",").includes("en:argentina")) continue;
+  ar++;
+  if (!String(v("states_tags") || "").split(",").includes("en:nutrition-facts-completed")){ incompletos++; continue; }
+  const p = { code: v("code"), product_name: v("product_name"), generic_name_es: v("generic_name"), brands: v("brands"),
+    quantity: v("quantity"), serving_quantity: v("serving_quantity"), unique_scans_n: v("unique_scans_n"), nutriments: {} };
+  for (const k of NUTR){ const x = v(k); if (x !== undefined && x !== "") p.nutriments[k] = x; }
+  const r = offToRow(p);
+  if (r.skip){ skipped[r.skip] = (skipped[r.skip] || 0) + 1; continue; }
+  const prev = rows.get(r.code);
+  if (!prev || r.scans > prev.scans) rows.set(r.code, r);
 }
+if (!col || col.code == null || col.countries_tags == null){ console.error("El archivo no tiene el formato esperado"); process.exit(1); }
 const all = [...rows.values()];
-console.log("Páginas:", pages, "· productos leídos:", total, "· válidos:", all.length);
+console.log("Productos en el archivo:", total, "· de Argentina:", ar, "· sin la tabla completa:", incompletos, "· válidos:", all.length);
 console.log("Descartados:", JSON.stringify(skipped));
 if (OUT) writeFileSync(OUT, rowsToSql(all));
 
