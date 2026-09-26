@@ -386,7 +386,7 @@ export function renderCoachRoutine(d){
     // Los unidos van en un solo panel: cabecera arriba y "sin descanso" entre ejercicios.
     const g=groups.find(x=>i>=x.start && i<=x.end);
     const gap='<div class="co-gap"><button class="co-rt-ins" data-coach="rt-ins" data-i="'+i+'" title="Insertar ejercicio ac\u00e1">+</button>'+link+'</div>';
-    const open=g && i===g.start ? '<div class="co-ss-group"><div class="co-ss-head">'+linkSvg+ssName(g)+' '+g.letter+'<span>una serie de cada uno, sin descanso entre medio</span></div>' : '';
+    const open=g && i===g.start ? '<div class="co-ss-group"><div class="co-ss-head">'+linkSvg+ssName(g)+' '+g.letter+'<button class="co-ss-split" data-coach="rt-ss-split" data-i="'+g.start+'">Separar</button><span>una serie de cada uno, sin descanso entre medio</span></div>' : '';
     const div=g && i>g.start ? '<div class="ss-div" aria-hidden="true"><span>sin descanso</span></div>' : '';
     return (g && i>g.start ? '' : gap)+open+(g && i>g.start ? gap+div : '')+exerciseCard(d, day, ex, i, rt)+(g && i===g.end ? '</div>' : '');
   }).join("");
