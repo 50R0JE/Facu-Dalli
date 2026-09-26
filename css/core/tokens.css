@@ -51,6 +51,9 @@ input::placeholder, textarea::placeholder { color: var(--txt-3); opacity:.7; }
 
 html, body { background: var(--bg); background-attachment: fixed; color: var(--txt); }
 
+/* La letra no se agranda sola al girar el teléfono ni por el zoom de texto del navegador:
+   el tamaño lo decide la app (en Android además se fija en MainActivity, setTextZoom). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { font-family: var(--gize-font); min-height: 100vh; overflow-x: hidden; }
 /* Botones y campos no heredan la fuente del body por defecto (el navegador les pone la
    del sistema: se veían en Arial). Los que usan la mono para datos la piden por clase. */
