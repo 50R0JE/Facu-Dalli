@@ -250,3 +250,13 @@ button.search-open { flex: 1; background: var(--card-2); border: 1px solid var(-
 .ss-results > *, .ss-results #offResults > * { flex-shrink: 0; }
 .ss-results #offResults { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
 .search-sheet .cal-create { margin: 10px 0 0; flex: none; }
+
+/* Meta diaria: macros a mano y la meta del coach */
+.form-sec { font-size: var(--text-emphasis); font-weight: 700; color: var(--gize-text); margin: 30px 0 4px; padding-top: 20px; border-top: 1px solid var(--border); }
+.macro-sum { font-size: var(--text-meta); color: var(--txt-2); margin: -4px 0 12px; }
+.macro-sum b { color: var(--gize-text); font-weight: 700; }
+.form-link { display: block; margin: 12px auto 0; background: none; border: none; color: var(--gize-blue); font: 600 var(--text-body) var(--gize-font); cursor: pointer; }
+.coach-goal { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.coach-goal div { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 2px; }
+.coach-goal b { font-size: 22px; font-weight: 700; color: var(--gize-text); font-variant-numeric: tabular-nums; }
+.coach-goal span { font-size: var(--text-meta); color: var(--txt-2); }

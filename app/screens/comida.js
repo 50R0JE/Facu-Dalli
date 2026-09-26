@@ -129,8 +129,16 @@ export function calcTarget(p){
   return Math.round(bmr*act*g);
 }
 
+// Macros puestos a mano en "Tu meta diaria" (van dentro de calProfile, que ya se sube a la nube).
+export function customMacros(){
+  const m = state.calProfile && state.calProfile.macros;
+  return m && (+m.p > 0 || +m.c > 0 || +m.f > 0) ? { p: +m.p||0, c: +m.c||0, f: +m.f||0 } : null;
+}
+export const macroKcal = m => Math.round((+m.p||0)*4 + (+m.c||0)*4 + (+m.f||0)*9);
+
 export function macroTargets(){
   if(state.coachPlan){ const p=state.coachPlan; return {p:+p.protein||0, c:+p.carbs||0, f:+p.fat||0}; }
+  const cm = customMacros(); if(cm) return cm;
   const t = state.calTarget||0;
   const w = state.calProfile && state.calProfile.weight ? +state.calProfile.weight : 0;
   let p = w>0 ? Math.round(w*2) : Math.round(t*0.30/4);
@@ -189,6 +197,7 @@ export function previewStr(food, grams){
 }
 
 export function renderCalForm(){
+  if (state.coachPlan) return renderCoachGoal();
   const c = ComidaState.calForm;
   const sb = (v,l)=>`<button class="${c.sex===v?'on':''}" data-action="cal-sex" data-val="${v}">${l}</button>`;
   const ab = (v,l)=>`<button class="${c.activity===v?'on':''}" data-action="cal-activity" data-val="${v}">${l}</button>`;
@@ -209,6 +218,36 @@ export function renderCalForm(){
     <div class="form-row2">
       <input id="calManual" class="form-input" type="text" inputmode="numeric" placeholder="kcal" value="${state.calTarget||''}">
       <button class="form-save" style="width:auto;padding-left:22px;padding-right:22px;margin-top:0" data-action="cal-manual">Guardar</button>
+    </div>
+    ${renderMacroForm()}`;
+}
+
+// Proteína, carbos y grasas a mano. Al guardar, la meta de calorías pasa a ser la suma de los
+// tres (4 kcal por gramo de proteína y de carbos, 9 por gramo de grasa), para que coincidan.
+function renderMacroForm(){
+  const m = macroTargets(), custom = !!customMacros();
+  const inp = (k, l) => `<div class="form-group"><label class="form-label">${l} (g)</label><input id="macro_${k}" class="form-input" type="text" inputmode="numeric" value="${m[k]||""}" data-action="macro-field"></div>`;
+  return `
+    <div class="form-sec">Macros diarios</div>
+    <div class="form-sub">${custom ? "Los pusiste a mano." : "Ahora se calculan solos a partir de tus calorías. Podés cambiarlos."}</div>
+    <div class="form-row2">${inp("p","Proteína")}${inp("c","Carbos")}${inp("f","Grasas")}</div>
+    <div class="macro-sum" id="macroSum">${macroSumText(m)}</div>
+    <button class="form-save" data-action="macro-save">Guardar macros</button>
+    ${custom ? '<button class="form-link" data-action="macro-auto">Volver a calcularlos solos</button>' : ""}`;
+}
+export function macroSumText(m){ return `Suman <b>${macroKcal(m).toLocaleString("es-AR")} kcal</b> por día`; }
+
+// Con plan del coach, la meta la fija el coach desde su panel.
+function renderCoachGoal(){
+  const p = state.coachPlan;
+  return `
+    <div class="form-head"><button class="form-back" data-action="cal-cancel">‹</button><div class="form-title">Tu meta diaria</div></div>
+    <div class="form-sub">Tu meta la fija tu coach. Si necesitás cambiarla, pedíselo: la actualiza desde su panel y te aparece acá.</div>
+    <div class="coach-goal">
+      <div><b>${(+p.kcal||0).toLocaleString("es-AR")||"-"}</b><span>kcal</span></div>
+      <div><b>${+p.protein||"-"}</b><span>Proteína (g)</span></div>
+      <div><b>${+p.carbs||"-"}</b><span>Carbos (g)</span></div>
+      <div><b>${+p.fat||"-"}</b><span>Grasas (g)</span></div>
     </div>`;
 }
 
